@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { useCart } from "../context/CartContext";
 import {
   ShoppingCart,
   User,
@@ -21,15 +22,15 @@ const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const [cartCount] = useState(2);
   const profileRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
 
   const { user, logout } = useAuth();
+  const { cartCount } = useCart(); // ← DYNAMIC CART COUNT
 
   const userNavLinks = [
-    { name: "Shop Now" , path: "/products" },
+    { name: "Shop Now", path: "/products" },
     { name: "Trending Products", path: "/trending" },
     { name: "New Arrivals", path: "/new-arrivals" },
   ];
@@ -115,7 +116,6 @@ const Navbar = () => {
                       style={{ color: "#4648d4" }}
                     />
                     {link.name}
-                    {/* Dash underline - active state */}
                     <span
                       className={`absolute -bottom-0.5 left-0 h-0.5 bg-[#4648d4] transition-all duration-300 ${
                         isActive(link.path)
@@ -138,7 +138,6 @@ const Navbar = () => {
                     }}
                   >
                     {link.name}
-                    {/* Dash underline - active state */}
                     <span
                       className={`absolute -bottom-0.5 left-0 h-0.5 bg-[#4648d4] transition-all duration-300 ${
                         isActive(link.path)
@@ -179,20 +178,14 @@ const Navbar = () => {
           <div className="flex items-center gap-3">
             {/* Cart - only for non-admin users */}
             {!isAdmin && (
-              <Link
-                to="/cart"
-                className="relative p-2 rounded-full transition-colors hover:bg-[#f5f2fe]"
-              >
+              <Link to="/cart" className="relative">
                 <ShoppingCart
-                  className="w-5 h-5"
-                  style={{ color: "#464554" }}
+                  size={22}
+                  className="text-[#464554] hover:text-[#4648d4] transition-colors"
                 />
                 {cartCount > 0 && (
-                  <span
-                    className="absolute -top-0.5 -right-0.5 text-white text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full"
-                    style={{ backgroundColor: "#4648d4" }}
-                  >
-                    {cartCount}
+                  <span className="absolute -top-2 -right-2 w-5 h-5 bg-[#4648d4] text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                    {cartCount > 99 ? "99+" : cartCount}
                   </span>
                 )}
               </Link>
@@ -229,7 +222,6 @@ const Navbar = () => {
                       borderColor: "rgba(255, 255, 255, 0.4)",
                     }}
                   >
-                    {/* User Info */}
                     <div
                       className="px-5 py-4 border-b"
                       style={{ borderColor: "rgba(199, 196, 215, 0.3)" }}
@@ -268,14 +260,14 @@ const Navbar = () => {
                       </div>
                     </div>
 
-                    {/* Actions */}
                     <div className="p-2 space-y-1">
-                      <button
-                        className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-left transition-colors hover:bg-[#f5f2fe] opacity-60 cursor-not-allowed"
-                        disabled
+                      <Link
+                        to="/change-password"
+                        onClick={() => setIsProfileOpen(false)}
+                        className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-left transition-colors hover:bg-[#f5f2fe]"
                       >
                         <Lock
-                          className="w-5 h-4"
+                          className="w-4 h-4"
                           style={{ color: "#767586" }}
                         />
                         <span
@@ -285,24 +277,9 @@ const Navbar = () => {
                             color: "#464554",
                           }}
                         >
-                          <Link
-                            to="/change-password"
-                            className="w-full flex items-center gap-1 px-2 py-2 rounded-xl text-left transition-colors hover:bg-[#f5f2fe]"
-                            onClick={() => setIsProfileOpen(false)}
-                            style={{ textDecoration: "none" }}
-                          >
-                            <span
-                              style={{
-                                fontFamily: "Be Vietnam Pro, sans-serif",
-                                fontSize: "14px",
-                                color: "#464554",
-                              }}
-                            >
-                              Change Password
-                            </span>
-                          </Link>
+                          Change Password
                         </span>
-                      </button>
+                      </Link>
 
                       <button
                         onClick={handleLogout}

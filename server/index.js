@@ -7,6 +7,8 @@ import authrouters from "./routers/authrouters.js";
 import adminRouters from "./routers/adminRouters.js";
 import uploadRouter from "./routers/uploadRouters.js";
 import productRoutes from "./routers/productRouters.js";
+import cartRouter from "./routers/cartRouters.js";
+
 import path from "path";
 import { fileURLToPath } from "url";
 import fs from "fs";
@@ -30,7 +32,12 @@ app.use("/upload", uploadRouter);
 app.use("/products", productRoutes);
 
 // ============================================
-// Static Files & Catch-All 
+// Cart Routes
+// ============================================
+app.use("/cart", cartRouter);
+
+// ============================================
+// Static Files & Catch-All
 // ============================================
 const distPath = path.join(__dirname, "../vyntra/dist");
 

@@ -5,6 +5,7 @@ import {
   Navigate,
   useLocation,
 } from "react-router-dom";
+import { Toaster } from "react-hot-toast";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
@@ -18,6 +19,8 @@ import AdminDashBoard from "./pages/AdminDashBoard";
 import ChangePasswordPage from "./pages/ChangePasswordPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import Products from "./pages/ProductsPage";
+import CartPage from "./pages/CartPage";
+import { CartProvider } from "./context/CartContext";
 
 const ProtectedRoute = ({ children, adminOnly = false }) => {
   const { user, loading } = useAuth();
@@ -126,18 +129,6 @@ const AppRoutes = () => {
           </UserLayout>
         }
       />
-      {/* <Route
-        path="/collections"
-        element={
-          <ProtectedRoute>
-            <UserLayout>
-              <div className="pt-20 p-8 text-center">
-                Collections Page Coming Soon
-              </div>
-            </UserLayout>
-          </ProtectedRoute>
-        }
-      /> */}
       <Route
         path="/new-arrivals"
         element={
@@ -150,12 +141,13 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
+
       <Route
         path="/cart"
         element={
           <ProtectedRoute>
             <UserLayout>
-              <div className="pt-20 p-8 text-center">Cart Page Coming Soon</div>
+              <CartPage />
             </UserLayout>
           </ProtectedRoute>
         }
@@ -182,9 +174,44 @@ const AppRoutes = () => {
 function App() {
   return (
     <AuthProvider>
-      <Router>
-        <AppRoutes />
-      </Router>
+      <CartProvider>
+        <Toaster
+          position="top-right"
+          toastOptions={{
+            duration: 3000,
+            style: {
+              fontFamily: "'Be Vietnam Pro', sans-serif",
+              fontSize: "14px",
+              borderRadius: "12px",
+            },
+            success: {
+              style: {
+                background: "#ecfdf5",
+                color: "#059669",
+                border: "1px solid #a7f3d0",
+              },
+              iconTheme: {
+                primary: "#059669",
+                secondary: "#ecfdf5",
+              },
+            },
+            error: {
+              style: {
+                background: "#fef2f2",
+                color: "#dc2626",
+                border: "1px solid #fecaca",
+              },
+              iconTheme: {
+                primary: "#dc2626",
+                secondary: "#fef2f2",
+              },
+            },
+          }}
+        />
+        <Router>
+          <AppRoutes />
+        </Router>
+      </CartProvider>
     </AuthProvider>
   );
 }

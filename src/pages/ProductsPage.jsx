@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import ProductDetailsModal from "../components/ProductDetailsModal";
+import { useCart } from "../context/CartContext";
 import {
   ShoppingCart,
   Heart,
@@ -12,6 +13,7 @@ import {
   Package,
 } from "lucide-react";
 import axios from "axios";
+import toast from "react-hot-toast";
 
 const api = axios.create({
   baseURL: "",
@@ -26,7 +28,6 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Animation variants
 const fadeInUp = {
   hidden: { opacity: 0, y: 30 },
   visible: (i) => ({
@@ -50,20 +51,6 @@ const staggerContainer = {
   },
 };
 
-const cardHover = {
-  rest: { y: 0, boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.05)" },
-  hover: {
-    y: -8,
-    boxShadow: "0 20px 40px -10px rgba(0, 0, 0, 0.1)",
-    transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] },
-  },
-};
-
-const imageHover = {
-  rest: { scale: 1 },
-  hover: { scale: 1.08, transition: { duration: 0.6, ease: "easeOut" } },
-};
-
 const Products = () => {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState(["All"]);
@@ -73,12 +60,26 @@ const Products = () => {
   const [error, setError] = useState(null);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const { updateCartCount } = useCart();
 
-  // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const productsPerPage = 12;
 
-  // Fetch products from backend
+  const fetchCartCount = async () => {
+    try {
+      const res = await api.get("/cart");
+      if (res.data.success) {
+        const totalItems = res.data.cart.products.reduce(
+          (sum, item) => sum + item.quantity,
+          0
+        );
+        updateCartCount(totalItems);
+      }
+    } catch (err) {
+      updateCartCount(0);
+    }
+  };
+
   const fetchProducts = async (category = "All") => {
     try {
       setLoading(true);
@@ -103,7 +104,6 @@ const Products = () => {
     }
   };
 
-  // Fetch categories
   const fetchCategories = async () => {
     try {
       const res = await api.get("/products/categories");
@@ -125,13 +125,35 @@ const Products = () => {
   useEffect(() => {
     fetchCategories();
     fetchProducts();
+    fetchCartCount();
   }, []);
 
   useEffect(() => {
     fetchProducts(activeCategory);
   }, [activeCategory]);
 
-  // Client-side search filter
+  const handleAddToCart = async (product, e) => {
+    e.stopPropagation();
+    try {
+      const res = await api.post("/cart/add", {
+        productId: product._id,
+        quantity: 1,
+        size: product.size,
+        color: product.color,
+      });
+      if (res.data.success) {
+        const totalItems = res.data.cart.products.reduce(
+          (sum, item) => sum + item.quantity,
+          0
+        );
+        updateCartCount(totalItems);
+        toast.success(`${product.title.slice(0, 20)}... added to bag`);
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to add to cart");
+    }
+  };
+
   const filteredProducts = products.filter((product) => {
     if (!searchQuery) return true;
     const q = searchQuery.toLowerCase();
@@ -142,7 +164,6 @@ const Products = () => {
     );
   });
 
-  // Pagination
   const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
   const startIndex = (currentPage - 1) * productsPerPage;
   const paginatedProducts = filteredProducts.slice(
@@ -161,7 +182,6 @@ const Products = () => {
       {/* Hero Banner */}
       <section className="relative h-125 md:h-155 overflow-hidden flex items-center mt-4 mb-9">
         <div className="absolute inset-0 z-0">
-          {/* Keep the zoom animation */}
           <motion.div
             initial={{ scale: 1 }}
             animate={{ scale: 1.15 }}
@@ -183,9 +203,6 @@ const Products = () => {
               }}
             />
           </motion.div>
-
-          {/* Dark overlay for text readability */}
-          {/* {/* <div className="absolute inset-0 bg-gradient-to-r from-black/35 via-black/10 to-transparent" /> */}
           <div className="absolute inset-0 bg-linear-to-t from-black/50 via-transparent to-transparent" />
         </div>
 
@@ -301,6 +318,8 @@ const Products = () => {
                   const stockInfo = getStockStatus(
                     parseInt(product.stock) || 0
                   );
+                  const isOutOfStock = parseInt(product.stock) === 0;
+
                   return (
                     <motion.div
                       key={product._id}
@@ -323,7 +342,6 @@ const Products = () => {
                       }}
                       className="group relative bg-white/40 rounded-2xl overflow-hidden border border-white/60 cursor-pointer transition-shadow duration-500"
                     >
-                      {/* Image */}
                       <div className="aspect-4/5 relative overflow-hidden">
                         <motion.img
                           whileHover={{ scale: 1.08 }}
@@ -340,7 +358,6 @@ const Products = () => {
                           }}
                         />
 
-                        {/* Badges */}
                         {product.stock <= 5 && product.stock > 0 && (
                           <span className="absolute top-3 left-3 bg-amber-500 text-white font-['Geist'] text-[10px] px-3 py-1 rounded-full uppercase tracking-wider">
                             Low Stock
@@ -352,7 +369,6 @@ const Products = () => {
                           </span>
                         )}
 
-                        {/* Favorite Button */}
                         <motion.button
                           initial={{ opacity: 0, y: 10 }}
                           whileHover={{ scale: 1.1 }}
@@ -366,7 +382,6 @@ const Products = () => {
                         </motion.button>
                       </div>
 
-                      {/* Content */}
                       <div className="p-4">
                         <p className="font-['Inter'] text-xs font-semibold tracking-[0.18em] uppercase text-[#4648d4] mb-2">
                           {product.categories}
@@ -392,13 +407,16 @@ const Products = () => {
                         <motion.button
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.95 }}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                          }}
-                          className="w-full mt-3 py-2.5 rounded-xl bg-[#4648d4]/10 text-[#4648d4] text-sm font-medium hover:bg-[#4648d4] hover:text-white transition-all duration-300 flex items-center justify-center gap-2 font-['Be_Vietnam_Pro']"
+                          onClick={(e) => handleAddToCart(product, e)}
+                          disabled={isOutOfStock}
+                          className={`w-full mt-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 flex items-center justify-center gap-2 font-['Be_Vietnam_Pro'] ${
+                            isOutOfStock
+                              ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                              : "bg-[#4648d4]/10 text-[#4648d4] hover:bg-[#4648d4] hover:text-white"
+                          }`}
                         >
                           <ShoppingCart size={14} />
-                          Add to Cart
+                          {isOutOfStock ? "Out of Stock" : "Add to Cart"}
                         </motion.button>
                       </div>
                     </motion.div>
@@ -407,7 +425,6 @@ const Products = () => {
               </AnimatePresence>
             </motion.div>
 
-            {/* Pagination */}
             {totalPages > 1 && (
               <motion.div
                 initial={{ opacity: 0 }}

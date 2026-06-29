@@ -21,6 +21,7 @@ export default defineConfig({
       "/admin": proxyConfig,
       "/upload": proxyConfig,
       "/products": proxyConfig,
+      "/cart": proxyConfig,
     },
   },
 });

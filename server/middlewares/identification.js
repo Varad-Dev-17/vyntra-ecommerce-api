@@ -2,7 +2,11 @@ import jwt from "jsonwebtoken";
 
 export const identifier = (req, res, next) => {
   let token;
-  if (req.headers.client === "not-browser") {
+
+  // Check Authorization header first (for API calls from frontend)
+  if (req.headers.authorization) {
+    token = req.headers.authorization;
+  } else if (req.headers.client === "not-browser") {
     token = req.headers.authorization;
   } else {
     token = req.cookies["Authorization"];
