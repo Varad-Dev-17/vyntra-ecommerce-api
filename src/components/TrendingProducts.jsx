@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { ShoppingCart, Heart, Star } from "lucide-react";
-import { useCylinderGallery } from "../animations/useCylinderGallery";
+import BandOne from "./trendingProductsComponents/bandOne.jsx";
+import BandTwo from "./trendingProductsComponents/bandTwo.jsx";
+import BandThree from "./trendingProductsComponents/bandThree.jsx";
 
 const products = [
   {
@@ -108,159 +110,6 @@ const formatPrice = (price) =>
     maximumFractionDigits: 0,
   }).format(price);
 
-const DesktopCard = ({ product, style, liked, toggleLike }) => {
-  const { x, y, z, rotateY, scale, opacity, zIndex, isActive } = style;
-
-  const transform = `translateX(calc(-50% + ${x}px)) translateY(calc(-50% + ${y}px)) scale(${scale}) rotateY(${rotateY}deg) translateZ(${z}px)`;
-
-  return (
-    <div
-      className="absolute left-1/2 top-1/2"
-      style={{
-        transform,
-        opacity,
-        zIndex,
-        transformStyle: "preserve-3d",
-        transition: "transform 0.08s linear, opacity 0.15s ease",
-        willChange: "transform, opacity",
-        pointerEvents: isActive ? "auto" : "none",
-      }}
-    >
-      <div
-        className="rounded-2xl overflow-hidden relative"
-        style={{
-          width: isActive ? 300 : 220,
-          height: isActive ? 400 : 300,
-          background: isActive
-            ? "rgba(255,255,255,0.95)"
-            : "rgba(255,255,255,0.6)",
-          backdropFilter: "blur(20px)",
-          WebkitBackdropFilter: "blur(20px)",
-          border: isActive
-            ? "1.5px solid rgba(70,72,212,0.2)"
-            : "1px solid rgba(255,255,255,0.3)",
-          boxShadow: isActive
-            ? "0 25px 60px rgba(70,72,212,0.18)"
-            : "0 6px 20px rgba(0,0,0,0.06)",
-          transition:
-            "width 0.3s ease, height 0.3s ease, background 0.3s ease, box-shadow 0.3s ease",
-        }}
-      >
-        <div
-          className="relative overflow-hidden"
-          style={{
-            height: isActive ? 210 : 155,
-            transition: "height 0.3s ease",
-          }}
-        >
-          <img
-            src={product.image}
-            alt={product.name}
-            className="w-full h-full object-cover"
-            style={{
-              filter: isActive ? "none" : "brightness(0.88)",
-              transition: "filter 0.4s ease",
-            }}
-          />
-          {!isActive && (
-            <div className="absolute inset-0 bg-linear-to-t from-white/50 to-transparent" />
-          )}
-
-          {isActive && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                toggleLike(product.id);
-              }}
-              className="absolute top-3 right-3 p-2.5 rounded-full"
-              style={{
-                background: "rgba(255,255,255,0.9)",
-                backdropFilter: "blur(10px)",
-              }}
-            >
-              <Heart
-                className={`w-4 h-4 ${
-                  liked[product.id]
-                    ? "fill-[#4648D4] text-[#4648D4]"
-                    : "text-[#4648D4]"
-                }`}
-              />
-            </button>
-          )}
-
-          <div
-            className="absolute top-3 left-3 px-2.5 py-1 rounded-full text-[9px] font-bold tracking-widest uppercase"
-            style={{
-              background: isActive
-                ? "rgba(70,72,212,0.9)"
-                : "rgba(70,72,212,0.5)",
-              color: "white",
-              fontFamily: "'Geist', sans-serif",
-              transition: "background 0.3s ease",
-            }}
-          >
-            {product.category}
-          </div>
-        </div>
-
-        <div className="p-4">
-          <h3
-            className="font-bold text-[#1B1B23] font-['Manrope'] line-clamp-1"
-            style={{
-              fontSize: isActive ? 16 : 12,
-              transition: "font-size 0.3s ease",
-            }}
-          >
-            {product.name}
-          </h3>
-
-          {isActive && (
-            <div className="flex items-center gap-1 mt-2">
-              {[...Array(5)].map((_, i) => (
-                <Star
-                  key={i}
-                  className={`w-3.5 h-3.5 ${
-                    i < Math.floor(product.rating)
-                      ? "text-amber-400 fill-amber-400"
-                      : "text-gray-300"
-                  }`}
-                />
-              ))}
-              <span className="text-[11px] text-[#767586] ml-1">
-                {product.rating} ({product.reviews})
-              </span>
-            </div>
-          )}
-
-          {isActive && (
-            <p className="text-[11px] text-[#767586] mt-2 line-clamp-2 font-['Be Vietnam Pro'] leading-relaxed">
-              {product.description}
-            </p>
-          )}
-
-          <div className="mt-3 flex justify-between items-center">
-            <span
-              className="font-bold text-[#1B1B23] font-['Manrope']"
-              style={{
-                fontSize: isActive ? 20 : 14,
-                transition: "font-size 0.3s ease",
-              }}
-            >
-              {formatPrice(product.price)}
-            </span>
-            {isActive && (
-              <button className="flex items-center gap-2 px-4 py-2 rounded-lg text-white text-[11px] font-semibold bg-[#4648D4] hover:bg-[#3a3cb8] transition-colors">
-                <ShoppingCart className="w-3.5 h-3.5" />
-                Add
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
 const MobileCard = ({ product, liked, toggleLike }) => (
   <motion.div
     initial={{ opacity: 0, y: 30 }}
@@ -320,18 +169,16 @@ const MobileCard = ({ product, liked, toggleLike }) => (
 
 const TrendingProducts = () => {
   const [liked, setLiked] = useState({});
-  const { getItemStyle } = useCylinderGallery(products.length, 0.5);
-
   const toggleLike = (id) => setLiked((prev) => ({ ...prev, [id]: !prev[id] }));
 
   return (
-    <section className="bg-[#FCF8FF] pt-20 overflow-hidden">
+    <section className="bg-[#FCF8FF] pt-20 pb-24 overflow-hidden min-h-screen">
       <div className="max-w-[1600px] mx-auto px-4 md:px-8">
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7 }}
-          className="text-center mb-16"
+          className="text-center mb-20"
         >
           <span
             className="inline-block px-4 py-1.5 rounded-full text-[11px] font-bold tracking-[0.2em] uppercase mb-5"
@@ -355,23 +202,14 @@ const TrendingProducts = () => {
           </p>
         </motion.div>
 
-        <div className="hidden md:block">
-          <div className="h-20" />
-          <div
-            className="relative flex items-center justify-center"
-            style={{ perspective: 1400, height: 480 }}
-          >
-            {products.map((product, index) => (
-              <DesktopCard
-                key={product.id}
-                product={product}
-                style={getItemStyle(index)}
-                liked={liked}
-                toggleLike={toggleLike}
-              />
-            ))}
-          </div>
-          <div className="h-28" />
+        <div className="hidden md:block space-y-6">
+          <BandOne products={products} liked={liked} toggleLike={toggleLike} />
+          <BandTwo products={products} liked={liked} toggleLike={toggleLike} />
+          <BandThree
+            products={products}
+            liked={liked}
+            toggleLike={toggleLike}
+          />
         </div>
 
         <div className="md:hidden grid grid-cols-2 gap-4 pb-16">
