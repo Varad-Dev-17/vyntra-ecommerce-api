@@ -18,16 +18,21 @@ import {
   ShoppingBag,
 } from "lucide-react";
 
+import logo from "../../public/Logo/logo.png";
+
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [pastHero, setPastHero] = useState(false);
   const profileRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
 
   const { user, logout } = useAuth();
-  const { cartCount } = useCart(); // ← DYNAMIC CART COUNT
+  const { cartCount } = useCart();
+
+  const isHomePage = location.pathname === "/home";
+  const isAdmin = user?.isAdmin;
 
   const userNavLinks = [
     { name: "Shop Now", path: "/products" },
@@ -54,11 +59,18 @@ const Navbar = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Scroll listener: transparent BEFORE and OVER hero, solid AFTER hero
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
+      const scrollY = window.scrollY;
+      const heroHeight = window.innerHeight; // Hero is h-screen = 100vh
+
+      // If scrolled past the hero section
+      setPastHero(scrollY >= heroHeight - 80); // 80px = navbar height buffer
     };
+
     window.addEventListener("scroll", handleScroll);
+    handleScroll(); // Check on mount
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
@@ -68,14 +80,31 @@ const Navbar = () => {
     navigate("/signin");
   };
 
-  const isAdmin = user?.isAdmin;
+  // Determine if navbar should be transparent
+  // TRUE = transparent (before + over hero on home page, not admin)
+  // FALSE = solid white (after hero, or not on home, or admin)
+  const isTransparent = isHomePage && !isAdmin && !pastHero;
+
+  // Text color based on transparency
+  const textColor = isTransparent ? "#ffffff" : "#464554";
+  const activeColor = isTransparent ? "#ffffff" : "#4648d4";
+  const underlineColor = isTransparent ? "#ffffff" : "#4648d4";
+  const iconColor = isTransparent ? "#ffffff" : "#464554";
+  const searchBg = isTransparent
+    ? "rgba(255,255,255,0.15)"
+    : "rgba(255,255,255,0.6)";
+  const searchBorder = isTransparent
+    ? "1px solid rgba(255,255,255,0.2)"
+    : "1px solid rgba(30,41,59,0.1)";
+  const searchTextColor = isTransparent ? "#ffffff" : "#1b1b23";
+  const searchIconColor = isTransparent ? "rgba(255,255,255,0.7)" : "#767586";
 
   return (
     <nav
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        isScrolled || isAdmin
-          ? "bg-white/70 backdrop-blur-xl shadow-lg border-b border-white/20 "
-          : "bg-transparent"
+        isTransparent
+          ? "bg-transparent"
+          : "bg-white/95 shadow-lg border-b border-gray-100/50 backdrop-blur-md"
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -85,16 +114,7 @@ const Navbar = () => {
             to={isAdmin ? "/admin/dashboard" : "/home"}
             className="flex items-center gap-2"
           >
-            <span
-              className="text-3xl font-bold tracking-tight"
-              style={{
-                fontFamily: "Manrope, sans-serif",
-                color: "#4648d4",
-                letterSpacing: "-0.01em",
-              }}
-            >
-              Vyntra
-            </span>
+            <img src={logo} alt="logo" className="h-12 w-full" />
           </Link>
 
           {/* Desktop Nav Links */}
@@ -134,17 +154,20 @@ const Navbar = () => {
                     style={{
                       fontFamily: "Be Vietnam Pro, sans-serif",
                       fontSize: "16px",
-                      color: isActive(link.path) ? "#4648d4" : "#464554",
+                      color: isActive(link.path) ? activeColor : textColor,
                     }}
                   >
                     {link.name}
                     <span
-                      className={`absolute -bottom-0.5 left-0 h-0.5 bg-[#4648d4] transition-all duration-300 ${
+                      className={`absolute -bottom-0.5 left-0 h-0.5 transition-all duration-300 ${
                         isActive(link.path)
                           ? "w-full"
                           : "w-0 group-hover:w-full"
                       }`}
-                      style={{ borderRadius: "2px" }}
+                      style={{
+                        borderRadius: "2px",
+                        background: underlineColor,
+                      }}
                     />
                   </Link>
                 ))}
@@ -156,7 +179,7 @@ const Navbar = () => {
               <div className="relative w-full">
                 <Search
                   className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4"
-                  style={{ color: "#767586" }}
+                  style={{ color: searchIconColor }}
                 />
                 <input
                   type="text"
@@ -164,9 +187,9 @@ const Navbar = () => {
                   className="w-full pl-10 pr-4 py-2 rounded-full focus:outline-none focus:ring-2 text-sm transition-all"
                   style={{
                     fontFamily: "Be Vietnam Pro, sans-serif",
-                    background: "rgba(255, 255, 255, 0.6)",
-                    border: "1px solid rgba(30, 41, 59, 0.1)",
-                    color: "#1b1b23",
+                    background: searchBg,
+                    border: searchBorder,
+                    color: searchTextColor,
                     "--tw-ring-color": "#4648d4",
                   }}
                 />
@@ -181,7 +204,8 @@ const Navbar = () => {
               <Link to="/cart" className="relative">
                 <ShoppingCart
                   size={22}
-                  className="text-[#464554] hover:text-[#4648d4] transition-colors"
+                  className="transition-colors"
+                  style={{ color: iconColor }}
                 />
                 {cartCount > 0 && (
                   <span className="absolute -top-2 -right-2 w-5 h-5 bg-[#4648d4] text-white text-[10px] font-bold rounded-full flex items-center justify-center">
@@ -196,18 +220,24 @@ const Navbar = () => {
               <div className="relative" ref={profileRef}>
                 <button
                   onClick={() => setIsProfileOpen(!isProfileOpen)}
-                  className="flex items-center gap-1 p-2 rounded-full transition-colors hover:bg-[#f5f2fe]"
+                  className={`flex items-center gap-1 p-2 rounded-full transition-colors ${
+                    isTransparent ? "hover:bg-white/10" : "hover:bg-[#f5f2fe]"
+                  }`}
                 >
                   <UserCircle
                     className="w-6 h-6"
-                    style={{ color: "#4648d4" }}
-                    fill="rgba(70, 72, 212, 0.1)"
+                    style={{ color: isTransparent ? "#ffffff" : "#4648d4" }}
+                    fill={
+                      isTransparent
+                        ? "rgba(255,255,255,0.1)"
+                        : "rgba(70, 72, 212, 0.1)"
+                    }
                   />
                   <ChevronDown
                     className={`w-4 h-4 transition-transform duration-200 ${
                       isProfileOpen ? "rotate-180" : ""
                     }`}
-                    style={{ color: "#767586" }}
+                    style={{ color: isTransparent ? "#ffffff" : "#767586" }}
                   />
                 </button>
 
@@ -216,7 +246,7 @@ const Navbar = () => {
                   <div
                     className="absolute right-0 mt-2 w-64 rounded-2xl overflow-hidden shadow-xl border"
                     style={{
-                      background: "rgba(255, 255, 255, 0.9)",
+                      background: "rgba(255, 255, 255, 0.95)",
                       backdropFilter: "blur(16px)",
                       WebkitBackdropFilter: "blur(16px)",
                       borderColor: "rgba(255, 255, 255, 0.4)",
@@ -310,9 +340,16 @@ const Navbar = () => {
                 className="hidden md:flex items-center gap-2 px-5 py-2 rounded-full text-white font-semibold text-sm transition-all hover:scale-105 active:scale-95"
                 style={{
                   fontFamily: "Manrope, sans-serif",
-                  background:
-                    "linear-gradient(135deg, #4648d4 0%, #6b38d4 100%)",
-                  boxShadow: "0 4px 16px rgba(70, 72, 212, 0.25)",
+                  background: isTransparent
+                    ? "rgba(255, 255, 255, 0.2)"
+                    : "linear-gradient(135deg, #4648d4 0%, #6b38d4 100%)",
+                  border: isTransparent
+                    ? "1px solid rgba(255,255,255,0.3)"
+                    : "none",
+                  boxShadow: isTransparent
+                    ? "none"
+                    : "0 4px 16px rgba(70, 72, 212, 0.25)",
+                  backdropFilter: isTransparent ? "blur(8px)" : "none",
                 }}
               >
                 <User className="w-4 h-4" />
@@ -323,12 +360,20 @@ const Navbar = () => {
             {/* Mobile Menu Button */}
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="md:hidden p-2 rounded-lg transition-colors hover:bg-[#f5f2fe]"
+              className={`md:hidden p-2 rounded-lg transition-colors ${
+                isTransparent ? "hover:bg-white/10" : "hover:bg-[#f5f2fe]"
+              }`}
             >
               {isMenuOpen ? (
-                <X className="w-5 h-5" style={{ color: "#464554" }} />
+                <X
+                  className="w-5 h-5"
+                  style={{ color: isTransparent ? "#ffffff" : "#464554" }}
+                />
               ) : (
-                <Menu className="w-5 h-5" style={{ color: "#464554" }} />
+                <Menu
+                  className="w-5 h-5"
+                  style={{ color: isTransparent ? "#ffffff" : "#464554" }}
+                />
               )}
             </button>
           </div>

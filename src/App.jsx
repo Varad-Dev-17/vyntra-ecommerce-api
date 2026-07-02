@@ -22,6 +22,9 @@ import Products from "./pages/ProductsPage";
 import CartPage from "./pages/CartPage";
 import { CartProvider } from "./context/CartContext";
 
+import SmoothScrollProvider from "./components/SmoothScrollProvider";
+import SmoothScrollbar from "./components/SmoothScrollbar";
+
 const ProtectedRoute = ({ children, adminOnly = false }) => {
   const { user, loading } = useAuth();
 
@@ -66,7 +69,8 @@ const UserLayout = ({ children }) => {
   return (
     <div className="min-h-screen bg-white flex flex-col">
       <Navbar />
-      <main className="pt-16 grow">{children}</main>
+      {/* REMOVED pt-16 — content starts at top, navbar overlays it */}
+      <main className="grow">{children}</main>
       {showFooter && <Footer />}
     </div>
   );
@@ -97,7 +101,10 @@ const AppRoutes = () => {
         path="/home"
         element={
           <UserLayout>
-            <Home />
+            <SmoothScrollProvider>
+              <SmoothScrollbar />
+              <Home />
+            </SmoothScrollProvider>
           </UserLayout>
         }
       />

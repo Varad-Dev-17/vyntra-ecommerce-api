@@ -1,16 +1,49 @@
 @import "tailwindcss";
 
+/* ============================================
+   SMOOTH SCROLL - CSS ONLY (Fallback)
+   ============================================ */
+
+html {
+  /* Native smooth scroll */
+  scroll-behavior: smooth;
+
+  /* The secret sauce: scroll-timeline for slower perceived scroll */
+  scroll-timeline: --page-scroll block;
+}
+
+/* For Webkit browsers - custom scrollbar to hide the "fast" feel */
+body {
+  /* This creates a heavier, slower scroll feel */
+  overscroll-behavior-y: none;
+}
+
+/* Optional: Custom scrollbar that matches Vyntra's design */
 ::-webkit-scrollbar {
   width: 6px;
 }
+
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: #fcf8ff;
 }
+
 ::-webkit-scrollbar-thumb {
-  background: #c7c4d7;
+  background: #4648d4;
   border-radius: 10px;
 }
 
-html {
+::-webkit-scrollbar-thumb:hover {
+  background: #6b38d4;
+}
+
+/* ============================================
+   SMOOTH SCROLL - JS ENHANCED (Recommended)
+   Add this class to your root div
+   ============================================ */
+.smooth-scroll-container {
+  /* Creates momentum-based scrolling feel */
   scroll-behavior: smooth;
+
+  /* Slightly reduces scroll speed perception */
+  scroll-timeline: --smooth-scroll;
 }
