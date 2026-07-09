@@ -29,7 +29,7 @@ const GST_RATES = {
 };
 
 const calculateGST = (price, category, subcategory = "") => {
-  const normalizedCategory = category.toLowerCase().trim();
+  const normalizedCategory = category?.toLowerCase().trim() || "fashion";
   const rateConfig = GST_RATES[normalizedCategory];
 
   if (!rateConfig)
@@ -66,10 +66,14 @@ const calculateCartTotals = (items) => {
   const itemBreakdown = items.map((item) => {
     const price = parseFloat(item.price) || 0;
     const itemTotal = price * item.quantity;
+    
+    // Safely extract category string if it's an object from populate
+    const categoryName = typeof item.category === "object" ? item.category?.name : item.category;
+    
     const gst = calculateGST(
       price,
-      item.categories || item.category || "fashion",
-      item.subcategory || ""
+      categoryName || "fashion",
+      ""
     );
 
     const itemTax = itemTotal * gst.rate;
@@ -104,7 +108,7 @@ const calculateCartTotals = (items) => {
 };
 
 const CartPage = () => {
-  const [cart, setCart] = useState(null);
+  const [cart, setCart] = useState({ items: [], totalAmount: 0, itemCount: 0 });
   const [loading, setLoading] = useState(true);
   const { updateCartCount } = useCart();
 
@@ -116,12 +120,8 @@ const CartPage = () => {
     try {
       const res = await api.get("/cart");
       if (res.data.success) {
-        setCart(res.data.cart);
-        const totalItems = res.data.cart.products.reduce(
-          (sum, item) => sum + item.quantity,
-          0
-        );
-        updateCartCount(totalItems);
+        setCart(res.data.data);
+        updateCartCount(res.data.data.itemCount);
       }
     } catch (err) {
       toast.error("Failed to load cart");
@@ -133,18 +133,12 @@ const CartPage = () => {
   const updateQuantity = async (productId, newQty) => {
     if (newQty < 1) return;
     try {
-      const res = await api.put("/cart/update", {
-        productId,
+      const res = await api.put(`/cart/${productId}`, {
         quantity: newQty,
       });
       if (res.data.success) {
-        setCart(res.data.cart);
-        const totalItems = res.data.cart.products.reduce(
-          (sum, item) => sum + item.quantity,
-          0
-        );
-        updateCartCount(totalItems);
-        toast.success("Quantity updated");
+        setCart(res.data.data);
+        updateCartCount(res.data.data.itemCount);
       }
     } catch (err) {
       toast.error(err.response?.data?.message || "Update failed");
@@ -153,14 +147,10 @@ const CartPage = () => {
 
   const removeItem = async (productId) => {
     try {
-      const res = await api.delete(`/cart/remove/${productId}`);
+      const res = await api.delete(`/cart/${productId}`);
       if (res.data.success) {
-        setCart(res.data.cart);
-        const totalItems = res.data.cart.products.reduce(
-          (sum, item) => sum + item.quantity,
-          0
-        );
-        updateCartCount(totalItems);
+        setCart(res.data.data);
+        updateCartCount(res.data.data.itemCount);
         toast.success("Item removed");
       }
     } catch (err) {
@@ -173,7 +163,7 @@ const CartPage = () => {
     try {
       const res = await api.delete("/cart/clear");
       if (res.data.success) {
-        setCart({ ...cart, products: [] });
+        setCart(res.data.data);
         updateCartCount(0);
         toast.success("Bag cleared");
       }
@@ -190,12 +180,12 @@ const CartPage = () => {
     );
   }
 
-  const cartItems = cart?.products || [];
+  const cartItems = cart.items || [];
+  
+  // Flatten item.product into the item object for UI
   const populatedItems = cartItems.map((item) => ({
-    ...item.productId,
+    ...item.product,
     quantity: item.quantity,
-    size: item.size,
-    color: item.color,
   }));
 
   const totals = calculateCartTotals(populatedItems);
@@ -249,7 +239,7 @@ const CartPage = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-          {/* Cart Items - wider column */}
+          {/* Cart Items */}
           <div className="lg:col-span-3 space-y-4">
             <AnimatePresence>
               {populatedItems.map((item) => (
@@ -263,7 +253,7 @@ const CartPage = () => {
                 >
                   <div className="w-28 h-28 rounded-xl overflow-hidden bg-gray-100 shrink-0">
                     <img
-                      src={item.img}
+                      src={item.images?.[0] || "https://via.placeholder.com/150"}
                       alt={item.title}
                       className="w-full h-full object-cover"
                     />
@@ -275,11 +265,13 @@ const CartPage = () => {
                         <h3 className="font-semibold text-[#1a1a2e] font-['Manrope'] truncate">
                           {item.title}
                         </h3>
-                        <p className="text-sm text-gray-500 mt-1">
-                          {item.color} / Size {item.size}
-                        </p>
+                        {item.brand?.name && (
+                          <p className="text-sm text-gray-500 mt-1">
+                            Brand: {item.brand.name}
+                          </p>
+                        )}
                         <span className="inline-flex mt-2 px-2 py-0.5 rounded-full text-xs font-medium bg-[#4648d4]/10 text-[#4648d4]">
-                          {item.categories}
+                          {item.category?.name || "Product"}
                         </span>
                       </div>
                       <span className="text-lg font-bold text-[#4648d4] font-['Manrope'] whitespace-nowrap">
@@ -337,14 +329,13 @@ const CartPage = () => {
             </div>
           </div>
 
-          {/* Order Summary - larger card, wider column */}
+          {/* Order Summary */}
           <div className="lg:col-span-2">
             <div className="bg-white rounded-2xl p-8 border border-gray-100 sticky top-24">
               <h2 className="text-xl font-bold text-[#1a1a2e] font-['Manrope'] mb-6">
                 Order Summary
               </h2>
 
-              {/* ─── PRODUCT LIST ─── */}
               <div className="space-y-4 mb-6 pb-6 border-b border-gray-100">
                 <p className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-3">
                   Items in Bag
@@ -353,7 +344,7 @@ const CartPage = () => {
                   <div key={item._id} className="flex items-center gap-3">
                     <div className="w-12 h-12 rounded-lg overflow-hidden bg-gray-100 shrink-0">
                       <img
-                        src={item.img}
+                        src={item.images?.[0] || "https://via.placeholder.com/150"}
                         alt={item.title}
                         className="w-full h-full object-cover"
                       />
@@ -361,9 +352,6 @@ const CartPage = () => {
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-[#1a1a2e] truncate">
                         {item.title}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        {item.color} / Size {item.size}
                       </p>
                     </div>
                     <div className="text-right shrink-0">
@@ -391,7 +379,6 @@ const CartPage = () => {
                   <span className="text-emerald-600 font-medium">FREE</span>
                 </div>
 
-                {/* GST Breakdown */}
                 <div className="pt-3 border-t border-gray-100">
                   <p className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">
                     Tax Breakdown (Intra-state)
@@ -439,16 +426,10 @@ const CartPage = () => {
                 <span>→</span>
               </button>
 
-              {/* Payment Icons */}
               <div className="mt-5 text-center">
                 <p className="text-xs text-gray-400 mb-3">WE ACCEPT</p>
                 <div className="flex items-center justify-center gap-3 text-gray-400">
-                  <svg
-                    width="32"
-                    height="20"
-                    viewBox="0 0 32 20"
-                    fill="currentColor"
-                  >
+                  <svg width="32" height="20" viewBox="0 0 32 20" fill="currentColor">
                     <circle cx="10" cy="10" r="10" fillOpacity="0.8" />
                     <circle cx="22" cy="10" r="10" fillOpacity="0.8" />
                   </svg>
@@ -458,12 +439,10 @@ const CartPage = () => {
                 </div>
               </div>
 
-              {/* Gift Note */}
               <div className="mt-5 p-3 bg-[#4648d4]/5 rounded-xl flex items-start gap-2">
                 <Gift size={16} className="text-[#4648d4] mt-0.5 shrink-0" />
                 <p className="text-xs text-[#4648d4]">
-                  Complimentary eco-friendly gift wrapping included with this
-                  order.
+                  Complimentary eco-friendly gift wrapping included with this order.
                 </p>
               </div>
             </div>

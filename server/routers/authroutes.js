@@ -8,7 +8,7 @@ import {
   sendForgotPasswordCode,
   verifyForgotPasswordCode,
   // getByName,
-} from "../controllers/authcontrollers.js";
+} from "../controllers/authController.js";
 
 import { identifier } from "../middlewares/identification.js";
 

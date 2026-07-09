@@ -5,16 +5,25 @@ import {
   Users,
   Package,
   ShoppingCart,
-  Plus,
-  Settings,
-  LogOut,
+  Tags,
+  ListTree,
+  Star,
+  Sliders,
+  List,
+  PackageCheck
 } from "lucide-react";
 
 const Sidebar = ({ activeTab, setActiveTab, onClose }) => {
   const menuItems = [
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
     { id: "users", label: "Users", icon: Users },
+    { id: "categories", label: "Categories", icon: Tags },
+    { id: "subcategories", label: "SubCategories", icon: ListTree },
+    { id: "brands", label: "Brands", icon: Star },
+    { id: "attributes", label: "Attributes", icon: Sliders },
+    { id: "attributeOptions", label: "Attr Options", icon: List },
     { id: "products", label: "Products", icon: Package },
+    { id: "stocks", label: "Stocks", icon: PackageCheck },
     { id: "orders", label: "Orders", icon: ShoppingCart },
   ];
 
@@ -31,10 +40,10 @@ const Sidebar = ({ activeTab, setActiveTab, onClose }) => {
             <span className="text-white font-bold text-sm">V</span>
           </div>
           <div>
-            <h1 className="text-2xl font-extrabold text-[#4648d4] -mt+9">
+            <h1 className="text-2xl font-extrabold text-[#4648d4] -mt-1">
               Vyntra
             </h1>
-            <p className="text-[13px] text-black-100 font-extrabold">
+            <p className="text-[13px] text-gray-500 font-extrabold">
               Admin Dashboard
             </p>
           </div>
@@ -65,22 +74,6 @@ const Sidebar = ({ activeTab, setActiveTab, onClose }) => {
           );
         })}
       </nav>
-
-      {/* Bottom Actions */}
-      <div className="p-4 space-y-2">
-        <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium bg-linear-to-r from-[#4648d4] to-[#6b38d4] text-white hover:shadow-lg hover:shadow-[#4648d4]/25 transition-all duration-300">
-          <Plus size={16} />
-          New Report
-        </button>
-        <button className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm text-gray-500 hover:bg-gray-50 transition-colors">
-          <Settings size={16} />
-          Settings
-        </button>
-        <button className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm text-red-500 hover:bg-red-50 transition-colors">
-          <LogOut size={16} />
-          Logout
-        </button>
-      </div>
     </motion.aside>
   );
 };

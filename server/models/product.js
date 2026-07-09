@@ -1,20 +1,101 @@
 import mongoose from "mongoose";
 
+const ProductAttributeSchema = new mongoose.Schema(
+  {
+    attribute: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Attribute",
+      required: true,
+    },
+
+    values: [
+      {
+        type: String,
+        trim: true,
+      },
+    ],
+  },
+  { _id: false }
+);
+
 const ProductSchema = new mongoose.Schema(
   {
-    title: { type: String, required: true, unique: true },
-    desc: { type: String, required: true, unique: true },
-    img: { type: String, required: true },
-    categories: { type: String, required: true },
-    size: { type: String, required: true },
-    color: { type: String, required: true },
-    price: { type: String, required: true },
-    stock: { type: Number, default: 10 },
-    status: { type: String, enum: ["active", "inactive"], default: "active" },
-    addedBy: { type: String, default: "admin" },
+    title: {
+      type: String,
+      required: true,
+      unique: true,
+      trim: true,
+    },
+
+    description: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
+    images: [
+      {
+        type: String,
+      },
+    ],
+
+    category: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Category",
+      required: true,
+    },
+
+    subCategory: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "SubCategory",
+      required: true,
+    },
+
+    brand: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Brand",
+    },
+
+    attributes: [ProductAttributeSchema],
+
+    price: {
+      type: Number,
+      required: true,
+      min: 0,
+    },
+
+    stock: {
+      type: Number,
+      default: 0,
+    },
+
+    ratingAverage: {
+      type: Number,
+      default: 0,
+    },
+
+    ratingCount: {
+      type: Number,
+      default: 0,
+    },
+
+    wishlistCount: {
+      type: Number,
+      default: 0,
+    },
+
+    status: {
+      type: String,
+      enum: ["active", "inactive"],
+      default: "active",
+    },
+
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
   },
   { timestamps: true }
 );
 
-const Product = mongoose.model("Product", ProductSchema);
-export default Product;
+export default mongoose.model("Product", ProductSchema);

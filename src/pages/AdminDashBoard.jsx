@@ -17,18 +17,24 @@ import DashboardSection from "../components/adminDashboardComponents/DashboardSe
 import ProductsSection from "../components/adminDashboardComponents/ProductsSection";
 import UsersSection from "../components/adminDashboardComponents/UsersSection";
 import OrdersSection from "../components/adminDashboardComponents/OrdersSection";
+import CategoriesSection from "../components/adminDashboardComponents/CategoriesSection";
+import SubCategoriesSection from "../components/adminDashboardComponents/SubCategoriesSection";
+import BrandsSection from "../components/adminDashboardComponents/BrandsSection";
+import AttributesSection from "../components/adminDashboardComponents/AttributesSection";
+import AttributeOptionsSection from "../components/adminDashboardComponents/AttributeOptionsSection";
+import StocksSection from "../components/adminDashboardComponents/StocksSection";
 
 const AdminDashBoard = () => {
-  const [activeTab, setActiveTab] = useState("products");
+  const [activeTab, setActiveTab] = useState("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
-  const adminEmail = user?.email || "admin@vyntra.com";
+  const adminEmail = user?.email;
 
   const handleLogout = () => {
     logout();
-    navigate("/signin");
+    navigate("/admin/signin");
   };
 
   const renderContent = () => {
@@ -37,12 +43,24 @@ const AdminDashBoard = () => {
         return <DashboardSection />;
       case "users":
         return <UsersSection />;
+      case "categories":
+        return <CategoriesSection />;
+      case "subcategories":
+        return <SubCategoriesSection />;
+      case "brands":
+        return <BrandsSection />;
+      case "attributes":
+        return <AttributesSection />;
+      case "attributeOptions":
+        return <AttributeOptionsSection />;
       case "products":
         return <ProductsSection />;
+      case "stocks":
+        return <StocksSection />;
       case "orders":
         return <OrdersSection />;
       default:
-        return <ProductsSection />;
+        return <DashboardSection />;
     }
   };
 

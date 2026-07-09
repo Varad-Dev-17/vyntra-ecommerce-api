@@ -10,7 +10,7 @@ const UsersSection = () => {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const res = await api.get("/admin/all-users");
+      const res = await api.get("/admin/users");
       if (res.data.success) setUsers(res.data.users);
     } catch (err) {
       console.error("Error fetching users:", err);
@@ -54,7 +54,7 @@ const UsersSection = () => {
 
   const handleMakeAdmin = async (id) => {
     try {
-      const res = await api.patch(`/admin/make-admin/${id}`);
+      const res = await api.patch(`/admin/users/make-admin/${id}`);
       if (res.data.success) {
         setUsers((prev) =>
           prev.map((u) => (u._id === id ? { ...u, isAdmin: true } : u))
@@ -68,7 +68,7 @@ const UsersSection = () => {
 
   const handleRemoveAdmin = async (id) => {
     try {
-      const res = await api.patch(`/admin/remove-admin/${id}`);
+      const res = await api.patch(`/admin/users/remove-admin/${id}`);
       if (res.data.success) {
         setUsers((prev) =>
           prev.map((u) => (u._id === id ? { ...u, isAdmin: false } : u))

@@ -25,6 +25,21 @@ import { CartProvider } from "./context/CartContext";
 import SmoothScrollProvider from "./components/SmoothScrollProvider";
 import SmoothScrollbar from "./components/SmoothScrollbar";
 
+// Admin Layout & Pages
+import AdminLayout from "./layouts/AdminLayout";
+import Dashboard from "./pages/admin/Dashboard/Dashboard";
+import CatalogLayout from "./pages/admin/Catalog/CatalogLayout";
+import Categories from "./pages/admin/Catalog/Categories";
+import ArticleTypes from "./pages/admin/Catalog/ArticleTypes";
+import Brands from "./pages/admin/Catalog/Brands";
+import Attributes from "./pages/admin/Catalog/Attributes";
+import AdminProducts from "./pages/admin/Products/Products";
+import StockManagement from "./pages/admin/StockManagement/StockManagement";
+import Orders from "./pages/admin/Orders/Orders";
+import Users from "./pages/admin/Users/Users";
+import Coupons from "./pages/admin/Coupons/Coupons";
+import Reviews from "./pages/admin/Reviews/Reviews";
+
 const ProtectedRoute = ({ children, adminOnly = false }) => {
   const { user, loading } = useAuth();
 
@@ -76,12 +91,6 @@ const UserLayout = ({ children }) => {
   );
 };
 
-// ============================================
-// ADMIN LAYOUT
-// ============================================
-const AdminLayout = ({ children }) => {
-  return <div className="min-h-screen bg-[#f8f7fc]">{children}</div>;
-};
 
 // ============================================
 // ROUTES CONFIGURATION
@@ -160,17 +169,37 @@ const AppRoutes = () => {
         }
       />
 
-      {/* Admin Dashboard - NO user Navbar, admin has its own header */}
+      {/* Admin Dashboard - Route Based Architecture */}
       <Route
-        path="/admin/dashboard"
+        path="/admin"
         element={
           <ProtectedRoute adminOnly>
-            <AdminLayout>
-              <AdminDashBoard />
-            </AdminLayout>
+            <AdminLayout />
           </ProtectedRoute>
         }
-      />
+      >
+        {/* Default redirect to dashboard */}
+        <Route index element={<Navigate to="dashboard" replace />} />
+        
+        <Route path="dashboard" element={<Dashboard />} />
+        
+        {/* Dedicated Catalog Workspace */}
+        <Route path="catalog" element={<CatalogLayout />}>
+          <Route index element={<Navigate to="categories" replace />} />
+          <Route path="categories" element={<Categories />} />
+          <Route path="article-types" element={<ArticleTypes />} />
+          <Route path="brands" element={<Brands />} />
+          <Route path="attributes" element={<Attributes />} />
+        </Route>
+
+        {/* Other direct modules */}
+        <Route path="products" element={<AdminProducts />} />
+        <Route path="stock-management" element={<StockManagement />} />
+        <Route path="orders" element={<Orders />} />
+        <Route path="users" element={<Users />} />
+        <Route path="coupons" element={<Coupons />} />
+        <Route path="reviews" element={<Reviews />} />
+      </Route>
 
       {/* 404 */}
       <Route path="*" element={<PageNotFound />} />

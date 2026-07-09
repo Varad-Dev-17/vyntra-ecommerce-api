@@ -2,18 +2,19 @@ import express from "express";
 import {
   getCart,
   addToCart,
-  updateQuantity,
+  updateCartItem,
   removeFromCart,
   clearCart,
-} from "../controllers/cartControllers.js";
+} from "../controllers/cartController.js";
 import { identifier } from "../middlewares/identification.js";
 
 const router = express.Router();
 
+// All cart routes require authentication
 router.get("/", identifier, getCart);
-router.post("/add", identifier, addToCart);
-router.put("/update", identifier, updateQuantity);
-router.delete("/remove/:productId", identifier, removeFromCart);
+router.post("/", identifier, addToCart);
+router.put("/:productId", identifier, updateCartItem);
 router.delete("/clear", identifier, clearCart);
+router.delete("/:productId", identifier, removeFromCart);
 
 export default router;

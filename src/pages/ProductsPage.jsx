@@ -28,32 +28,9 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-const fadeInUp = {
-  hidden: { opacity: 0, y: 30 },
-  visible: (i) => ({
-    opacity: 1,
-    y: 0,
-    transition: {
-      delay: i * 0.08,
-      duration: 0.5,
-      ease: [0.4, 0, 0.2, 1],
-    },
-  }),
-};
-
-const staggerContainer = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.08,
-    },
-  },
-};
-
 const Products = () => {
   const [products, setProducts] = useState([]);
-  const [categories, setCategories] = useState(["All"]);
+  const [categories, setCategories] = useState([]);
   const [activeCategory, setActiveCategory] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
@@ -69,30 +46,26 @@ const Products = () => {
     try {
       const res = await api.get("/cart");
       if (res.data.success) {
-        const totalItems = res.data.cart.products.reduce(
-          (sum, item) => sum + item.quantity,
-          0
-        );
-        updateCartCount(totalItems);
+        updateCartCount(res.data.data.itemCount);
       }
     } catch (err) {
       updateCartCount(0);
     }
   };
 
-  const fetchProducts = async (category = "All") => {
+  const fetchProducts = async (categoryId = "All") => {
     try {
       setLoading(true);
       setError(null);
 
       const url =
-        category === "All"
+        categoryId === "All"
           ? "/products"
-          : `/products?category=${encodeURIComponent(category)}`;
+          : `/products?category=${encodeURIComponent(categoryId)}`;
 
       const res = await api.get(url);
       if (res.data.success) {
-        setProducts(res.data.products);
+        setProducts(res.data.data.products);
         setCurrentPage(1);
       }
     } catch (err) {
@@ -106,25 +79,17 @@ const Products = () => {
 
   const fetchCategories = async () => {
     try {
-      const res = await api.get("/products/categories");
+      const res = await api.get("/categories");
       if (res.data.success) {
-        setCategories(res.data.categories);
+        setCategories(res.data.data);
       }
     } catch (err) {
-      setCategories([
-        "All",
-        "Fashion",
-        "Electronics",
-        "Home Decor",
-        "Accessories",
-        "Wellness",
-      ]);
+      console.error("Failed to load categories");
     }
   };
 
   useEffect(() => {
     fetchCategories();
-    fetchProducts();
     fetchCartCount();
   }, []);
 
@@ -135,18 +100,14 @@ const Products = () => {
   const handleAddToCart = async (product, e) => {
     e.stopPropagation();
     try {
-      const res = await api.post("/cart/add", {
+      const res = await api.post("/cart", {
         productId: product._id,
         quantity: 1,
-        size: product.size,
-        color: product.color,
+        // Backend ignores size and color as confirmed
       });
+      
       if (res.data.success) {
-        const totalItems = res.data.cart.products.reduce(
-          (sum, item) => sum + item.quantity,
-          0
-        );
-        updateCartCount(totalItems);
+        updateCartCount(res.data.data.itemCount);
         toast.success(`${product.title.slice(0, 20)}... added to bag`);
       }
     } catch (err) {
@@ -159,8 +120,8 @@ const Products = () => {
     const q = searchQuery.toLowerCase();
     return (
       product.title?.toLowerCase().includes(q) ||
-      product.desc?.toLowerCase().includes(q) ||
-      product.categories?.toLowerCase().includes(q)
+      product.description?.toLowerCase().includes(q) ||
+      product.category?.name?.toLowerCase().includes(q)
     );
   });
 
@@ -192,20 +153,33 @@ const Products = () => {
               size={16}
               className="text-[#767586] mr-2 shrink-0"
             />
+            <motion.button
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6 }}
+              onClick={() => setActiveCategory("All")}
+              className={`px-5 py-2 rounded-full font-['Geist'] text-xs tracking-wider uppercase transition-all duration-300 whitespace-nowrap ${
+                activeCategory === "All"
+                  ? "bg-[#4648d4] text-white shadow-lg shadow-[#4648d4]/25"
+                  : "bg-white border border-[#c7c4d7] text-[#464554] hover:border-[#4648d4] hover:text-[#4648d4]"
+              }`}
+            >
+              All
+            </motion.button>
             {categories.map((cat, index) => (
               <motion.button
-                key={cat}
+                key={cat._id}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.6 + index * 0.05 }}
-                onClick={() => setActiveCategory(cat)}
+                transition={{ delay: 0.6 + (index + 1) * 0.05 }}
+                onClick={() => setActiveCategory(cat._id)}
                 className={`px-5 py-2 rounded-full font-['Geist'] text-xs tracking-wider uppercase transition-all duration-300 whitespace-nowrap ${
-                  activeCategory === cat
+                  activeCategory === cat._id
                     ? "bg-[#4648d4] text-white shadow-lg shadow-[#4648d4]/25"
                     : "bg-white border border-[#c7c4d7] text-[#464554] hover:border-[#4648d4] hover:text-[#4648d4]"
                 }`}
               >
-                {cat}
+                {cat.name}
               </motion.button>
             ))}
           </div>
@@ -274,7 +248,7 @@ const Products = () => {
                           whileHover={{ scale: 1.08 }}
                           transition={{ duration: 0.6, ease: "easeOut" }}
                           src={
-                            product.img ||
+                            product.images?.[0] ||
                             "https://via.placeholder.com/400x500?text=No+Image"
                           }
                           alt={product.title}
@@ -311,13 +285,13 @@ const Products = () => {
 
                       <div className="p-4">
                         <p className="font-['Inter'] text-xs font-semibold tracking-[0.18em] uppercase text-[#4648d4] mb-2">
-                          {product.categories}
+                          {product.category?.name || "Product"}
                         </p>
                         <h3 className="font-['Poppins'] text-lg font-semibold text-[#1b1b23] leading-6 line-clamp-2 transition-colors duration-300 group-hover:text-[#4648d4]">
                           {product.title}
                         </h3>
                         <p className="font-['Inter'] text-sm text-[#6B7280] mt-2 line-clamp-2 leading-6">
-                          {product.desc}
+                          {product.description}
                         </p>
 
                         <div className="mt-3 flex items-center justify-between">
