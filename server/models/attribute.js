@@ -2,6 +2,13 @@ import mongoose from "mongoose";
 
 const AttributeSchema = new mongoose.Schema(
   {
+    categoryIds: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Category",
+      },
+    ],
+
     name: {
       type: String,
       required: true,
@@ -11,19 +18,20 @@ const AttributeSchema = new mongoose.Schema(
 
     fieldType: {
       type: String,
-      enum: ["text", "number", "select", "multiselect"],
+      enum: ["select", "color", "text", "number"],
       required: true,
+    },
+
+    usage: {
+      type: String,
+      enum: ["Product", "Variant"],
+      default: "Product",
     },
 
     status: {
       type: String,
-      enum: ["active", "inactive"],
-      default: "active",
-    },
-
-    createdBy: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      enum: ["Active", "Inactive"],
+      default: "Active",
     },
   },
   { timestamps: true }

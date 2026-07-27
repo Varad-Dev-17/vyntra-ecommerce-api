@@ -10,10 +10,10 @@
     "build": "vite build",
     "start": "npm run build && node server/index.js",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "cleanup:catalog": "node scripts/cleanupCatalog.js"
   },
   "dependencies": {
-    "@reduxjs/toolkit": "^2.12.0",
     "@tailwindcss/postcss": "^4.3.1",
     "axios": "^1.18.0",
     "bcryptjs": "^2.4.3",
@@ -33,7 +33,6 @@
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
     "react-hot-toast": "^2.6.0",
-    "react-redux": "^9.3.0",
     "react-router-dom": "^7.18.0"
   },
   "devDependencies": {
@@ -47,6 +46,8 @@
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.6.0",
+    "knip": "^6.27.0",
+    "madge": "^8.0.0",
     "nodemon": "^3.1.14",
     "postcss": "^8.5.15",
     "tailwindcss": "^4.3.1",

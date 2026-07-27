@@ -1,10 +1,13 @@
+import mongoose from "mongoose";
 import Product from "../models/product.js";
+import Department from "../models/department.js";
 import Category from "../models/category.js";
-import SubCategory from "../models/subCategory.js";
 import Brand from "../models/brand.js";
 import Attribute from "../models/attribute.js";
 import AttributeOption from "../models/attributeOption.js";
 import ProductReview from "../models/productReview.js";
+import Variant from "../models/variant.js";
+import { v2 as cloudinary } from "cloudinary";
 
 // GET ALL PRODUCTS (with pagination, search, sort, filter)
 export const getAllProducts = async (req, res) => {
@@ -13,68 +16,201 @@ export const getAllProducts = async (req, res) => {
       page = 1,
       limit = 10,
       search = "",
-      sortBy = "createdAt",
-      sortOrder = "desc",
-      category,
-      subCategory,
-      brand,
+      sort = "newest", // New param
+      sortBy, // Old param
+      sortOrder, // Old param
+      department, // Old param
+      departments, // New param (comma-separated names)
+      category, // Old param
+      categories, // New param
+      brand, // Old param
+      brands, // New param
       minPrice,
       maxPrice,
-      minRating,
-      maxRating,
+      colors, // New param (comma-separated names)
       status,
     } = req.query;
 
-    const query = {};
+    const pipeline = [];
+    const matchStage1 = {};
 
-    // Search by title or description
+    if (status) matchStage1.status = status;
+
+    // Backward compatibility for ObjectIds
+    if (department && mongoose.isValidObjectId(department)) {
+      matchStage1.department = new mongoose.Types.ObjectId(department);
+    }
+    if (category && mongoose.isValidObjectId(category)) {
+      matchStage1.category = new mongoose.Types.ObjectId(category);
+    }
+    if (brand && mongoose.isValidObjectId(brand)) {
+      matchStage1.brand = new mongoose.Types.ObjectId(brand);
+    }
+
+    pipeline.push({ $match: matchStage1 });
+
+    // Lookup refs to populate and filter by names
+    pipeline.push(
+      { $lookup: { from: "departments", localField: "department", foreignField: "_id", as: "departmentDoc" } },
+      { $unwind: { path: "$departmentDoc", preserveNullAndEmptyArrays: true } },
+      { $lookup: { from: "categories", localField: "category", foreignField: "_id", as: "categoryDoc" } },
+      { $unwind: { path: "$categoryDoc", preserveNullAndEmptyArrays: true } },
+      { $lookup: { from: "brands", localField: "brand", foreignField: "_id", as: "brandDoc" } },
+      { $unwind: { path: "$brandDoc", preserveNullAndEmptyArrays: true } }
+    );
+
+    // Name-based filters
+    const matchStage2 = {};
+    if (departments) {
+      matchStage2["departmentDoc.name"] = { $in: departments.split(",").map(d => d.trim()) };
+    }
+    if (categories) {
+      matchStage2["categoryDoc.name"] = { $in: categories.split(",").map(c => c.trim()) };
+    }
+    if (brands) {
+      matchStage2["brandDoc.name"] = { $in: brands.split(",").map(b => b.trim()) };
+    }
+    
+    if (Object.keys(matchStage2).length > 0) {
+      pipeline.push({ $match: matchStage2 });
+    }
+
+    // Lookup variants for pricing, search, colors
+    pipeline.push({
+      $lookup: { from: "variants", localField: "_id", foreignField: "product", as: "variants" }
+    });
+
+    // Color attributes metadata
+    let colorOptionIds = [];
+    if (colors) {
+      const colorNames = colors.split(',').map(s => s.trim());
+      const colorAttr = await Attribute.findOne({ name: { $regex: /^color$/i } }).lean();
+      if (colorAttr) {
+        const opts = await AttributeOption.find({
+          attribute: colorAttr._id,
+          $or: [
+            { storedValue: { $in: colorNames } },
+            { displayName: { $in: colorNames } }
+          ]
+        }).lean();
+        colorOptionIds = opts.map(o => o._id);
+      } else {
+        colorOptionIds = [new mongoose.Types.ObjectId()]; // Impossible match if color attribute not found
+      }
+    }
+
+    const postLookupMatch = {};
+
+    // Search text & SKU
     if (search.trim()) {
-      query.$or = [
-        { title: { $regex: search.trim(), $options: "i" } },
-        { description: { $regex: search.trim(), $options: "i" } },
+      const searchRegex = new RegExp(search.trim(), "i");
+      postLookupMatch.$or = [
+        { title: searchRegex },
+        { shortDescription: searchRegex },
+        { slug: searchRegex },
+        { "variants.sku": searchRegex }
       ];
     }
 
-    // Filters
-    if (category) query.category = category;
-    if (subCategory) query.subCategory = subCategory;
-    if (brand) query.brand = brand;
-    if (status) query.status = status;
-
-    // Price range
+    // Variant nested filters
+    const variantElemMatch = {};
     if (minPrice !== undefined || maxPrice !== undefined) {
-      query.price = {};
-      if (minPrice !== undefined) query.price.$gte = Number(minPrice);
-      if (maxPrice !== undefined) query.price.$lte = Number(maxPrice);
+      variantElemMatch.price = {};
+      if (minPrice !== undefined) variantElemMatch.price.$gte = Number(minPrice);
+      if (maxPrice !== undefined) variantElemMatch.price.$lte = Number(maxPrice);
+    }
+    if (colors) {
+      variantElemMatch["attributes.option"] = { $in: colorOptionIds };
     }
 
-    // Rating range
-    if (minRating !== undefined || maxRating !== undefined) {
-      query.ratingAverage = {};
-      if (minRating !== undefined) query.ratingAverage.$gte = Number(minRating);
-      if (maxRating !== undefined) query.ratingAverage.$lte = Number(maxRating);
+    if (Object.keys(variantElemMatch).length > 0) {
+      postLookupMatch.variants = { $elemMatch: variantElemMatch };
+    }
+
+    if (Object.keys(postLookupMatch).length > 0) {
+      pipeline.push({ $match: postLookupMatch });
     }
 
     // Sorting
-    const sort = {};
-    sort[sortBy] = sortOrder === "asc" ? 1 : -1;
+    const sortStage = {};
+    if (sort === "priceAsc") {
+      pipeline.push({
+        $addFields: {
+          sortPrice: {
+            $cond: {
+              if: { $gt: [{ $size: "$variants" }, 0] },
+              then: { $min: "$variants.price" },
+              else: Infinity
+            }
+          }
+        }
+      });
+      sortStage.sortPrice = 1;
+    } else if (sort === "priceDesc") {
+      pipeline.push({
+        $addFields: {
+          sortPrice: {
+            $cond: {
+              if: { $gt: [{ $size: "$variants" }, 0] },
+              then: { $max: "$variants.price" },
+              else: -1
+            }
+          }
+        }
+      });
+      sortStage.sortPrice = -1;
+    } else if (sort === "newest") {
+      sortStage.createdAt = -1;
+    } else if (sortBy) {
+      sortStage[sortBy] = sortOrder === "asc" ? 1 : -1;
+    } else {
+      sortStage.createdAt = -1;
+    }
+
+    pipeline.push({ $sort: sortStage });
+
+    // Format population shape
+    pipeline.push({
+      $addFields: {
+        department: {
+          $cond: { if: "$departmentDoc._id", then: { _id: "$departmentDoc._id", name: "$departmentDoc.name" }, else: "$department" }
+        },
+        category: {
+          $cond: { if: "$categoryDoc._id", then: { _id: "$categoryDoc._id", name: "$categoryDoc.name" }, else: "$category" }
+        },
+        brand: {
+          $cond: { if: "$brandDoc._id", then: { _id: "$brandDoc._id", name: "$brandDoc.name" }, else: "$brand" }
+        }
+      }
+    });
+
+    pipeline.push({
+      $project: { departmentDoc: 0, categoryDoc: 0, brandDoc: 0, sortPrice: 0 }
+    });
 
     const pageNum = Math.max(1, Number(page));
     const limitNum = Math.max(1, Number(limit));
     const skip = (pageNum - 1) * limitNum;
 
-    const [products, total] = await Promise.all([
-      Product.find(query)
-        .populate("category", "name")
-        .populate("subCategory", "name")
-        .populate("brand", "name")
-        .populate("createdBy", "username email")
-        .sort(sort)
-        .skip(skip)
-        .limit(limitNum)
-        .lean(),
-      Product.countDocuments(query),
-    ]);
+    // Execute with facet for pagination
+    pipeline.push({
+      $facet: {
+        metadata: [{ $count: "total" }],
+        data: [{ $skip: skip }, { $limit: limitNum }]
+      }
+    });
+
+    const result = await Product.aggregate(pipeline);
+    const total = result[0].metadata[0] ? result[0].metadata[0].total : 0;
+    const products = result[0].data;
+
+    // Populate variant attributes safely on returned docs
+    if (products.length > 0) {
+      await Product.populate(products, [
+        { path: "variants.attributes.attribute", model: "Attribute", select: "name fieldType" },
+        { path: "variants.attributes.option", model: "AttributeOption", select: "displayName storedValue" }
+      ]);
+    }
 
     return res.status(200).json({
       success: true,
@@ -90,7 +226,7 @@ export const getAllProducts = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error(error);
+    console.error("[Get All Products Error]:", error);
     return res.status(500).json({
       success: false,
       message: "Failed to fetch products",
@@ -105,11 +241,57 @@ export const getProductById = async (req, res) => {
     const { id } = req.params;
 
     const product = await Product.findById(id)
+      .populate("department", "name")
       .populate("category", "name")
-      .populate("subCategory", "name")
       .populate("brand", "name")
-      .populate("attributes.attribute", "name")
-      .populate("createdBy", "username email");
+      .populate("attributes.attribute", "name fieldType")
+      .populate("attributes.attribute", "name fieldType");
+
+    if (!product) {
+      console.log("[Get Product By Id] Product is null for ID:", id);
+      return res.status(404).json({
+        success: false,
+        message: "Product not found",
+        data: null,
+      });
+    }
+
+    console.log("Product found:", product);
+
+    const reviews = await ProductReview.find({ product: id })
+      .populate("user", "username email")
+      .sort({ createdAt: -1 })
+      .lean();
+
+    const responsePayload = { product, reviews };
+    console.log("[Get Product By Id] Final JSON to frontend:", JSON.stringify(responsePayload, null, 2));
+
+    return res.status(200).json({
+      success: true,
+      message: "Product fetched successfully",
+      data: responsePayload,
+    });
+  } catch (error) {
+    console.error("[Get Product By Id Error]:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch product",
+      data: null,
+    });
+  }
+};
+
+// GET SINGLE PRODUCT BY SLUG (Public typically, but good to have)
+export const getProductBySlug = async (req, res) => {
+  try {
+    const { slug } = req.params;
+
+    const product = await Product.findOne({ slug })
+      .populate("department", "name")
+      .populate("category", "name")
+      .populate("brand", "name")
+      .populate("attributes.attribute", "name fieldType")
+      .lean();
 
     if (!product) {
       return res.status(404).json({
@@ -119,7 +301,14 @@ export const getProductById = async (req, res) => {
       });
     }
 
-    const reviews = await ProductReview.find({ product: id })
+    const variants = await Variant.find({ product: product._id, status: "Active" })
+      .populate("attributes.attribute", "name fieldType")
+      .populate("attributes.option", "displayName storedValue")
+      .lean();
+      
+    product.variants = variants;
+
+    const reviews = await ProductReview.find({ product: product._id })
       .populate("user", "username email")
       .sort({ createdAt: -1 })
       .lean();
@@ -130,47 +319,10 @@ export const getProductById = async (req, res) => {
       data: { product, reviews },
     });
   } catch (error) {
-    console.error(error);
+    console.error("[Get Product By Slug Error]:", error);
     return res.status(500).json({
       success: false,
       message: "Failed to fetch product",
-      data: null,
-    });
-  }
-};
-
-// GET ATTRIBUTES BY CATEGORY (for product creation flow)
-export const getAttributesByCategory = async (req, res) => {
-  try {
-    const { categoryId } = req.params;
-
-    const category = await Category.findById(categoryId);
-    if (!category) {
-      return res.status(404).json({
-        success: false,
-        message: "Category not found",
-        data: null,
-      });
-    }
-
-    const attributes = await Attribute.find({ status: "active" })
-      .populate({
-        path: "options",
-        match: { status: "active" },
-        select: "value",
-      })
-      .lean();
-
-    return res.status(200).json({
-      success: true,
-      message: "Attributes fetched successfully",
-      data: attributes,
-    });
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({
-      success: false,
-      message: "Failed to fetch attributes",
       data: null,
     });
   }
@@ -181,80 +333,53 @@ export const addProduct = async (req, res) => {
   try {
     const {
       title,
-      description,
-      images,
+      slug,
+      shortDescription,
+      longDescription,
+      department,
       category,
-      subCategory,
       brand,
       attributes,
-      price,
-      stock,
+      status,
     } = req.body;
 
     // Validate required fields
     if (
       !title?.trim() ||
+      !slug?.trim() ||
+      !shortDescription?.trim() ||
+      !longDescription?.trim() ||
+      !department ||
       !category ||
-      !subCategory ||
-      !brand ||
-      price === undefined ||
-      stock === undefined
+      !brand
     ) {
       return res.status(400).json({
         success: false,
-        message:
-          "Title, category, subCategory, brand, price, and stock are required",
+        message: "Missing required fields.",
         data: null,
       });
     }
 
-    // Check duplicate title
-    const existingProduct = await Product.findOne({
-      title: title.trim(),
-    });
-    if (existingProduct) {
+    // Check duplicate slug
+    const existingSlug = await Product.findOne({ slug: slug.trim().toLowerCase() });
+    if (existingSlug) {
       return res.status(409).json({
         success: false,
-        message: "Product with this title already exists",
+        message: "Product with this slug already exists",
         data: null,
       });
     }
 
-    // Validate category
-    const categoryDoc = await Category.findOne({
-      _id: category,
-      status: "active",
-    });
-    if (!categoryDoc) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid or inactive category",
-        data: null,
-      });
-    }
+    // Validate references
+    const [departmentDoc, categoryDoc, brandDoc] = await Promise.all([
+      Department.findOne({ _id: department, status: "Active" }),
+      Category.findOne({ _id: category, status: "Active" }),
+      Brand.findOne({ _id: brand, status: "Active" }),
+    ]);
 
-    // Validate subCategory
-    const subCategoryDoc = await SubCategory.findOne({
-      _id: subCategory,
-      status: "active",
-    });
-    if (!subCategoryDoc) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid or inactive subCategory",
-        data: null,
-      });
-    }
-
-    // Validate brand
-    const brandDoc = await Brand.findOne({ _id: brand, status: "active" });
-    if (!brandDoc) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid or inactive brand",
-        data: null,
-      });
-    }
+    if (!departmentDoc) return res.status(400).json({ success: false, message: "Invalid or inactive department" });
+    if (!categoryDoc) return res.status(400).json({ success: false, message: "Invalid or inactive category" });
+    if (!brandDoc) return res.status(400).json({ success: false, message: "Invalid or inactive brand" });
 
     // Validate attributes if provided
     let validatedAttributes = [];
@@ -263,37 +388,40 @@ export const addProduct = async (req, res) => {
         if (!attr.attribute || !attr.values || !Array.isArray(attr.values)) {
           return res.status(400).json({
             success: false,
-            message:
-              "Each attribute must have an attribute ID and values array",
-            data: null,
+            message: "Each attribute must have an attribute ID and values array",
           });
         }
 
-        const attributeDoc = await Attribute.findOne({
-          _id: attr.attribute,
-          status: "active",
-        });
+        const attributeDoc = await Attribute.findOne({ _id: attr.attribute, status: "Active" });
         if (!attributeDoc) {
           return res.status(400).json({
             success: false,
             message: `Invalid or inactive attribute: ${attr.attribute}`,
-            data: null,
           });
         }
 
-        // Validate values exist in AttributeOption
-        const validOptions = await AttributeOption.find({
-          attribute: attr.attribute,
-          value: { $in: attr.values },
-          status: "active",
-        });
+        // If it's a select/color type, validate against AttributeOption
+        if (["select", "color", "multiselect"].includes(attributeDoc.fieldType)) {
 
-        if (validOptions.length !== attr.values.length) {
-          return res.status(400).json({
-            success: false,
-            message: `Some attribute values are invalid for attribute: ${attributeDoc.name}`,
-            data: null,
+          const validOptions = await AttributeOption.find({
+            attribute: attr.attribute,
+            storedValue: { $in: attr.values },
+            status: "active",
           });
+
+          console.log("--- Attribute Validation ---");
+          console.log(`Attribute Name: ${attributeDoc.name}`);
+          console.log(`Submitted Values:`, attr.values);
+          console.log(`Valid Stored Values found:`, validOptions.map(o => o.storedValue));
+          console.log(`Validation Result: ${validOptions.length === attr.values.length ? 'PASS' : 'FAIL'}`);
+          console.log("----------------------------");
+
+          if (validOptions.length !== attr.values.length) {
+            return res.status(400).json({
+              success: false,
+              message: `Some attribute values are invalid for attribute: ${attributeDoc.name}`,
+            });
+          }
         }
 
         validatedAttributes.push({
@@ -305,26 +433,21 @@ export const addProduct = async (req, res) => {
 
     const product = await Product.create({
       title: title.trim(),
-      description: description?.trim() || "",
-      images: images || [],
+      slug: slug.trim().toLowerCase(),
+      shortDescription: shortDescription.trim(),
+      longDescription: longDescription.trim(),
+      department,
       category,
-      subCategory,
       brand,
       attributes: validatedAttributes,
-      price: Number(price),
-      stock: Number(stock),
-      ratingAverage: 0,
-      ratingCount: 0,
-      wishlistCount: 0,
-      status: "active",
-      createdBy: req.user.userId,
+      status: status || "Inactive",
+      status: status || "Inactive",
     });
 
     const populatedProduct = await Product.findById(product._id)
+      .populate("department", "name")
       .populate("category", "name")
-      .populate("subCategory", "name")
-      .populate("brand", "name")
-      .populate("createdBy", "username email");
+      .populate("brand", "name");
 
     return res.status(201).json({
       success: true,
@@ -332,7 +455,7 @@ export const addProduct = async (req, res) => {
       data: populatedProduct,
     });
   } catch (error) {
-    console.error(error);
+    console.error("[Add Product Error]:", error);
     return res.status(500).json({
       success: false,
       message: "Failed to create product",
@@ -347,14 +470,13 @@ export const updateProduct = async (req, res) => {
     const { id } = req.params;
     const {
       title,
-      description,
-      images,
+      slug,
+      shortDescription,
+      longDescription,
+      department,
       category,
-      subCategory,
       brand,
       attributes,
-      price,
-      stock,
       status,
     } = req.body;
 
@@ -367,129 +489,88 @@ export const updateProduct = async (req, res) => {
       });
     }
 
-    // Check duplicate title if changing
-    if (title?.trim() && title.trim() !== product.title) {
-      const existingProduct = await Product.findOne({
-        title: title.trim(),
-        _id: { $ne: id },
-      });
-      if (existingProduct) {
-        return res.status(409).json({
-          success: false,
-          message: "Product with this title already exists",
-          data: null,
-        });
+    // Validate Slug uniqueness if changed
+    if (slug?.trim() && slug.trim().toLowerCase() !== product.slug) {
+      const existingSlug = await Product.findOne({ slug: slug.trim().toLowerCase(), _id: { $ne: id } });
+      if (existingSlug) {
+        return res.status(409).json({ success: false, message: "Product with this slug already exists" });
       }
-      product.title = title.trim();
+      product.slug = slug.trim().toLowerCase();
     }
 
-    // Validate and update category
+    // Validations for Department, Category, Brand
+    if (department) {
+      const departmentDoc = await Department.findOne({ _id: department, status: "Active" });
+      if (!departmentDoc) return res.status(400).json({ success: false, message: "Invalid or inactive department" });
+      product.department = department;
+    }
+
     if (category) {
-      const categoryDoc = await Category.findOne({
-        _id: category,
-        status: "active",
-      });
-      if (!categoryDoc) {
-        return res.status(400).json({
-          success: false,
-          message: "Invalid or inactive category",
-          data: null,
-        });
-      }
+      const categoryDoc = await Category.findOne({ _id: category, status: "Active" });
+      if (!categoryDoc) return res.status(400).json({ success: false, message: "Invalid or inactive category" });
       product.category = category;
     }
 
-    // Validate and update subCategory
-    if (subCategory) {
-      const subCategoryDoc = await SubCategory.findOne({
-        _id: subCategory,
-        status: "active",
-      });
-      if (!subCategoryDoc) {
-        return res.status(400).json({
-          success: false,
-          message: "Invalid or inactive subCategory",
-          data: null,
-        });
-      }
-      product.subCategory = subCategory;
-    }
-
-    // Validate and update brand
     if (brand) {
-      const brandDoc = await Brand.findOne({ _id: brand, status: "active" });
-      if (!brandDoc) {
-        return res.status(400).json({
-          success: false,
-          message: "Invalid or inactive brand",
-          data: null,
-        });
-      }
+      const brandDoc = await Brand.findOne({ _id: brand, status: "Active" });
+      if (!brandDoc) return res.status(400).json({ success: false, message: "Invalid or inactive brand" });
       product.brand = brand;
     }
+
+    // Delete orphaned images logic removed from parent update since images moved to variants
 
     // Validate and update attributes
     if (attributes && Array.isArray(attributes)) {
       let validatedAttributes = [];
       for (const attr of attributes) {
         if (!attr.attribute || !attr.values || !Array.isArray(attr.values)) {
-          return res.status(400).json({
-            success: false,
-            message:
-              "Each attribute must have an attribute ID and values array",
-            data: null,
-          });
+          return res.status(400).json({ success: false, message: "Each attribute must have an attribute ID and values array" });
         }
 
-        const attributeDoc = await Attribute.findOne({
-          _id: attr.attribute,
-          status: "active",
-        });
+        const attributeDoc = await Attribute.findOne({ _id: attr.attribute, status: "Active" });
         if (!attributeDoc) {
-          return res.status(400).json({
-            success: false,
-            message: `Invalid or inactive attribute: ${attr.attribute}`,
-            data: null,
-          });
+          return res.status(400).json({ success: false, message: `Invalid or inactive attribute: ${attr.attribute}` });
         }
 
-        const validOptions = await AttributeOption.find({
-          attribute: attr.attribute,
-          value: { $in: attr.values },
-          status: "active",
-        });
-
-        if (validOptions.length !== attr.values.length) {
-          return res.status(400).json({
-            success: false,
-            message: `Some attribute values are invalid for attribute: ${attributeDoc.name}`,
-            data: null,
+        if (["select", "color", "multiselect"].includes(attributeDoc.fieldType)) {
+          const validOptions = await AttributeOption.find({
+            attribute: attr.attribute,
+            storedValue: { $in: attr.values },
+            status: "active",
           });
-        }
 
-        validatedAttributes.push({
-          attribute: attr.attribute,
-          values: attr.values,
-        });
+          console.log("--- Attribute Validation ---");
+          console.log(`Attribute Name: ${attributeDoc.name}`);
+          console.log(`Submitted Values:`, attr.values);
+          console.log(`Valid Stored Values found:`, validOptions.map(o => o.storedValue));
+          console.log(`Validation Result: ${validOptions.length === attr.values.length ? 'PASS' : 'FAIL'}`);
+          console.log("----------------------------");
+
+          if (validOptions.length !== attr.values.length) {
+            return res.status(400).json({
+              success: false,
+              message: `Some attribute values are invalid for attribute: ${attributeDoc.name}`,
+            });
+          }
+        }
+        validatedAttributes.push({ attribute: attr.attribute, values: attr.values });
       }
       product.attributes = validatedAttributes;
     }
 
     // Update other fields
-    if (description !== undefined) product.description = description.trim();
-    if (images !== undefined) product.images = images;
-    if (price !== undefined) product.price = Number(price);
-    if (stock !== undefined) product.stock = Number(stock);
+    if (title !== undefined) product.title = title.trim();
+    if (shortDescription !== undefined) product.shortDescription = shortDescription.trim();
+    if (longDescription !== undefined) product.longDescription = longDescription.trim();
     if (status) product.status = status;
 
     await product.save();
 
     const populatedProduct = await Product.findById(id)
+      .populate("department", "name")
       .populate("category", "name")
-      .populate("subCategory", "name")
       .populate("brand", "name")
-      .populate("attributes.attribute", "name")
-      .populate("createdBy", "username email");
+      .populate("attributes.attribute", "name fieldType");
 
     return res.status(200).json({
       success: true,
@@ -497,7 +578,7 @@ export const updateProduct = async (req, res) => {
       data: populatedProduct,
     });
   } catch (error) {
-    console.error(error);
+    console.error("[Update Product Error]:", error);
     return res.status(500).json({
       success: false,
       message: "Failed to update product",
@@ -506,7 +587,7 @@ export const updateProduct = async (req, res) => {
   }
 };
 
-// DELETE PRODUCT (soft delete)
+// DELETE PRODUCT (Hard Delete with Image Cleanup, as 'Archived' status handles soft deleting in the UI)
 export const deleteProduct = async (req, res) => {
   try {
     const { id } = req.params;
@@ -520,8 +601,31 @@ export const deleteProduct = async (req, res) => {
       });
     }
 
-    product.status = "inactive";
-    await product.save();
+    // Delete images from Cloudinary (from variants)
+    const imagesToDelete = [];
+    const variants = await Variant.find({ product: id });
+    if (variants && variants.length > 0) {
+      variants.forEach(variant => {
+        if (variant.mainImage?.publicId) imagesToDelete.push(variant.mainImage.publicId);
+        if (variant.galleryImages?.length > 0) {
+          imagesToDelete.push(...variant.galleryImages.map(img => img.publicId));
+        }
+      });
+    }
+
+    if (imagesToDelete.length > 0) {
+      try {
+        await Promise.all(imagesToDelete.map(publicId => cloudinary.uploader.destroy(publicId)));
+      } catch (cloudinaryErr) {
+        console.error("Failed to delete product images from cloudinary", cloudinaryErr);
+      }
+    }
+
+    await Product.findByIdAndDelete(id);
+    
+    // Also cleanup reviews and variants related to this product
+    await ProductReview.deleteMany({ product: id });
+    await Variant.deleteMany({ product: id });
 
     return res.status(200).json({
       success: true,
@@ -529,7 +633,7 @@ export const deleteProduct = async (req, res) => {
       data: null,
     });
   } catch (error) {
-    console.error(error);
+    console.error("[Delete Product Error]:", error);
     return res.status(500).json({
       success: false,
       message: "Failed to delete product",
@@ -555,15 +659,15 @@ export const getRelatedProducts = async (req, res) => {
 
     const relatedProducts = await Product.find({
       _id: { $ne: id },
-      status: "active",
+      status: "Active",
       $or: [
+        { department: product.department },
         { category: product.category },
-        { subCategory: product.subCategory },
         { brand: product.brand },
       ],
     })
+      .populate("department", "name")
       .populate("category", "name")
-      .populate("subCategory", "name")
       .populate("brand", "name")
       .limit(Number(limit))
       .lean();
@@ -574,11 +678,176 @@ export const getRelatedProducts = async (req, res) => {
       data: relatedProducts,
     });
   } catch (error) {
-    console.error(error);
+    console.error("[Get Related Products Error]:", error);
     return res.status(500).json({
       success: false,
       message: "Failed to fetch related products",
       data: null,
+    });
+  }
+};
+
+// UPDATE PRODUCT VARIANTS (Replaces all variants for the product)
+export const updateProductVariants = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { variants } = req.body; // Expecting variants array instead of colors
+
+    const product = await Product.findById(id);
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        message: "Product not found",
+      });
+    }
+
+    if (!Array.isArray(variants)) {
+      return res.status(400).json({
+        success: false,
+        message: "Variants must be an array",
+      });
+    }
+
+    const existingVariants = await Variant.find({ product: id });
+
+    // Determine orphaned images by comparing old variants vs new variants
+    const oldImageIds = [];
+    if (existingVariants && existingVariants.length > 0) {
+      existingVariants.forEach(variant => {
+        if (variant.mainImage?.publicId) oldImageIds.push(variant.mainImage.publicId);
+        if (variant.galleryImages?.length > 0) {
+          oldImageIds.push(...variant.galleryImages.map(img => img.publicId));
+        }
+      });
+    }
+
+    const newImageIds = [];
+    variants.forEach(variant => {
+      if (variant.mainImage?.publicId) newImageIds.push(variant.mainImage.publicId);
+      if (variant.galleryImages?.length > 0) {
+        newImageIds.push(...variant.galleryImages.map(img => img.publicId));
+      }
+    });
+
+    const deletedIds = oldImageIds.filter(imgId => !newImageIds.includes(imgId));
+
+    if (deletedIds.length > 0) {
+      try {
+        await Promise.all(deletedIds.map(publicId => cloudinary.uploader.destroy(publicId)));
+      } catch (cloudinaryErr) {
+        console.error("Failed to delete orphaned images from cloudinary", cloudinaryErr);
+      }
+    }
+
+    // Delete existing variants and insert new ones
+    await Variant.deleteMany({ product: id });
+
+    const variantsToInsert = variants.map(v => ({ ...v, product: id }));
+    await Variant.insertMany(variantsToInsert);
+
+    return res.status(200).json({
+      success: true,
+      message: "Variants updated successfully",
+      data: variantsToInsert,
+    });
+  } catch (error) {
+    console.error("[Update Variants Error]:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to update variants",
+    });
+  }
+};
+
+// GET PRODUCT VARIANTS
+export const getProductVariants = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const variants = await Variant.find({ product: id })
+      .populate("attributes.attribute", "name fieldType")
+      .populate("attributes.option", "displayName storedValue");
+      
+    return res.status(200).json({
+      success: true,
+      message: "Variants fetched successfully",
+      data: variants,
+    });
+  } catch (error) {
+    console.error("[Get Variants Error]:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch variants",
+    });
+  }
+};
+
+// GET NEW ARRIVALS
+export const getNewArrivals = async (req, res) => {
+  try {
+    const limit = Math.min(parseInt(req.query.limit) || 5, 20);
+
+    // 1. Fetch random active products
+    const rawProducts = await Product.aggregate([
+      { $match: { status: "Active" } },
+      { $sample: { size: limit } }
+    ]);
+
+    // 2. Populate brand name
+    const populatedProducts = await Product.populate(rawProducts, [
+      { path: "brand", select: "name" }
+    ]);
+
+    // 3. Get variants for pricing and images
+    const productIds = populatedProducts.map(p => p._id);
+    const variants = await Variant.find({ product: { $in: productIds }, status: "Active" }).lean();
+
+    // 4. Format clean UI payload
+    const formattedProducts = populatedProducts.map(product => {
+      // Find the first active variant
+      const variant = variants.find(v => v.product.toString() === product._id.toString());
+      
+      const images = [];
+      let sellingPrice = 0;
+      let originalPrice = 0;
+      let discountPercentage = 0;
+
+      if (variant) {
+        if (variant.mainImage?.url) images.push(variant.mainImage);
+        if (variant.galleryImages?.length > 0) {
+          images.push(...variant.galleryImages);
+        }
+        sellingPrice = variant.price || 0;
+        originalPrice = variant.mrp || 0;
+        
+        if (originalPrice > sellingPrice && originalPrice > 0) {
+          discountPercentage = Math.round(((originalPrice - sellingPrice) / originalPrice) * 100);
+        }
+      }
+
+      return {
+        id: product._id,
+        slug: product.slug,
+        brand: product.brand?.name || "Unknown Brand",
+        productName: product.title,
+        price: sellingPrice,
+        mrp: originalPrice,
+        discountPercentage,
+        rating: product.ratingAverage || null,
+        images
+      };
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "New arrivals fetched successfully",
+      data: formattedProducts
+    });
+
+  } catch (error) {
+    console.error("[Get New Arrivals Error]:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch new arrivals",
     });
   }
 };

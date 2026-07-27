@@ -1,0 +1,300 @@
+import { useState, useEffect, useCallback } from "react";
+import axios from "axios";
+import { useCart } from "../../context/CartContext";
+
+import ShopLayout from "../../components/shop-now/layout/ShopLayout";
+import ShopToolbar from "../../components/shop-now/layout/ShopToolbar";
+import FilterSidebar from "../../components/shop-now/filters/FilterSidebar";
+import ProductGrid from "../../components/shop-now/product/ProductGrid";
+import Pagination from "../../components/shop-now/pagination/Pagination";
+import ShopLoader from "../../components/shop-now/loading/ShopLoader";
+import EmptyState from "../../components/shop-now/product/EmptyState";
+
+const api = axios.create({
+  baseURL: "",
+  withCredentials: true,
+});
+
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem("token");
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+const ProductsPage = () => {
+  // Main Data States
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Pagination & Count States
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalProducts, setTotalProducts] = useState(0);
+  const [limit, setLimit] = useState(12);
+
+  // Available Filter Options
+  const [departmentsList, setDepartmentsList] = useState([]);
+  const [categoriesList, setCategoriesList] = useState([]); 
+  const [brandsList, setBrandsList] = useState([]);
+  const [colorsList, setColorsList] = useState([]);
+
+  // Active Filter States
+  const [activeDepartment, setActiveDepartment] = useState("all");
+  const [activeCategory, setActiveCategory] = useState("all");
+  const [activeBrands, setActiveBrands] = useState([]);
+  const [activeColors, setActiveColors] = useState([]);
+  const [priceRange, setPriceRange] = useState({ min: "", max: "" });
+  
+  const [sort, setSort] = useState("newest");
+  
+  const { updateCartCount } = useCart();
+
+  // Initial Data Fetching
+  useEffect(() => {
+    fetchDepartments();
+    fetchColors();
+    fetchCartCount();
+  }, []);
+
+  // Fetch Categories & Brands when Department changes
+  useEffect(() => {
+    fetchCategories();
+    fetchBrands();
+  }, [activeDepartment, departmentsList]);
+
+  // Fetch Products when filters change
+  useEffect(() => {
+    fetchProducts();
+  }, [activeDepartment, activeCategory, activeBrands, activeColors, priceRange, currentPage, limit, sort]);
+
+  const fetchCartCount = async () => {
+    try {
+      const res = await api.get("/cart");
+      if (res.data.success) {
+        updateCartCount(res.data.data.itemCount);
+      }
+    } catch (err) {
+      updateCartCount(0);
+    }
+  };
+
+  const fetchDepartments = async () => {
+    try {
+      const res = await api.get("/departments");
+      if (res.data.success) {
+        setDepartmentsList(res.data.departments || []);
+      }
+    } catch (err) {
+      console.error("Failed to load departments");
+    }
+  };
+
+  const fetchCategories = async () => {
+    try {
+      let url = "/categories";
+      if (activeDepartment !== "all" && departmentsList.length > 0) {
+        const dept = departmentsList.find(d => d.name === activeDepartment);
+        if (dept) url = `/categories/department/${dept._id}`;
+      }
+      const res = await api.get(url);
+      if (res.data.success) {
+        setCategoriesList(res.data.categories || []);
+      }
+    } catch (err) {
+      console.error("Failed to load categories");
+    }
+  };
+
+  const fetchBrands = async () => {
+    try {
+      let url = "/brands";
+      if (activeDepartment !== "all" && departmentsList.length > 0) {
+        const dept = departmentsList.find(d => d.name === activeDepartment);
+        if (dept) url = `/brands/department/${dept._id}`;
+      }
+      const res = await api.get(url);
+      if (res.data.success) {
+        setBrandsList(res.data.brands || []);
+      }
+    } catch (err) {
+      console.error("Failed to load brands");
+    }
+  };
+
+  const fetchColors = async () => {
+    try {
+      const res = await api.get("/attribute-options");
+      if (res.data.success) {
+        const allOptions = res.data.options || [];
+        // Filter options that belong to a "color" attribute
+        const colorOpts = allOptions.filter(opt => 
+          opt.attribute?.name?.toLowerCase() === "color" || 
+          opt.hex !== undefined
+        );
+        setColorsList(colorOpts);
+      }
+    } catch (err) {
+      console.error("Failed to load colors");
+    }
+  };
+
+  const fetchProducts = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const params = new URLSearchParams();
+      params.append("page", currentPage);
+      params.append("limit", limit);
+      params.append("sort", sort);
+      
+      if (activeDepartment !== "all") {
+        params.append("departments", activeDepartment);
+      }
+      if (activeCategory !== "all") {
+        params.append("categories", activeCategory);
+      }
+      if (activeBrands.length > 0) {
+        params.append("brands", activeBrands.join(","));
+      }
+      if (activeColors.length > 0) {
+        params.append("colors", activeColors.join(","));
+      }
+      if (priceRange.min !== "") {
+        params.append("minPrice", priceRange.min);
+      }
+      if (priceRange.max !== "") {
+        params.append("maxPrice", priceRange.max);
+      }
+
+      const res = await api.get(`/products?${params.toString()}`);
+      if (res.data.success) {
+        const data = res.data.data;
+        setProducts(data.products || []);
+        
+        if (data.pagination) {
+          setTotalPages(data.pagination.pages || 1);
+          setTotalProducts(data.pagination.total || 0);
+        } else {
+          setTotalPages(1);
+          setTotalProducts(data.products?.length || 0);
+        }
+      }
+    } catch (err) {
+      console.error("Error fetching products:", err);
+      setError("Failed to load products.");
+      setProducts([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Handlers
+  const handleDepartmentChange = (deptName) => {
+    setActiveDepartment(deptName);
+    // Reset dependent filters
+    setActiveCategory("all");
+    setActiveBrands([]);
+    setCurrentPage(1);
+  };
+
+  const handleCategoryChange = (catName) => {
+    setActiveCategory(catName);
+    setCurrentPage(1);
+  };
+
+  const handleBrandChange = (brands) => {
+    setActiveBrands(brands);
+    setCurrentPage(1);
+  };
+
+  const handlePriceChange = (range) => {
+    setPriceRange(range);
+    setCurrentPage(1);
+  };
+
+  const handleColorChange = (colors) => {
+    setActiveColors(colors);
+    setCurrentPage(1);
+  };
+
+  const handleClearAll = () => {
+    setActiveDepartment("all");
+    setActiveCategory("all");
+    setActiveBrands([]);
+    setActiveColors([]);
+    setPriceRange({ min: "", max: "" });
+    setCurrentPage(1);
+  };
+
+  return (
+    <ShopLayout
+      sidebar={
+        <div className="bg-[#FFFFFF] border border-[#E5E7EB] rounded-[16px] shadow-[0_2px_10px_rgba(0,0,0,0.02)] p-6 lg:p-8 transition-all duration-300">
+          <FilterSidebar 
+            departments={departmentsList}
+            activeDepartment={activeDepartment}
+            onDepartmentChange={handleDepartmentChange}
+            
+            categories={categoriesList}
+            activeCategory={activeCategory}
+            onCategoryChange={handleCategoryChange}
+            
+            brands={brandsList}
+            activeBrands={activeBrands}
+            onBrandChange={handleBrandChange}
+            
+            priceRange={priceRange}
+            onPriceChange={handlePriceChange}
+            
+            colors={colorsList}
+            activeColors={activeColors}
+            onColorChange={handleColorChange}
+            
+            onClearAll={handleClearAll}
+          />
+        </div>
+      }
+    >
+      <div className="bg-[#FFFFFF] border border-[#E5E7EB] rounded-[16px] shadow-[0_2px_10px_rgba(0,0,0,0.02)] min-h-[300px] lg:min-h-[600px] p-6 lg:p-8 transition-all duration-300 flex flex-col">
+        {!loading && !error && products.length > 0 && (
+          <ShopToolbar 
+            totalProducts={totalProducts} 
+            showingCount={products.length} 
+            sort={sort}
+            onSortChange={(e) => setSort(e.target.value)}
+          />
+        )}
+
+        <div className="flex-1">
+          {loading ? (
+            <ShopLoader />
+          ) : error ? (
+            <div className="text-center py-20 text-red-500">{error}</div>
+          ) : products.length === 0 ? (
+            <EmptyState />
+          ) : (
+            <>
+              <ProductGrid 
+                paginatedProducts={products} 
+                activeColors={activeColors}
+                priceRange={priceRange}
+                sort={sort}
+              />
+              <Pagination 
+                currentPage={currentPage}
+                totalPages={totalPages}
+                setCurrentPage={setCurrentPage}
+              />
+            </>
+          )}
+        </div>
+      </div>
+    </ShopLayout>
+  );
+};
+
+export default ProductsPage;

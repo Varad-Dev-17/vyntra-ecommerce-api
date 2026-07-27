@@ -1,0 +1,69 @@
+import { useState } from "react";
+import { ChevronUp, ChevronDown } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+
+const CategoryFilters = ({ categories = [], activeCategory = "all", onChange }) => {
+  const [isOpen, setIsOpen] = useState(true);
+
+  return (
+    <div className="border-b border-[#E5E7EB] pb-5 mb-5">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full flex items-center justify-between text-[#111827] font-semibold text-[15px] mb-4"
+      >
+        <span>Categories</span>
+        {isOpen ? <ChevronUp size={16} className="text-[#4B5563]" /> : <ChevronDown size={16} className="text-[#4B5563]" />}
+      </button>
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="overflow-hidden flex flex-col gap-3"
+          >
+            {/* All option */}
+            <label 
+              className="flex items-center justify-between cursor-pointer group"
+              onClick={() => onChange && onChange("all")}
+            >
+              <div className="flex items-center gap-3">
+                <div className={`w-4 h-4 rounded-full border flex items-center justify-center transition-colors ${activeCategory === "all" ? 'border-[#6D4AFF]' : 'border-[#E5E7EB] group-hover:border-[#6D4AFF]'}`}>
+                  {activeCategory === "all" && <div className="w-2 h-2 rounded-full bg-[#6D4AFF]" />}
+                </div>
+                <span className={`text-[15px] ${activeCategory === "all" ? 'text-[#111827] font-medium' : 'text-[#4B5563]'}`}>
+                  All Categories
+                </span>
+              </div>
+            </label>
+
+            {categories.map((cat) => {
+              const isActive = activeCategory === cat.name;
+              return (
+                <label 
+                  key={cat._id} 
+                  className="flex items-center justify-between cursor-pointer group"
+                  onClick={() => onChange && onChange(cat.name)}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`w-4 h-4 rounded-full border flex items-center justify-center transition-colors ${isActive ? 'border-[#6D4AFF]' : 'border-[#E5E7EB] group-hover:border-[#6D4AFF]'}`}>
+                      {isActive && <div className="w-2 h-2 rounded-full bg-[#6D4AFF]" />}
+                    </div>
+                    <span className={`text-[15px] ${isActive ? 'text-[#111827] font-medium' : 'text-[#4B5563]'}`}>
+                      {cat.name}
+                    </span>
+                  </div>
+                  {cat.count !== null && cat.count !== undefined && (
+                    <span className="text-[13px] text-[#9CA3AF]">({cat.count})</span>
+                  )}
+                </label>
+              );
+            })}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
+export default CategoryFilters;

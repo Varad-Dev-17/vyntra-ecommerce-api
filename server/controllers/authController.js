@@ -58,11 +58,7 @@ export const signUp = async (req, res) => {
 
       console.log("[Signup Flow] Email sent successfully.");
 
-      if (
-        !info.accepted ||
-        info.accepted.length === 0 ||
-        info.accepted[0] !== email
-      ) {
+      if (!info.accepted || info.accepted.length === 0) {
         throw new Error(
           `Email address ${email} was not accepted by the mail server.`
         );
@@ -328,7 +324,7 @@ export const sendForgotPasswordCode = async (req, res) => {
       html: forgotPasswordEmailTemplate(codeValue, existingUser.username),
     });
 
-    if (info.accepted && info.accepted[0] === existingUser.email) {
+    if (info.accepted && info.accepted.length > 0) {
       const hashedCodeValue = hmacProcess(
         codeValue,
         process.env.HMAC_VERIFICATION_CODE_SECRET
@@ -413,33 +409,3 @@ export const verifyForgotPasswordCode = async (req, res) => {
   }
 };
 
-// GET USER BY NAME
-export const getByName = async (req, res) => {
-  const { username } = req.params;
-  try {
-    const existingUser = await User.findOne(
-      { username },
-      {
-        password: 0,
-        createdAt: 0,
-        updatedAt: 0,
-        __v: 0,
-        verified: 0,
-        isAdmin: 0,
-      }
-    );
-
-    if (!existingUser) {
-      return res.status(404).json({
-        success: false,
-        message: `User does not exists by name: ${username}`,
-      });
-    }
-    return res.status(200).json({
-      success: true,
-      user: existingUser,
-    });
-  } catch (error) {
-    res.status(500).json({ success: false, message: "Server error." });
-  }
-};

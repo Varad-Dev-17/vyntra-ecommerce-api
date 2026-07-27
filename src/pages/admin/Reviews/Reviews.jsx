@@ -1,11 +1,19 @@
-import React from "react";
+import PageCard from "../../../components/admin/ui/PageCard";
+import { Star } from "lucide-react";
 
 const Reviews = () => {
   return (
-    <div className="p-6">
-      <h2 className="text-2xl font-bold text-gray-800">Reviews</h2>
-      <p className="text-gray-500 mt-2">Reviews management coming soon.</p>
-    </div>
+    <PageCard>
+      <div className="flex-1 flex flex-col items-center justify-center py-20 text-center bg-gray-50/50">
+        <Star size={48} className="text-gray-300 mb-4" />
+        <h3 className="text-xl font-bold text-[#1a1a2e] font-['Manrope'] mb-2">
+          Customer Reviews
+        </h3>
+        <p className="text-gray-500 max-w-md">
+          Product reviews and ratings management is coming soon in a future update.
+        </p>
+      </div>
+    </PageCard>
   );
 };
 

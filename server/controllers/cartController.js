@@ -1,20 +1,29 @@
 import Cart from "../models/cart.js";
 import Product from "../models/product.js";
+import Variant from "../models/variant.js";
+import mongoose from "mongoose";
 
 // GET USER CART
 export const getCart = async (req, res) => {
   try {
     const userId = req.user.userId;
 
-    const cart = await Cart.findOne({ user: userId })
+    const cart = await Cart.findOne({ userId })
       .populate({
-        path: "items.product",
-        match: { status: "active" },
-        select: "title images price stock status",
+        path: "products.productId",
+        match: { status: "Active" },
+        select: "title slug category brand status",
         populate: [
           { path: "category", select: "name" },
           { path: "brand", select: "name" },
         ],
+      })
+      .populate({
+        path: "products.variantId",
+        populate: [
+          { path: "attributes.attribute" },
+          { path: "attributes.option" }
+        ]
       })
       .lean();
 
@@ -26,14 +35,54 @@ export const getCart = async (req, res) => {
       });
     }
 
-    // Filter out inactive/deleted products and calculate totals
-    const activeItems = cart.items.filter((item) => item.product !== null);
-
+    // Process and filter active items
+    const activeItems = [];
     let totalAmount = 0;
     let itemCount = 0;
 
-    for (const item of activeItems) {
-      totalAmount += item.product.price * item.quantity;
+    for (const item of cart.products) {
+      if (!item.productId || !item.variantId) continue; // Product or variant was deleted, is inactive, or is a legacy item
+
+      const product = item.productId;
+      const variant = item.variantId;
+      
+      // Get color and size from attributes
+      let colorName = "Default";
+      let sizeName = "Standard";
+
+      if (variant.attributes) {
+        variant.attributes.forEach(attr => {
+          if (attr.attribute?.name?.toLowerCase() === "color") {
+            colorName = attr.option?.displayName || colorName;
+          }
+          if (attr.attribute?.name?.toLowerCase() === "size") {
+            sizeName = attr.option?.displayName || sizeName;
+          }
+        });
+      }
+
+      // Extract specific variant info
+      const processedItem = {
+        _id: item._id, // Cart item ID
+        productId: product._id,
+        variantId: variant._id,
+        quantity: item.quantity,
+        // UI fields
+        title: product.title,
+        slug: product.slug,
+        brand: product.brand,
+        category: product.category,
+        price: variant.price,
+        mrp: variant.mrp,
+        image: variant.mainImage?.url,
+        colorName,
+        sizeName,
+        stock: variant.stock,
+        addedFromWishlist: item.addedFromWishlist
+      };
+
+      activeItems.push(processedItem);
+      totalAmount += variant.price * item.quantity;
       itemCount += item.quantity;
     }
 
@@ -59,13 +108,13 @@ export const getCart = async (req, res) => {
 // ADD TO CART
 export const addToCart = async (req, res) => {
   try {
-    const { productId, quantity = 1 } = req.body;
+    const { productId, variantId, quantity = 1, addedFromWishlist = false } = req.body;
     const userId = req.user.userId;
 
-    if (!productId) {
+    if (!productId || !variantId) {
       return res.status(400).json({
         success: false,
-        message: "Product ID is required",
+        message: "Product ID and Variant ID are required",
         data: null,
       });
     }
@@ -79,7 +128,7 @@ export const addToCart = async (req, res) => {
     }
 
     // Check product exists and is active
-    const product = await Product.findOne({ _id: productId, status: "active" });
+    const product = await Product.findOne({ _id: productId, status: "Active" });
     if (!product) {
       return res.status(404).json({
         success: false,
@@ -88,77 +137,60 @@ export const addToCart = async (req, res) => {
       });
     }
 
+    const variant = await Variant.findOne({ _id: variantId, product: productId });
+    if (!variant) {
+      return res.status(404).json({ success: false, message: "Variant not found" });
+    }
+
     // Check stock
-    if (product.stock < quantity) {
+    if (variant.stock < quantity) {
       return res.status(400).json({
         success: false,
-        message: `Only ${product.stock} items available in stock`,
+        message: `Only ${variant.stock} items available in stock`,
         data: null,
       });
     }
 
-    let cart = await Cart.findOne({ user: userId });
+    let cart = await Cart.findOne({ userId });
 
     if (!cart) {
       cart = new Cart({
-        user: userId,
-        items: [{ product: productId, quantity: Number(quantity) }],
+        userId,
+        products: [{ productId, variantId, quantity: Number(quantity), addedFromWishlist }],
       });
     } else {
-      const itemIndex = cart.items.findIndex(
-        (item) => item.product.toString() === productId
+      // Clean up any legacy cart items that don't have a variantId
+      cart.products = cart.products.filter(item => item.variantId);
+
+      const itemIndex = cart.products.findIndex(
+        (item) => 
+          item.productId?.toString() === productId && 
+          item.variantId?.toString() === variantId
       );
 
       if (itemIndex > -1) {
-        // Product already in cart, update quantity
-        const newQuantity = cart.items[itemIndex].quantity + Number(quantity);
-        if (product.stock < newQuantity) {
+        // Update quantity
+        const newQuantity = cart.products[itemIndex].quantity + Number(quantity);
+        if (variant.stock < newQuantity) {
           return res.status(400).json({
             success: false,
-            message: `Only ${product.stock} items available. You already have ${cart.items[itemIndex].quantity} in cart.`,
+            message: `Only ${variant.stock} items available. You already have ${cart.products[itemIndex].quantity} in cart.`,
             data: null,
           });
         }
-        cart.items[itemIndex].quantity = newQuantity;
+        cart.products[itemIndex].quantity = newQuantity;
       } else {
-        // Add new product to cart
-        cart.items.push({ product: productId, quantity: Number(quantity) });
+        // Add new
+        cart.products.push({ productId, variantId, quantity: Number(quantity), addedFromWishlist });
       }
     }
 
     await cart.save();
+    
+    // Quick re-fetch to get counts
+    const countRes = await getCartData(userId);
+    return res.status(200).json(countRes);
 
-    const populatedCart = await Cart.findById(cart._id)
-      .populate({
-        path: "items.product",
-        match: { status: "active" },
-        select: "title images price stock status",
-        populate: [
-          { path: "category", select: "name" },
-          { path: "brand", select: "name" },
-        ],
-      })
-      .lean();
-
-    const activeItems = populatedCart.items.filter(
-      (item) => item.product !== null
-    );
-    let totalAmount = 0;
-    let itemCount = 0;
-    for (const item of activeItems) {
-      totalAmount += item.product.price * item.quantity;
-      itemCount += item.quantity;
-    }
-
-    return res.status(200).json({
-      success: true,
-      message: "Product added to cart",
-      data: {
-        items: activeItems,
-        totalAmount: Math.round(totalAmount * 100) / 100,
-        itemCount,
-      },
-    });
   } catch (error) {
     console.error(error);
     return res.status(500).json({
@@ -169,170 +201,74 @@ export const addToCart = async (req, res) => {
   }
 };
 
+// Helper for quick refetch
+const getCartData = async (userId) => {
+  const cart = await Cart.findOne({ userId }).populate('products.productId').lean();
+  let itemCount = 0;
+  if (cart) {
+    cart.products.forEach(p => {
+      if(p.productId) itemCount += p.quantity;
+    });
+  }
+  return { success: true, message: "Cart updated", data: { itemCount } };
+}
+
 // UPDATE CART ITEM QUANTITY
 export const updateCartItem = async (req, res) => {
   try {
-    const { productId } = req.params;
+    const { id } = req.params; // CartItem _id
     const { quantity } = req.body;
     const userId = req.user.userId;
 
     if (quantity === undefined || quantity < 0) {
-      return res.status(400).json({
-        success: false,
-        message: "Valid quantity is required",
-        data: null,
-      });
+      return res.status(400).json({ success: false, message: "Valid quantity is required" });
     }
 
-    const cart = await Cart.findOne({ user: userId });
-    if (!cart) {
-      return res.status(404).json({
-        success: false,
-        message: "Cart not found",
-        data: null,
-      });
-    }
+    const cart = await Cart.findOne({ userId });
+    if (!cart) return res.status(404).json({ success: false, message: "Bag not found" });
 
-    const itemIndex = cart.items.findIndex(
-      (item) => item.product.toString() === productId
-    );
-
-    if (itemIndex === -1) {
-      return res.status(404).json({
-        success: false,
-        message: "Product not found in cart",
-        data: null,
-      });
-    }
+    const itemIndex = cart.products.findIndex(item => item._id.toString() === id);
+    if (itemIndex === -1) return res.status(404).json({ success: false, message: "Item not found in bag" });
 
     if (quantity === 0) {
-      // Remove item if quantity is 0
-      cart.items.splice(itemIndex, 1);
+      cart.products.splice(itemIndex, 1);
     } else {
-      // Check stock
-      const product = await Product.findById(productId);
-      if (product && product.stock < quantity) {
-        return res.status(400).json({
-          success: false,
-          message: `Only ${product.stock} items available in stock`,
-          data: null,
-        });
+      const item = cart.products[itemIndex];
+      const variant = await Variant.findById(item.variantId);
+      if (variant && variant.stock < quantity) {
+        return res.status(400).json({ success: false, message: `Only ${variant.stock} items available` });
       }
-      cart.items[itemIndex].quantity = Number(quantity);
+      cart.products[itemIndex].quantity = Number(quantity);
     }
 
     await cart.save();
+    return await getCart(req, res); // Return full populated cart
 
-    const populatedCart = await Cart.findById(cart._id)
-      .populate({
-        path: "items.product",
-        match: { status: "active" },
-        select: "title images price stock status",
-        populate: [
-          { path: "category", select: "name" },
-          { path: "brand", select: "name" },
-        ],
-      })
-      .lean();
-
-    const activeItems = populatedCart
-      ? populatedCart.items.filter((item) => item.product !== null)
-      : [];
-    let totalAmount = 0;
-    let itemCount = 0;
-    for (const item of activeItems) {
-      totalAmount += item.product.price * item.quantity;
-      itemCount += item.quantity;
-    }
-
-    return res.status(200).json({
-      success: true,
-      message:
-        quantity === 0 ? "Item removed from cart" : "Cart updated successfully",
-      data: {
-        items: activeItems,
-        totalAmount: Math.round(totalAmount * 100) / 100,
-        itemCount,
-      },
-    });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({
-      success: false,
-      message: "Failed to update cart",
-      data: null,
-    });
+    return res.status(500).json({ success: false, message: "Failed to update cart" });
   }
 };
 
 // REMOVE FROM CART
 export const removeFromCart = async (req, res) => {
   try {
-    const { productId } = req.params;
+    const { id } = req.params; // CartItem _id
     const userId = req.user.userId;
 
-    const cart = await Cart.findOne({ user: userId });
-    if (!cart) {
-      return res.status(404).json({
-        success: false,
-        message: "Cart not found",
-        data: null,
-      });
-    }
+    const cart = await Cart.findOne({ userId });
+    if (!cart) return res.status(404).json({ success: false, message: "Bag not found" });
 
-    const itemIndex = cart.items.findIndex(
-      (item) => item.product.toString() === productId
-    );
+    const itemIndex = cart.products.findIndex(item => item._id.toString() === id);
+    if (itemIndex === -1) return res.status(404).json({ success: false, message: "Item not found in bag" });
 
-    if (itemIndex === -1) {
-      return res.status(404).json({
-        success: false,
-        message: "Product not found in cart",
-        data: null,
-      });
-    }
-
-    cart.items.splice(itemIndex, 1);
+    cart.products.splice(itemIndex, 1);
     await cart.save();
 
-    const populatedCart = await Cart.findById(cart._id)
-      .populate({
-        path: "items.product",
-        match: { status: "active" },
-        select: "title images price stock status",
-        populate: [
-          { path: "category", select: "name" },
-          { path: "brand", select: "name" },
-        ],
-      })
-      .lean();
-
-    const activeItems = populatedCart
-      ? populatedCart.items.filter((item) => item.product !== null)
-      : [];
-    let totalAmount = 0;
-    let itemCount = 0;
-    for (const item of activeItems) {
-      totalAmount += item.product.price * item.quantity;
-      itemCount += item.quantity;
-    }
-
-    return res.status(200).json({
-      success: true,
-      message: "Product removed from cart",
-      data: {
-        items: activeItems,
-        totalAmount: Math.round(totalAmount * 100) / 100,
-        itemCount,
-      },
-    });
+    return await getCart(req, res);
   } catch (error) {
     console.error(error);
-    return res.status(500).json({
-      success: false,
-      message: "Failed to remove from cart",
-      data: null,
-    });
+    return res.status(500).json({ success: false, message: "Failed to remove from cart" });
   }
 };
 
@@ -340,18 +276,12 @@ export const removeFromCart = async (req, res) => {
 export const clearCart = async (req, res) => {
   try {
     const userId = req.user.userId;
-
-    const cart = await Cart.findOne({ user: userId });
-    if (!cart || cart.items.length === 0) {
-      return res.status(200).json({
-        success: true,
-        message: "Cart is already empty",
-        data: { items: [], totalAmount: 0, itemCount: 0 },
-      });
+    const cart = await Cart.findOne({ userId });
+    
+    if (cart) {
+      cart.products = [];
+      await cart.save();
     }
-
-    cart.items = [];
-    await cart.save();
 
     return res.status(200).json({
       success: true,
@@ -360,10 +290,6 @@ export const clearCart = async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({
-      success: false,
-      message: "Failed to clear cart",
-      data: null,
-    });
+    return res.status(500).json({ success: false, message: "Failed to clear cart" });
   }
 };

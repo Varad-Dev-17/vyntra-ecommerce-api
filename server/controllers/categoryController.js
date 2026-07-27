@@ -1,21 +1,50 @@
+import Department from "../models/department.js";
 import Category from "../models/category.js";
+import Product from "../models/product.js";
+import AttributeMapping from "../models/attributeMapping.js";
 
-// Get All Categories
+// GET ALL CATEGORIES (with search, sort, filter, pagination)
 export const getCategories = async (req, res) => {
   try {
-    const categories = await Category.find()
-      .populate("attributes")
-      .populate("createdBy", "username email")
-      .sort({ createdAt: -1 });
+    const { page = 1, limit = 10, search, status, department, sort } = req.query;
+
+    const query = {};
+    if (search) {
+      query.$or = [
+        { name: { $regex: search, $options: "i" } },
+        { slug: { $regex: search, $options: "i" } }
+      ];
+    }
+    if (status) query.status = status;
+    // Filter by departmentId inside the array
+    if (department) query.departmentIds = department;
+
+    let sortOptions = { createdAt: -1 };
+    if (sort) {
+      const [field, order] = sort.split(":");
+      if (field && order) sortOptions[field] = order === "asc" ? 1 : -1;
+    }
+
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+
+    const categories = await Category.find(query)
+      .populate("departmentIds", "name")
+      .sort(sortOptions)
+      .skip(skip)
+      .limit(parseInt(limit));
+
+    const total = await Category.countDocuments(query);
 
     res.status(200).json({
       success: true,
       count: categories.length,
+      total,
+      totalPages: Math.ceil(total / parseInt(limit)),
+      currentPage: parseInt(page),
       categories,
     });
   } catch (error) {
-    console.error(error);
-
+    console.error("Error fetching categories:", error);
     res.status(500).json({
       success: false,
       message: "Failed to fetch categories.",
@@ -23,14 +52,11 @@ export const getCategories = async (req, res) => {
   }
 };
 
-// Get Single Category
+// GET SINGLE CATEGORY
 export const getCategory = async (req, res) => {
   try {
-    const { id } = req.params;
-
-    const category = await Category.findById(id)
-      .populate("attributes")
-      .populate("createdBy", "username email");
+    const category = await Category.findById(req.params.id)
+      .populate("departmentIds", "name");
 
     if (!category) {
       return res.status(404).json({
@@ -44,8 +70,7 @@ export const getCategory = async (req, res) => {
       category,
     });
   } catch (error) {
-    console.error(error);
-
+    console.error("Error fetching category:", error);
     res.status(500).json({
       success: false,
       message: "Failed to fetch category.",
@@ -53,34 +78,67 @@ export const getCategory = async (req, res) => {
   }
 };
 
-// Create Category
+// GET CATEGORIES BY DEPARTMENT
+export const getCategoriesByDepartment = async (req, res) => {
+  try {
+    const { departmentId } = req.params;
+
+    const categories = await Category.find({
+      departmentIds: departmentId,
+      status: "Active",
+    }).sort({ name: 1 });
+
+    res.status(200).json({
+      success: true,
+      count: categories.length,
+      categories,
+    });
+  } catch (error) {
+    console.error("Error fetching categories by department:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch categories.",
+    });
+  }
+};
+
+// CREATE CATEGORY
 export const createCategory = async (req, res) => {
   try {
-    const { name, description, attributes } = req.body;
+    const { departmentIds, name, slug, status } = req.body;
 
-    if (!name) {
+    if (!departmentIds || departmentIds.length === 0 || !name || !slug) {
       return res.status(400).json({
         success: false,
-        message: "Category name is required.",
+        message: "Department, name, and slug are required.",
       });
     }
 
-    const existingCategory = await Category.findOne({
-      name: name.trim(),
+    const departmentsExist = await Department.find({ _id: { $in: departmentIds } });
+    if (departmentsExist.length !== departmentIds.length) {
+      return res.status(404).json({
+        success: false,
+        message: "One or more departments not found.",
+      });
+    }
+
+    // Check uniqueness
+    const existing = await Category.findOne({
+      $or: [{ name: name.trim() }, { slug: slug.trim().toLowerCase() }],
     });
 
-    if (existingCategory) {
+    if (existing) {
       return res.status(409).json({
         success: false,
-        message: "Category already exists.",
+        message: "A category with this name or slug already exists.",
       });
     }
 
     const category = await Category.create({
+      departmentIds,
       name: name.trim(),
-      description,
-      attributes,
-      createdBy: req.user.userId,
+      slug: slug.trim().toLowerCase(),
+      status: status || "Active",
     });
 
     res.status(201).json({
@@ -89,8 +147,7 @@ export const createCategory = async (req, res) => {
       category,
     });
   } catch (error) {
-    console.error(error);
-
+    console.error("Error creating category:", error);
     res.status(500).json({
       success: false,
       message: "Failed to create category.",
@@ -98,15 +155,13 @@ export const createCategory = async (req, res) => {
   }
 };
 
-// Update Category
+// UPDATE CATEGORY
 export const updateCategory = async (req, res) => {
   try {
     const { id } = req.params;
-
-    const { name, description, attributes, status } = req.body;
+    const { departmentIds, name, slug, status } = req.body;
 
     const category = await Category.findById(id);
-
     if (!category) {
       return res.status(404).json({
         success: false,
@@ -114,26 +169,39 @@ export const updateCategory = async (req, res) => {
       });
     }
 
-    if (name) {
-      const existingCategory = await Category.findOne({
-        name: name.trim(),
-        _id: { $ne: id },
-      });
-
-      if (existingCategory) {
-        return res.status(409).json({
+    if (departmentIds) {
+      const departmentsExist = await Department.find({ _id: { $in: departmentIds } });
+      if (departmentsExist.length !== departmentIds.length) {
+        return res.status(404).json({
           success: false,
-          message: "Category already exists.",
+          message: "One or more departments not found.",
         });
       }
-
-      category.name = name.trim();
+      category.departmentIds = departmentIds;
     }
 
-    if (description !== undefined) category.description = description;
+    if (name || slug) {
+      const query = { 
+        _id: { $ne: id }, 
+        $or: [] 
+      };
+      
+      if (name) query.$or.push({ name: name.trim() });
+      if (slug) query.$or.push({ slug: slug.trim().toLowerCase() });
 
-    if (attributes !== undefined) category.attributes = attributes;
+      if (query.$or.length > 0) {
+        const existing = await Category.findOne(query);
+        if (existing) {
+          return res.status(409).json({
+            success: false,
+            message: "A category with this name or slug already exists.",
+          });
+        }
+      }
+    }
 
+    if (name) category.name = name.trim();
+    if (slug) category.slug = slug.trim().toLowerCase();
     if (status) category.status = status;
 
     await category.save();
@@ -144,8 +212,7 @@ export const updateCategory = async (req, res) => {
       category,
     });
   } catch (error) {
-    console.error(error);
-
+    console.error("Error updating category:", error);
     res.status(500).json({
       success: false,
       message: "Failed to update category.",
@@ -153,14 +220,12 @@ export const updateCategory = async (req, res) => {
   }
 };
 
-// Delete Category
-// Soft Delete
+// DELETE CATEGORY (Hard Delete with Relational Validation)
 export const deleteCategory = async (req, res) => {
   try {
     const { id } = req.params;
-
+    
     const category = await Category.findById(id);
-
     if (!category) {
       return res.status(404).json({
         success: false,
@@ -168,17 +233,26 @@ export const deleteCategory = async (req, res) => {
       });
     }
 
-    category.status = "inactive";
+    // Validation 1: Check if any Products are linked
+    const productCount = await Product.countDocuments({ category: id });
+    if (productCount > 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Cannot delete: Products exist under this Category.",
+      });
+    }
 
-    await category.save();
+    // Cascade delete Attribute Mappings
+    await AttributeMapping.deleteMany({ category: id });
+
+    await Category.findByIdAndDelete(id);
 
     res.status(200).json({
       success: true,
       message: "Category deleted successfully.",
     });
   } catch (error) {
-    console.error(error);
-
+    console.error("Error deleting category:", error);
     res.status(500).json({
       success: false,
       message: "Failed to delete category.",

@@ -2,38 +2,31 @@ import mongoose from "mongoose";
 
 const CategorySchema = new mongoose.Schema(
   {
+    departmentIds: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Department",
+      },
+    ],
+
     name: {
       type: String,
       required: true,
-      unique: true,
       trim: true,
     },
 
-    description: {
+    slug: {
       type: String,
-      default: "",
+      required: true,
+      unique: true,
+      lowercase: true,
       trim: true,
-    },
-
-    attributes: {
-      type: [
-        {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: "Attribute",
-        },
-      ],
-      default: [],
     },
 
     status: {
       type: String,
-      enum: ["active", "inactive"],
-      default: "active",
-    },
-
-    createdBy: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      enum: ["Active", "Inactive"],
+      default: "Active",
     },
   },
   { timestamps: true }

@@ -2,6 +2,13 @@ import mongoose from "mongoose";
 
 const BrandSchema = new mongoose.Schema(
   {
+    departmentIds: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Department",
+      },
+    ],
+
     name: {
       type: String,
       required: true,
@@ -9,21 +16,18 @@ const BrandSchema = new mongoose.Schema(
       trim: true,
     },
 
-    description: {
+    slug: {
       type: String,
-      default: "",
+      required: true,
+      unique: true,
+      lowercase: true,
       trim: true,
     },
 
     status: {
       type: String,
-      enum: ["active", "inactive"],
-      default: "active",
-    },
-
-    createdBy: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      enum: ["Active", "Inactive"],
+      default: "Active",
     },
   },
   { timestamps: true }

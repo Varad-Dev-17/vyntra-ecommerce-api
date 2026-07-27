@@ -8,9 +8,20 @@ const AttributeOptionSchema = new mongoose.Schema(
       required: true,
     },
 
-    value: {
+    displayName: {
       type: String,
       required: true,
+      trim: true,
+    },
+
+    storedValue: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
+    hex: {
+      type: String,
       trim: true,
     },
 
@@ -20,12 +31,16 @@ const AttributeOptionSchema = new mongoose.Schema(
       default: "active",
     },
 
-    createdBy: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-    },
   },
   { timestamps: true }
+);
+
+AttributeOptionSchema.index(
+  {
+    attribute: 1,
+    displayName: 1,
+  },
+  { unique: true }
 );
 
 export default mongoose.model("AttributeOption", AttributeOptionSchema);

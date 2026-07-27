@@ -1,4 +1,3 @@
-import React from "react";
 import DashboardSection from "../../../components/adminDashboardComponents/DashboardSection";
 
 const Dashboard = () => {

@@ -8,15 +8,20 @@ export const getWishlist = async (req, res) => {
 
     const wishlist = await Wishlist.findOne({ user: userId })
       .populate({
-        path: "products",
-        match: { status: "active" },
-        select:
-          "title description images price stock ratingAverage ratingCount category subCategory brand status",
+        path: "items.productId",
+        match: { status: "Active" },
+        select: "title slug description mainImage galleryImages price mrp stock ratingAverage ratingCount category brand status",
         populate: [
           { path: "category", select: "name" },
-          { path: "subCategory", select: "name" },
           { path: "brand", select: "name" },
         ],
+      })
+      .populate({
+        path: "items.variantId",
+        populate: [
+          { path: "attributes.attribute" },
+          { path: "attributes.option" }
+        ]
       })
       .lean();
 
@@ -24,17 +29,17 @@ export const getWishlist = async (req, res) => {
       return res.status(200).json({
         success: true,
         message: "Wishlist fetched successfully",
-        data: { products: [] },
+        data: { items: [] },
       });
     }
 
-    // Filter out null products (inactive/deleted)
-    const activeProducts = wishlist.products.filter((p) => p !== null);
+    // Filter out items where the product was deleted or became inactive
+    const activeItems = wishlist.items.filter((item) => item.productId !== null);
 
     return res.status(200).json({
       success: true,
       message: "Wishlist fetched successfully",
-      data: { products: activeProducts },
+      data: { items: activeItems },
     });
   } catch (error) {
     console.error(error);
@@ -49,19 +54,19 @@ export const getWishlist = async (req, res) => {
 // ADD TO WISHLIST
 export const addToWishlist = async (req, res) => {
   try {
-    const { productId } = req.body;
+    const { productId, variantId } = req.body;
     const userId = req.user.userId;
 
-    if (!productId) {
+    if (!productId || !variantId) {
       return res.status(400).json({
         success: false,
-        message: "Product ID is required",
+        message: "Product ID and Variant ID are required",
         data: null,
       });
     }
 
     // Check if product exists and is active
-    const product = await Product.findOne({ _id: productId, status: "active" });
+    const product = await Product.findOne({ _id: productId, status: "Active" });
     if (!product) {
       return res.status(404).json({
         success: false,
@@ -75,45 +80,30 @@ export const addToWishlist = async (req, res) => {
     if (!wishlist) {
       wishlist = await Wishlist.create({
         user: userId,
-        products: [productId],
+        items: [{ productId, variantId }],
       });
     } else {
-      if (wishlist.products.includes(productId)) {
+      // Check if this specific variant of the product is already in the wishlist
+      const isAlreadyInWishlist = wishlist.items.some(
+        (item) => item.productId.toString() === productId && item.variantId.toString() === variantId
+      );
+
+      if (isAlreadyInWishlist) {
         return res.status(409).json({
           success: false,
-          message: "Product already in wishlist",
+          message: "Product variant already in wishlist",
           data: null,
         });
       }
-      wishlist.products.push(productId);
+      wishlist.items.push({ productId, variantId });
       await wishlist.save();
     }
 
     // Increment product wishlist count
-    product.wishlistCount += 1;
+    product.wishlistCount = (product.wishlistCount || 0) + 1;
     await product.save();
 
-    const populatedWishlist = await Wishlist.findOne({ user: userId })
-      .populate({
-        path: "products",
-        match: { status: "active" },
-        select:
-          "title description images price stock ratingAverage ratingCount category subCategory brand",
-        populate: [
-          { path: "category", select: "name" },
-          { path: "subCategory", select: "name" },
-          { path: "brand", select: "name" },
-        ],
-      })
-      .lean();
-
-    const activeProducts = populatedWishlist.products.filter((p) => p !== null);
-
-    return res.status(200).json({
-      success: true,
-      message: "Product added to wishlist",
-      data: { products: activeProducts },
-    });
+    return getWishlist(req, res); // Return the updated wishlist directly using the same get method
   } catch (error) {
     console.error(error);
     return res.status(500).json({
@@ -127,7 +117,7 @@ export const addToWishlist = async (req, res) => {
 // REMOVE FROM WISHLIST
 export const removeFromWishlist = async (req, res) => {
   try {
-    const { productId } = req.params;
+    const { productId, variantId } = req.params; // Expecting both to uniquely identify what to remove
     const userId = req.user.userId;
 
     const wishlist = await Wishlist.findOne({ user: userId });
@@ -139,49 +129,31 @@ export const removeFromWishlist = async (req, res) => {
       });
     }
 
-    if (!wishlist.products.includes(productId)) {
+    const itemExists = wishlist.items.some(
+      (item) => item.productId.toString() === productId && item.variantId.toString() === variantId
+    );
+
+    if (!itemExists) {
       return res.status(404).json({
         success: false,
-        message: "Product not found in wishlist",
+        message: "Product variant not found in wishlist",
         data: null,
       });
     }
 
-    wishlist.products = wishlist.products.filter(
-      (id) => id.toString() !== productId
+    wishlist.items = wishlist.items.filter(
+      (item) => !(item.productId.toString() === productId && item.variantId.toString() === variantId)
     );
     await wishlist.save();
 
     // Decrement product wishlist count
     const product = await Product.findById(productId);
     if (product) {
-      product.wishlistCount = Math.max(0, product.wishlistCount - 1);
+      product.wishlistCount = Math.max(0, (product.wishlistCount || 1) - 1);
       await product.save();
     }
 
-    const populatedWishlist = await Wishlist.findOne({ user: userId })
-      .populate({
-        path: "products",
-        match: { status: "active" },
-        select:
-          "title description images price stock ratingAverage ratingCount category subCategory brand",
-        populate: [
-          { path: "category", select: "name" },
-          { path: "subCategory", select: "name" },
-          { path: "brand", select: "name" },
-        ],
-      })
-      .lean();
-
-    const activeProducts = populatedWishlist
-      ? populatedWishlist.products.filter((p) => p !== null)
-      : [];
-
-    return res.status(200).json({
-      success: true,
-      message: "Product removed from wishlist",
-      data: { products: activeProducts },
-    });
+    return getWishlist(req, res); // Return updated list
   } catch (error) {
     console.error(error);
     return res.status(500).json({
@@ -198,30 +170,30 @@ export const clearWishlist = async (req, res) => {
     const userId = req.user.userId;
 
     const wishlist = await Wishlist.findOne({ user: userId });
-    if (!wishlist || wishlist.products.length === 0) {
+    if (!wishlist || wishlist.items.length === 0) {
       return res.status(200).json({
         success: true,
         message: "Wishlist is already empty",
-        data: { products: [] },
+        data: { items: [] },
       });
     }
 
     // Decrement wishlist counts for all products
-    for (const productId of wishlist.products) {
-      const product = await Product.findById(productId);
+    for (const item of wishlist.items) {
+      const product = await Product.findById(item.productId);
       if (product) {
-        product.wishlistCount = Math.max(0, product.wishlistCount - 1);
+        product.wishlistCount = Math.max(0, (product.wishlistCount || 1) - 1);
         await product.save();
       }
     }
 
-    wishlist.products = [];
+    wishlist.items = [];
     await wishlist.save();
 
     return res.status(200).json({
       success: true,
       message: "Wishlist cleared successfully",
-      data: { products: [] },
+      data: { items: [] },
     });
   } catch (error) {
     console.error(error);
@@ -236,12 +208,16 @@ export const clearWishlist = async (req, res) => {
 // CHECK IF PRODUCT IS IN WISHLIST
 export const checkWishlistStatus = async (req, res) => {
   try {
-    const { productId } = req.params;
+    const { productId, variantId } = req.params;
     const userId = req.user.userId;
 
     const wishlist = await Wishlist.findOne({ user: userId });
+    
+    // Check if the specific variant is in wishlist
     const isInWishlist = wishlist
-      ? wishlist.products.includes(productId)
+      ? wishlist.items.some(
+          (item) => item.productId.toString() === productId && item.variantId.toString() === variantId
+        )
       : false;
 
     return res.status(200).json({

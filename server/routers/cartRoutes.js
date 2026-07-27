@@ -13,8 +13,8 @@ const router = express.Router();
 // All cart routes require authentication
 router.get("/", identifier, getCart);
 router.post("/", identifier, addToCart);
-router.put("/:productId", identifier, updateCartItem);
+router.put("/:id", identifier, updateCartItem);
 router.delete("/clear", identifier, clearCart);
-router.delete("/:productId", identifier, removeFromCart);
+router.delete("/:id", identifier, removeFromCart);
 
 export default router;

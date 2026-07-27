@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Box, ShoppingCart, UserCheck, DollarSign, Loader2, AlertCircle } from "lucide-react";
 import api from "../../api/axiosConfig";
@@ -8,9 +8,6 @@ const DashboardSection = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    fetchStats();
-  }, []);
 
   const fetchStats = async () => {
     try {
@@ -28,6 +25,10 @@ const DashboardSection = () => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchStats();
+  }, []);
 
   if (loading) {
     return (

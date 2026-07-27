@@ -11,8 +11,15 @@ const CartItemSchema = new mongoose.Schema({
     default: 1,
     min: 1,
   },
-  size: { type: String },
-  color: { type: String },
+  variantId: { 
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Variant",
+    required: true,
+  },
+  addedFromWishlist: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const CartSchema = new mongoose.Schema(

@@ -6,14 +6,7 @@ import { isAdmin } from "../middlewares/isAdmin.js";
 
 const router = express.Router();
 
-// Configure Cloudinary
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
-
-// Multer setup (store in memory)
+// Multer setup
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB max
@@ -30,8 +23,21 @@ const upload = multer({
 // Helper: upload buffer to Cloudinary
 const uploadToCloudinary = (buffer, mimetype, folder = "vyntra-products") => {
   return new Promise((resolve, reject) => {
+    // Configure Cloudinary here to avoid ES module import hoisting issues with dotenv
+    cloudinary.config({
+      cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+      api_key: process.env.CLOUDINARY_API_KEY,
+      api_secret: process.env.CLOUDINARY_API_SECRET,
+    });
+
     const b64 = Buffer.from(buffer).toString("base64");
     const dataURI = "data:" + mimetype + ";base64," + b64;
+
+    console.log({
+      cloudName: process.env.CLOUDINARY_CLOUD_NAME,
+      apiKey: process.env.CLOUDINARY_API_KEY,
+      apiSecretLoaded: !!process.env.CLOUDINARY_API_SECRET,
+    });
 
     cloudinary.uploader.upload(
       dataURI,

@@ -7,7 +7,6 @@ const ProductAttributeSchema = new mongoose.Schema(
       ref: "Attribute",
       required: true,
     },
-
     values: [
       {
         type: String,
@@ -18,26 +17,55 @@ const ProductAttributeSchema = new mongoose.Schema(
   { _id: false }
 );
 
+const ProductImageSchema = new mongoose.Schema(
+  {
+    url: {
+      type: String,
+      required: true,
+    },
+    publicId: {
+      type: String,
+      required: true,
+    },
+  },
+  { _id: false }
+);
+
+
+
 const ProductSchema = new mongoose.Schema(
   {
     title: {
       type: String,
       required: true,
-      unique: true,
       trim: true,
     },
 
-    description: {
+    slug: {
+      type: String,
+      required: true,
+      unique: true,
+      lowercase: true,
+      trim: true,
+    },
+
+    shortDescription: {
       type: String,
       required: true,
       trim: true,
     },
 
-    images: [
-      {
-        type: String,
-      },
-    ],
+    longDescription: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
+    department: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Department",
+      required: true,
+    },
 
     category: {
       type: mongoose.Schema.Types.ObjectId,
@@ -45,29 +73,15 @@ const ProductSchema = new mongoose.Schema(
       required: true,
     },
 
-    subCategory: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "SubCategory",
-      required: true,
-    },
-
     brand: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Brand",
+      required: true,
     },
 
     attributes: [ProductAttributeSchema],
 
-    price: {
-      type: Number,
-      required: true,
-      min: 0,
-    },
 
-    stock: {
-      type: Number,
-      default: 0,
-    },
 
     ratingAverage: {
       type: Number,
@@ -86,13 +100,8 @@ const ProductSchema = new mongoose.Schema(
 
     status: {
       type: String,
-      enum: ["active", "inactive"],
-      default: "active",
-    },
-
-    createdBy: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      enum: ["Active", "Inactive"],
+      default: "Inactive",
     },
   },
   { timestamps: true }

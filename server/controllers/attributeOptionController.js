@@ -6,7 +6,6 @@ export const getAttributeOptions = async (req, res) => {
   try {
     const options = await AttributeOption.find()
       .populate("attribute", "name fieldType")
-      .populate("createdBy", "username email")
       .sort({ createdAt: -1 });
 
     res.status(200).json({
@@ -27,6 +26,7 @@ export const getAttributeOptions = async (req, res) => {
 export const getOptionsByAttribute = async (req, res) => {
   try {
     const { attributeId } = req.params;
+    const { page = 1, limit = 10 } = req.query; // basic pagination
 
     const attribute = await Attribute.findById(attributeId);
     if (!attribute) {
@@ -36,14 +36,22 @@ export const getOptionsByAttribute = async (req, res) => {
       });
     }
 
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+
     const options = await AttributeOption.find({ attribute: attributeId })
       .populate("attribute", "name fieldType")
-      .populate("createdBy", "username email")
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(parseInt(limit));
+
+    const total = await AttributeOption.countDocuments({ attribute: attributeId });
 
     res.status(200).json({
       success: true,
       count: options.length,
+      total,
+      totalPages: Math.ceil(total / parseInt(limit)),
+      currentPage: parseInt(page),
       attribute,
       options,
     });
@@ -59,12 +67,12 @@ export const getOptionsByAttribute = async (req, res) => {
 // POST Create Attribute Option
 export const createAttributeOption = async (req, res) => {
   try {
-    const { attribute, value } = req.body;
+    const { attribute, displayName, storedValue, hex, status } = req.body;
 
-    if (!attribute || !value) {
+    if (!attribute || !displayName || !storedValue) {
       return res.status(400).json({
         success: false,
-        message: "Attribute ID and value are required.",
+        message: "Attribute ID, displayName, and storedValue are required.",
       });
     }
 
@@ -76,32 +84,31 @@ export const createAttributeOption = async (req, res) => {
       });
     }
 
+    // Enforce uniqueness of displayName within the attribute
     const existingOption = await AttributeOption.findOne({
       attribute,
-      value: value.trim(),
+      displayName: displayName.trim(),
     });
 
     if (existingOption) {
       return res.status(409).json({
         success: false,
-        message: "Option already exists for this attribute.",
+        message: "An option with this display name already exists for this attribute.",
       });
     }
 
     const option = await AttributeOption.create({
       attribute,
-      value: value.trim(),
-      createdBy: req.user.userId,
+      displayName: displayName.trim(),
+      storedValue: storedValue.trim(),
+      hex: hex ? hex.trim() : undefined,
+      status: status || "active"
     });
-
-    const populatedOption = await AttributeOption.findById(option._id)
-      .populate("attribute", "name fieldType")
-      .populate("createdBy", "username email");
 
     res.status(201).json({
       success: true,
       message: "Attribute option created successfully.",
-      option: populatedOption,
+      option,
     });
   } catch (error) {
     console.error("[Create Attribute Option] Error:", error);
@@ -116,7 +123,7 @@ export const createAttributeOption = async (req, res) => {
 export const updateAttributeOption = async (req, res) => {
   try {
     const { id } = req.params;
-    const { value, status } = req.body;
+    const { displayName, storedValue, hex, status } = req.body;
 
     const option = await AttributeOption.findById(id);
 
@@ -127,35 +134,33 @@ export const updateAttributeOption = async (req, res) => {
       });
     }
 
-    if (value) {
+    if (displayName) {
       const existingOption = await AttributeOption.findOne({
         attribute: option.attribute,
-        value: value.trim(),
+        displayName: displayName.trim(),
         _id: { $ne: id },
       });
 
       if (existingOption) {
         return res.status(409).json({
           success: false,
-          message: "Option already exists for this attribute.",
+          message: "An option with this display name already exists for this attribute.",
         });
       }
 
-      option.value = value.trim();
+      option.displayName = displayName.trim();
     }
 
+    if (storedValue) option.storedValue = storedValue.trim();
+    if (hex !== undefined) option.hex = hex.trim();
     if (status) option.status = status;
 
     await option.save();
 
-    const populatedOption = await AttributeOption.findById(option._id)
-      .populate("attribute", "name fieldType")
-      .populate("createdBy", "username email");
-
     res.status(200).json({
       success: true,
       message: "Attribute option updated successfully.",
-      option: populatedOption,
+      option,
     });
   } catch (error) {
     console.error("[Update Attribute Option] Error:", error);
@@ -166,7 +171,7 @@ export const updateAttributeOption = async (req, res) => {
   }
 };
 
-// DELETE Attribute Option (Soft Delete)
+// DELETE Attribute Option (Hard Delete with constraints)
 export const deleteAttributeOption = async (req, res) => {
   try {
     const { id } = req.params;
@@ -180,8 +185,11 @@ export const deleteAttributeOption = async (req, res) => {
       });
     }
 
-    option.status = "inactive";
-    await option.save();
+    // Validation 1: Check if any ProductVariants depend on this Option
+    // Example: { "attributes.optionId": id }
+    // We will implement this constraint once the ProductVariant schema is finalized.
+
+    await AttributeOption.findByIdAndDelete(id);
 
     res.status(200).json({
       success: true,

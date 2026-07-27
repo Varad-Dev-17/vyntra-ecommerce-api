@@ -7,33 +7,47 @@ import {
 } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import { AuthProvider, useAuth } from "./context/AuthContext";
-import Navbar from "./components/Navbar";
-import Footer from "./components/Footer";
-import Home from "./pages/Home";
-import SignIn from "./pages/SignIn";
-import SignUp from "./pages/SignUp";
-import TrendingProducts from "./components/TrendingProducts";
-import AdminSignInPage from "./pages/AdminSignInPage";
-import PageNotFound from "./components/PageNotFound";
-import AdminDashBoard from "./pages/AdminDashBoard";
-import ChangePasswordPage from "./pages/ChangePasswordPage";
-import ForgotPasswordPage from "./pages/ForgotPasswordPage";
-import Products from "./pages/ProductsPage";
-import CartPage from "./pages/CartPage";
+import Navbar from "./components/common/Navbar";
+import Footer from "./components/common/Footer";
+import Home from "./pages/home/Home";
+import SignIn from "./pages/user/SignIn";
+import SignUp from "./pages/user/SignUp";
+import AdminSignInPage from "./pages/admin/auth/AdminSignInPage";
+import PageNotFound from "./components/common/PageNotFound";
+import ChangePasswordPage from "./pages/user/ChangePasswordPage";
+import ForgotPasswordPage from "./pages/user/ForgotPasswordPage";
+import Products from "./pages/shop-now/ProductsPage";
+import ProductDetailsPage from "./pages/product-details/ProductDetailsPage";
+import Bag from "./pages/bag/Bag";
+import WishlistPage from "./pages/wishlist/WishlistPage";
 import { CartProvider } from "./context/CartContext";
+import { WishlistProvider } from "./context/WishlistContext";
 
-import SmoothScrollProvider from "./components/SmoothScrollProvider";
-import SmoothScrollbar from "./components/SmoothScrollbar";
+import SmoothScrollProvider from "./animation/globalanimation/scroll/SmoothScrollProvider";
+import SmoothScrollbar from "./animation/globalanimation/scroll/SmoothScrollbar";
 
 // Admin Layout & Pages
 import AdminLayout from "./layouts/AdminLayout";
 import Dashboard from "./pages/admin/Dashboard/Dashboard";
 import CatalogLayout from "./pages/admin/Catalog/CatalogLayout";
-import Categories from "./pages/admin/Catalog/Categories";
-import ArticleTypes from "./pages/admin/Catalog/ArticleTypes";
-import Brands from "./pages/admin/Catalog/Brands";
-import Attributes from "./pages/admin/Catalog/Attributes";
-import AdminProducts from "./pages/admin/Products/Products";
+import DepartmentsList from "./pages/admin/Catalog/DepartmentsModule/DepartmentsList";
+import AddDepartment from "./pages/admin/Catalog/DepartmentsModule/AddDepartment";
+import EditDepartment from "./pages/admin/Catalog/DepartmentsModule/EditDepartment";
+import CategoriesList from "./pages/admin/Catalog/CategoriesModule/CategoriesList";
+import AddCategory from "./pages/admin/Catalog/CategoriesModule/AddCategory";
+import EditCategory from "./pages/admin/Catalog/CategoriesModule/EditCategory";
+
+import BrandsList from "./pages/admin/Catalog/BrandsModule/BrandsList";
+import AddBrand from "./pages/admin/Catalog/BrandsModule/AddBrand";
+import EditBrand from "./pages/admin/Catalog/BrandsModule/EditBrand";
+import AttributesList from "./pages/admin/Catalog/AttributesModule/AttributesList";
+import AddAttribute from "./pages/admin/Catalog/AttributesModule/AddAttribute";
+import EditAttribute from "./pages/admin/Catalog/AttributesModule/EditAttribute";
+import ProductsList from "./pages/admin/Catalog/ProductsModule/ProductsList";
+import AddProduct from "./pages/admin/Catalog/ProductsModule/AddProduct";
+import EditProduct from "./pages/admin/Catalog/ProductsModule/EditProduct";
+import ProductVariants from "./pages/admin/Catalog/ProductsModule/ProductVariants";
+
 import StockManagement from "./pages/admin/StockManagement/StockManagement";
 import Orders from "./pages/admin/Orders/Orders";
 import Users from "./pages/admin/Users/Users";
@@ -42,6 +56,7 @@ import Reviews from "./pages/admin/Reviews/Reviews";
 
 const ProtectedRoute = ({ children, adminOnly = false }) => {
   const { user, loading } = useAuth();
+  const location = useLocation();
 
   if (loading) {
     return (
@@ -51,26 +66,10 @@ const ProtectedRoute = ({ children, adminOnly = false }) => {
     );
   }
 
-  if (!user) return <Navigate to="/signin" replace />;
+  if (!user) return <Navigate to="/signin" state={{ from: location }} replace />;
   if (adminOnly && !user.isAdmin) return <Navigate to="/" replace />;
 
   return children;
-};
-
-const HomeRedirect = () => {
-  const { user, loading } = useAuth();
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[#fcf8ff]">
-        <div className="w-10 h-10 border-4 border-[#4648d4] border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
-  }
-
-  if (!user) return <Navigate to="/signin" replace />;
-  if (user.isAdmin) return <Navigate to="/admin/dashboard" replace />;
-  return <Navigate to="/home" replace />;
 };
 
 // ============================================
@@ -99,15 +98,8 @@ const AppRoutes = () => {
   return (
     <Routes>
       {/* Public Routes */}
-      <Route path="/" element={<HomeRedirect />} />
-      <Route path="/signin" element={<SignIn />} />
-      <Route path="/signup" element={<SignUp />} />
-      <Route path="/admin/signin" element={<AdminSignInPage />} />
-      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-
-      {/* User Routes with Navbar + Footer */}
       <Route
-        path="/home"
+        path="/"
         element={
           <UserLayout>
             <SmoothScrollProvider>
@@ -118,15 +110,14 @@ const AppRoutes = () => {
         }
       />
       <Route
-        path="/trending"
-        element={
-          <ProtectedRoute>
-            <UserLayout>
-              <TrendingProducts />
-            </UserLayout>
-          </ProtectedRoute>
-        }
+        path="/home"
+        element={<Navigate to="/" replace />}
       />
+      <Route path="/signin" element={<SignIn />} />
+      <Route path="/signup" element={<SignUp />} />
+      <Route path="/admin/signin" element={<AdminSignInPage />} />
+      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+
       <Route
         path="/change-password"
         element={
@@ -146,6 +137,24 @@ const AppRoutes = () => {
         }
       />
       <Route
+        path="/product/:slug"
+        element={
+          <UserLayout>
+            <ProductDetailsPage />
+          </UserLayout>
+        }
+      />
+      <Route
+        path="/wishlist"
+        element={
+          <ProtectedRoute>
+            <UserLayout>
+              <WishlistPage />
+            </UserLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/new-arrivals"
         element={
           <ProtectedRoute>
@@ -159,11 +168,11 @@ const AppRoutes = () => {
       />
 
       <Route
-        path="/cart"
+        path="/bag"
         element={
           <ProtectedRoute>
             <UserLayout>
-              <CartPage />
+              <Bag />
             </UserLayout>
           </ProtectedRoute>
         }
@@ -180,20 +189,45 @@ const AppRoutes = () => {
       >
         {/* Default redirect to dashboard */}
         <Route index element={<Navigate to="dashboard" replace />} />
-        
+
         <Route path="dashboard" element={<Dashboard />} />
-        
+
         {/* Dedicated Catalog Workspace */}
         <Route path="catalog" element={<CatalogLayout />}>
-          <Route index element={<Navigate to="categories" replace />} />
-          <Route path="categories" element={<Categories />} />
-          <Route path="article-types" element={<ArticleTypes />} />
-          <Route path="brands" element={<Brands />} />
-          <Route path="attributes" element={<Attributes />} />
+          <Route index element={<Navigate to="departments" replace />} />
+          <Route path="departments">
+            <Route index element={<DepartmentsList />} />
+            <Route path="add" element={<AddDepartment />} />
+            <Route path=":id/edit" element={<EditDepartment />} />
+          </Route>
+          <Route path="categories">
+            <Route index element={<CategoriesList />} />
+            <Route path="add" element={<AddCategory />} />
+            <Route path=":id/edit" element={<EditCategory />} />
+
+          </Route>
+          <Route path="brands">
+            <Route index element={<BrandsList />} />
+            <Route path="add" element={<AddBrand />} />
+            <Route path=":id/edit" element={<EditBrand />} />
+          </Route>
+          <Route path="attributes">
+            <Route index element={<AttributesList />} />
+            <Route path="add" element={<AddAttribute />} />
+            <Route path=":id/edit" element={<EditAttribute />} />
+          </Route>
+
+        </Route>
+
+        {/* Products Module */}
+        <Route path="products">
+          <Route index element={<ProductsList />} />
+          <Route path="add" element={<AddProduct />} />
+          <Route path=":id/edit" element={<EditProduct />} />
+          <Route path=":id/variants" element={<ProductVariants />} />
         </Route>
 
         {/* Other direct modules */}
-        <Route path="products" element={<AdminProducts />} />
         <Route path="stock-management" element={<StockManagement />} />
         <Route path="orders" element={<Orders />} />
         <Route path="users" element={<Users />} />
@@ -244,9 +278,11 @@ function App() {
             },
           }}
         />
-        <Router>
-          <AppRoutes />
-        </Router>
+        <WishlistProvider>
+          <Router>
+            <AppRoutes />
+          </Router>
+        </WishlistProvider>
       </CartProvider>
     </AuthProvider>
   );

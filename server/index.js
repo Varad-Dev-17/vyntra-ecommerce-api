@@ -1,4 +1,5 @@
-import "dotenv/config";
+import dotenv from "dotenv";
+dotenv.config({ override: true });
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
@@ -12,16 +13,17 @@ import userRoutes from "./routers/userRoutes.js";
 // Split routes
 import productPublicRoutes from "./routers/productPublicRoutes.js";
 import productAdminRoutes from "./routers/productAdminRoutes.js";
+import departmentPublicRoutes from "./routers/departmentPublicRoutes.js";
+import departmentAdminRoutes from "./routers/departmentAdminRoutes.js";
 import categoryPublicRoutes from "./routers/categoryPublicRoutes.js";
 import categoryAdminRoutes from "./routers/categoryAdminRoutes.js";
-import subCategoryPublicRoutes from "./routers/subCategoryPublicRoutes.js";
-import subCategoryAdminRoutes from "./routers/subCategoryAdminRoutes.js";
 import brandPublicRoutes from "./routers/brandPublicRoutes.js";
 import brandAdminRoutes from "./routers/brandAdminRoutes.js";
 import attributePublicRoutes from "./routers/attributePublicRoutes.js";
 import attributeAdminRoutes from "./routers/attributeAdminRoutes.js";
 import attributeOptionPublicRoutes from "./routers/attributeOptionPublicRoutes.js";
 import attributeOptionAdminRoutes from "./routers/attributeOptionAdminRoutes.js";
+import attributeMappingAdminRoutes from "./routers/attributeMappingAdminRoutes.js";
 import orderPublicRoutes from "./routers/orderPublicRoutes.js";
 import orderAdminRoutes from "./routers/orderAdminRoutes.js";
 
@@ -60,11 +62,13 @@ app.use(cookieParser());
 app.use("/admin", adminRoutes); // Keep standard /admin routes (e.g. signin)
 app.use("/admin/users", userRoutes);
 app.use("/admin/products", productAdminRoutes);
+app.use("/admin/departments", departmentAdminRoutes);
 app.use("/admin/categories", categoryAdminRoutes);
-app.use("/admin/subcategories", subCategoryAdminRoutes);
 app.use("/admin/brands", brandAdminRoutes);
 app.use("/admin/attributes", attributeAdminRoutes);
 app.use("/admin/attribute-options", attributeOptionAdminRoutes);
+// Kept for Attribute Mapping (refactored to map Attributes to Categories)
+app.use("/admin/attribute-mapping", attributeMappingAdminRoutes);
 app.use("/admin/orders", orderAdminRoutes);
 app.use("/admin/coupons", couponRoutes);
 app.use("/admin/dashboard", dashboardRoutes);
@@ -73,8 +77,8 @@ app.use("/admin/upload", uploadRoutes);
 // Public / User routes
 app.use("/auth", authRoutes);
 app.use("/products", productPublicRoutes);
+app.use("/departments", departmentPublicRoutes);
 app.use("/categories", categoryPublicRoutes);
-app.use("/subcategories", subCategoryPublicRoutes);
 app.use("/brands", brandPublicRoutes);
 app.use("/attributes", attributePublicRoutes);
 app.use("/attribute-options", attributeOptionPublicRoutes);
