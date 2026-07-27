@@ -15,8 +15,8 @@ const ProductDetailsDrawer = ({ isOpen, onClose, product }) => {
         setIsAttributesLoading(true);
         try {
           const [attrRes, optRes] = await Promise.all([
-            axios.get('http://localhost:8000/attributes', { params: { limit: 1000 }, withCredentials: true }),
-            axios.get('http://localhost:8000/attribute-options', { withCredentials: true })
+            axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/attributes`, { params: { limit: 1000 }, withCredentials: true }),
+            axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/attribute-options`, { withCredentials: true })
           ]);
           
           if (attrRes.data.success && attrRes.data.attributes) {

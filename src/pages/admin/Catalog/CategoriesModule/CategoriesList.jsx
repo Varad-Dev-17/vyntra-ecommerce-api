@@ -53,7 +53,7 @@ const CategoriesList = () => {
   const fetchCategories = useCallback(async () => {
     setIsLoading(true);
     try {
-      const response = await axios.get(`http://localhost:8000/categories`, {
+      const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/categories`, {
         params: {
           page: currentPage,
           limit,
@@ -93,7 +93,7 @@ const CategoriesList = () => {
     if (!categoryToDelete) return;
     setIsDeleting(true);
     try {
-      await axios.delete(`http://localhost:8000/admin/categories/${categoryToDelete._id}`, {
+      await axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/admin/categories/${categoryToDelete._id}`, {
         withCredentials: true
       });
       toast.success('Category deleted successfully');
@@ -112,7 +112,7 @@ const CategoriesList = () => {
   const handleToggleStatus = async (category) => {
     const newStatus = category.status === 'Active' ? 'Inactive' : 'Active';
     try {
-      const response = await axios.put(`http://localhost:8000/admin/categories/${category._id}`, {
+      const response = await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/admin/categories/${category._id}`, {
         status: newStatus
       }, { withCredentials: true });
       
@@ -135,7 +135,7 @@ const CategoriesList = () => {
     setIsModalLoading(true);
 
     try {
-      const response = await axios.get(`http://localhost:8000/admin/attribute-mapping/${category._id}/attributes`, {
+      const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/admin/attribute-mapping/${category._id}/attributes`, {
         withCredentials: true
       });
       if (response.data.success) {

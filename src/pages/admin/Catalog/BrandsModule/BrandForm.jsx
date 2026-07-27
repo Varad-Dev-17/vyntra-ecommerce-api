@@ -21,7 +21,7 @@ const BrandForm = ({ initialData = null, isEdit = false }) => {
   useEffect(() => {
     const fetchDepartments = async () => {
       try {
-        const response = await axios.get('http://localhost:8000/departments', {
+        const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/departments`, {
           params: { status: 'Active', limit: 1000 }
         });
         if (response.data.success) {
@@ -87,12 +87,12 @@ const BrandForm = ({ initialData = null, isEdit = false }) => {
     setIsLoading(true);
     try {
       if (isEdit) {
-        await axios.put(`http://localhost:8000/admin/brands/${initialData._id}`, formData, {
+        await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/admin/brands/${initialData._id}`, formData, {
           withCredentials: true
         });
         toast.success('Brand updated successfully!');
       } else {
-        await axios.post('http://localhost:8000/admin/brands', formData, {
+        await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/admin/brands`, formData, {
           withCredentials: true
         });
         toast.success('Brand created successfully!');

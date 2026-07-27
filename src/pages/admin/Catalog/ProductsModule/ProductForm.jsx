@@ -57,7 +57,7 @@ const ProductForm = ({ isEdit = false }) => {
     const fetchProduct = async () => {
       if (!isEdit || !id) return;
       try {
-        const response = await axios.get(`http://localhost:8000/admin/products/${id}`, {
+        const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/admin/products/${id}`, {
           withCredentials: true
         });
         if (response.data.success) {
@@ -88,7 +88,7 @@ const ProductForm = ({ isEdit = false }) => {
     const fetchDepartments = async () => {
       try {
         setIsDepartmentsLoading(true);
-        const res = await axios.get('http://localhost:8000/departments', { params: { limit: 1000, status: 'Active' } });
+        const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/departments`, { params: { limit: 1000, status: 'Active' } });
         if (res.data.success) {
           setDepartments(res.data.departments || res.data.data);
         }
@@ -118,8 +118,8 @@ const ProductForm = ({ isEdit = false }) => {
         // We will fetch all and filter client side since backend doesn't have by-department route explicitly yet
         // OR we can pass departmentId as query param if backend supports it. Assuming query param `departmentId`.
         const [catsRes, brandsRes] = await Promise.all([
-          axios.get(`http://localhost:8000/categories`, { params: { limit: 1000, status: 'Active', departmentId: formData.department } }),
-          axios.get(`http://localhost:8000/brands`, { params: { limit: 1000, status: 'Active', departmentId: formData.department } })
+          axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/categories`, { params: { limit: 1000, status: 'Active', departmentId: formData.department } }),
+          axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/brands`, { params: { limit: 1000, status: 'Active', departmentId: formData.department } })
         ]);
 
         if (catsRes.data.success) {
@@ -165,7 +165,7 @@ const ProductForm = ({ isEdit = false }) => {
       try {
         setIsDynamicAttributesLoading(true);
         // Use the attribute mapping API to get exact mapped attributes for this category
-        const { data } = await axios.get(`http://localhost:8000/admin/attribute-mapping/${formData.category}/attributes?usage=Product`, {
+        const { data } = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/admin/attribute-mapping/${formData.category}/attributes?usage=Product`, {
           withCredentials: true
         });
 
@@ -180,7 +180,7 @@ const ProductForm = ({ isEdit = false }) => {
             let options = [];
             if (['select', 'color', 'multiselect'].includes(attr.fieldType)) {
               try {
-                const optRes = await axios.get(`http://localhost:8000/attribute-options/attribute/${attr._id}`);
+                const optRes = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/attribute-options/attribute/${attr._id}`);
                 if (optRes.data.success) {
                   options = optRes.data.options;
                 }
@@ -320,7 +320,7 @@ const ProductForm = ({ isEdit = false }) => {
 
     try {
       if (isEdit) {
-        const response = await axios.put(`http://localhost:8000/admin/products/${id}`, payload, {
+        const response = await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/admin/products/${id}`, payload, {
           withCredentials: true
         });
         if (response.data.success) {
@@ -328,7 +328,7 @@ const ProductForm = ({ isEdit = false }) => {
           navigate(`/admin/products/${id}/variants`);
         }
       } else {
-        const response = await axios.post(`http://localhost:8000/admin/products`, payload, {
+        const response = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/admin/products`, payload, {
           withCredentials: true
         });
         if (response.data.success) {

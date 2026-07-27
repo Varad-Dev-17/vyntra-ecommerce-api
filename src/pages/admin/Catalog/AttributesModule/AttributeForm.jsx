@@ -52,7 +52,7 @@ const AttributeForm = ({ initialData = null, isEdit = false }) => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await axios.get('http://localhost:8000/categories', {
+        const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/categories`, {
           params: { status: 'Active', limit: 1000 }
         });
         if (response.data.success) {
@@ -68,7 +68,7 @@ const AttributeForm = ({ initialData = null, isEdit = false }) => {
 
   const fetchExistingOptions = async (attributeId) => {
     try {
-      const response = await axios.get(`http://localhost:8000/attribute-options/attribute/${attributeId}`);
+      const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/attribute-options/attribute/${attributeId}`);
       if (response.data.success && response.data.options) {
         setOptions(response.data.options.map(opt => ({
           _id: opt._id,
@@ -236,12 +236,12 @@ const AttributeForm = ({ initialData = null, isEdit = false }) => {
       
       // 1. Save Attribute
       if (isEdit) {
-        const response = await axios.put(`http://localhost:8000/admin/attributes/${initialData._id}`, formData, {
+        const response = await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/admin/attributes/${initialData._id}`, formData, {
           withCredentials: true
         });
         attributeId = response.data.attribute._id;
       } else {
-        const response = await axios.post('http://localhost:8000/admin/attributes', formData, {
+        const response = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/admin/attributes`, formData, {
           withCredentials: true
         });
         attributeId = response.data.attribute._id;
@@ -252,7 +252,7 @@ const AttributeForm = ({ initialData = null, isEdit = false }) => {
         // Delete removed options
         if (deletedOptionIds.length > 0) {
           await Promise.all(deletedOptionIds.map(id => 
-            axios.delete(`http://localhost:8000/admin/attribute-options/${id}`, { withCredentials: true })
+            axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/admin/attribute-options/${id}`, { withCredentials: true })
           ));
         }
 
@@ -272,9 +272,9 @@ const AttributeForm = ({ initialData = null, isEdit = false }) => {
           }
 
           if (opt._id) {
-            updatePromises.push(axios.put(`http://localhost:8000/admin/attribute-options/${opt._id}`, payload, { withCredentials: true }));
+            updatePromises.push(axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/admin/attribute-options/${opt._id}`, payload, { withCredentials: true }));
           } else {
-            createPromises.push(axios.post(`http://localhost:8000/admin/attribute-options`, payload, { withCredentials: true }));
+            createPromises.push(axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/admin/attribute-options`, payload, { withCredentials: true }));
           }
         });
 

@@ -14,7 +14,7 @@ const EditAttribute = () => {
   useEffect(() => {
     const fetchAttribute = async () => {
       try {
-        const response = await axios.get(`http://localhost:8000/attributes/${id}`);
+        const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/attributes/${id}`);
         if (response.data.success) {
           setAttribute(response.data.attribute);
         }

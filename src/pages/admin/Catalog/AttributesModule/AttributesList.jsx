@@ -50,7 +50,7 @@ const AttributesList = () => {
   const fetchAttributes = useCallback(async () => {
     setIsLoading(true);
     try {
-      const response = await axios.get(`http://localhost:8000/attributes`, {
+      const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/attributes`, {
         params: {
           page: currentPage,
           limit,
@@ -89,7 +89,7 @@ const AttributesList = () => {
     if (!attributeToDelete) return;
     setIsDeleting(true);
     try {
-      await axios.delete(`http://localhost:8000/admin/attributes/${attributeToDelete._id}`, {
+      await axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/admin/attributes/${attributeToDelete._id}`, {
         withCredentials: true
       });
       toast.success('Attribute deleted successfully');
@@ -113,7 +113,7 @@ const AttributesList = () => {
     setIsLoadingOptions(true);
 
     try {
-      const response = await axios.get(`http://localhost:8000/attribute-options/attribute/${attribute._id}`);
+      const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/attribute-options/attribute/${attribute._id}`);
       if (response.data.success) {
         setAttributeOptions(response.data.options || []);
       }
@@ -130,7 +130,7 @@ const AttributesList = () => {
   const handleToggleStatus = async (attribute) => {
     const newStatus = attribute.status === 'Active' ? 'Inactive' : 'Active';
     try {
-      const response = await axios.put(`http://localhost:8000/admin/attributes/${attribute._id}`, {
+      const response = await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/admin/attributes/${attribute._id}`, {
         status: newStatus
       }, { withCredentials: true });
 

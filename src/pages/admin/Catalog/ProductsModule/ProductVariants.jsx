@@ -150,7 +150,7 @@ const ProductVariants = () => {
       let prodData = null;
 
       try {
-        const prodRes = await axios.get(`http://localhost:8000/admin/products/${id}`, { 
+        const prodRes = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/admin/products/${id}`, { 
           withCredentials: true,
           signal: abortController.signal
         });
@@ -164,7 +164,7 @@ const ProductVariants = () => {
       }
 
       try {
-        const varRes = await axios.get(`http://localhost:8000/admin/products/${id}/variants`, { 
+        const varRes = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/admin/products/${id}/variants`, { 
           withCredentials: true,
           signal: abortController.signal
         });
@@ -190,7 +190,7 @@ const ProductVariants = () => {
         if (catId) {
           let attributes = [];
           try {
-            const attrRes = await axios.get(`http://localhost:8000/admin/attribute-mapping/${catId}/attributes?usage=Variant`, { 
+            const attrRes = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/admin/attribute-mapping/${catId}/attributes?usage=Variant`, { 
               withCredentials: true,
               signal: abortController.signal
             });
@@ -208,7 +208,7 @@ const ProductVariants = () => {
             await Promise.all(attributes.map(async (attr) => {
               if (['select', 'color', 'multiselect'].includes(attr.fieldType)) {
                 try {
-                  const optRes = await axios.get(`http://localhost:8000/attribute-options/attribute/${attr._id}`, {
+                  const optRes = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/attribute-options/attribute/${attr._id}`, {
                     signal: abortController.signal
                   });
                   if (optRes.data.success) {
@@ -366,7 +366,7 @@ const ProductVariants = () => {
     const formData = new FormData();
     formData.append('image', file);
     try {
-      const res = await axios.post('http://localhost:8000/admin/upload/image', formData, {
+      const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/admin/upload/image`, formData, {
         withCredentials: true,
         headers: { 'Content-Type': 'multipart/form-data' }
       });
@@ -391,7 +391,7 @@ const ProductVariants = () => {
     const formData = new FormData();
     validFiles.forEach(f => formData.append('images', f));
     try {
-      const res = await axios.post('http://localhost:8000/admin/upload/multiple', formData, {
+      const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/admin/upload/multiple`, formData, {
         withCredentials: true,
         headers: { 'Content-Type': 'multipart/form-data' }
       });
@@ -411,7 +411,7 @@ const ProductVariants = () => {
   };
 
   const saveVariantsToBackend = async (variantsToSave) => {
-    const res = await axios.put(`http://localhost:8000/admin/products/${id}/variants`, { variants: variantsToSave }, {
+    const res = await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/admin/products/${id}/variants`, { variants: variantsToSave }, {
       withCredentials: true
     });
     return res.data;

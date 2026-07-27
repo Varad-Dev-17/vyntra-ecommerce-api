@@ -47,7 +47,7 @@ const DepartmentsList = () => {
     setIsLoading(true);
     try {
       // We use the public endpoint which supports query params
-      const response = await axios.get(`http://localhost:8000/departments`, {
+      const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/departments`, {
         params: {
           page: currentPage,
           limit,
@@ -88,7 +88,7 @@ const DepartmentsList = () => {
     if (!departmentToDelete) return;
     setIsDeleting(true);
     try {
-      await axios.delete(`http://localhost:8000/admin/departments/${departmentToDelete._id}`, {
+      await axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/admin/departments/${departmentToDelete._id}`, {
         withCredentials: true
       });
       toast.success('Department deleted successfully');
@@ -107,7 +107,7 @@ const DepartmentsList = () => {
   const handleToggleStatus = async (department) => {
     const newStatus = department.status === 'Active' ? 'Inactive' : 'Active';
     try {
-      const response = await axios.put(`http://localhost:8000/admin/departments/${department._id}`, {
+      const response = await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/admin/departments/${department._id}`, {
         status: newStatus
       }, { withCredentials: true });
       
