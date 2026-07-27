@@ -9,6 +9,7 @@ import connectDB from "./config/db.js";
 import authRoutes from "./routers/authroutes.js";
 import adminRoutes from "./routers/adminRoutes.js";
 import userRoutes from "./routers/userRoutes.js";
+import addressRoutes from "./routers/addressRoutes.js";
 
 // Split routes
 import productPublicRoutes from "./routers/productPublicRoutes.js";
@@ -59,7 +60,7 @@ app.use(cookieParser());
 // API Routes
 
 // Admin only
-app.use("/admin", adminRoutes); // Keep standard /admin routes (e.g. signin)
+app.use("/admin", adminRoutes); 
 app.use("/admin/users", userRoutes);
 app.use("/admin/products", productAdminRoutes);
 app.use("/admin/departments", departmentAdminRoutes);
@@ -67,7 +68,7 @@ app.use("/admin/categories", categoryAdminRoutes);
 app.use("/admin/brands", brandAdminRoutes);
 app.use("/admin/attributes", attributeAdminRoutes);
 app.use("/admin/attribute-options", attributeOptionAdminRoutes);
-// Kept for Attribute Mapping (refactored to map Attributes to Categories)
+// Attribute Mapping (refactored to map Attributes to Categories)
 app.use("/admin/attribute-mapping", attributeMappingAdminRoutes);
 app.use("/admin/orders", orderAdminRoutes);
 app.use("/admin/coupons", couponRoutes);
@@ -86,6 +87,7 @@ app.use("/cart", cartRoutes);
 app.use("/wishlist", wishlistRoutes);
 app.use("/reviews", reviewRoutes);
 app.use("/orders", orderPublicRoutes);
+app.use("/addresses", addressRoutes);
 
 // Static Files
 const distPath = path.join(__dirname, "../vyntra/dist");

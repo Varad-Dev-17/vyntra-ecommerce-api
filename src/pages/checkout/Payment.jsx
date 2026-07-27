@@ -1,0 +1,209 @@
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { CreditCard, Smartphone, Banknote, Building2, Loader2 } from 'lucide-react';
+import toast from 'react-hot-toast';
+import axios from 'axios';
+import { useAuth } from '../../context/AuthContext';
+import { useCart } from '../../context/CartContext';
+import CheckoutTracker from '../../components/bag/CheckoutTracker';
+
+const Payment = () => {
+  const navigate = useNavigate();
+  const { getAuthHeaders } = useAuth();
+  const { updateCartCount, refreshCart } = useCart();
+  
+  const [selectedMethod, setSelectedMethod] = useState('cod');
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [selectedAddress, setSelectedAddress] = useState(null);
+  
+  useEffect(() => {
+    const fetchAddress = async () => {
+      const addressId = localStorage.getItem('checkout_address_id');
+      if (!addressId) {
+        toast.error('Please select an address first');
+        navigate('/checkout/address');
+        return;
+      }
+      
+      try {
+        const response = await axios.get('/addresses', { headers: getAuthHeaders() });
+        if (response.data.success) {
+          const address = response.data.addresses.find(a => a._id === addressId);
+          if (address) {
+            setSelectedAddress(address);
+          } else {
+            toast.error('Selected address not found');
+            navigate('/checkout/address');
+          }
+        }
+      } catch (error) {
+        toast.error('Failed to load address details');
+      }
+    };
+    
+    fetchAddress();
+  }, [getAuthHeaders, navigate]);
+
+  const paymentMethods = [
+    {
+      id: 'upi',
+      title: 'UPI / QR',
+      description: 'Pay directly from your bank account using any UPI app.',
+      icon: <Smartphone size={24} className="text-[#4F46E5]" />
+    },
+    {
+      id: 'card',
+      title: 'Credit / Debit Card',
+      description: 'Pay securely with your Visa, Mastercard, or RuPay card.',
+      icon: <CreditCard size={24} className="text-[#4F46E5]" />
+    },
+    {
+      id: 'netbanking',
+      title: 'Net Banking',
+      description: 'Pay using your bank\'s internet banking portal.',
+      icon: <Building2 size={24} className="text-[#4F46E5]" />
+    },
+    {
+      id: 'cod',
+      title: 'Cash on Delivery',
+      description: 'Pay in cash when your order is delivered to your doorstep.',
+      icon: <Banknote size={24} className="text-[#4F46E5]" />
+    }
+  ];
+
+  const handleConfirmOrder = async () => {
+    if (!selectedMethod) {
+      toast.error('Please select a payment method');
+      return;
+    }
+    
+    if (!selectedAddress) {
+      toast.error('Address details missing');
+      return;
+    }
+    
+    setIsProcessing(true);
+    
+    try {
+      const shippingAddress = {
+        name: selectedAddress.fullName,
+        address: `${selectedAddress.addressLine1} ${selectedAddress.addressLine2 || ''}`.trim(),
+        city: selectedAddress.city,
+        phone: selectedAddress.phone
+      };
+
+      const payload = {
+        shippingAddress,
+        paymentMethod: selectedMethod
+      };
+
+      const response = await axios.post('/orders', payload, { headers: getAuthHeaders() });
+      
+      if (response.data.success) {
+        toast.success('Order placed successfully!', {
+          duration: 4000,
+          icon: '🎉'
+        });
+        
+        // Clear cart globally
+        updateCartCount(0);
+        refreshCart();
+        
+        // Redirect to success page or home
+        navigate('/');
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to place order');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-[#f9f9fb] pt-24 sm:pt-[100px] pb-12 sm:pb-24">
+      <div className="w-full px-4 sm:px-6 lg:px-12 xl:px-24 mx-auto max-w-5xl">
+        <CheckoutTracker currentStep="payment" />
+
+        <div className="mt-8 flex flex-col lg:flex-row gap-8">
+          {/* Main Content Area */}
+          <div className="flex-grow">
+            <h2 className="text-2xl font-bold text-[#111827] mb-6">How would you like to pay?</h2>
+            
+            <div className="bg-white rounded-xl shadow-[0_2px_20px_-4px_rgba(0,0,0,0.05)] border border-gray-100 overflow-hidden">
+              <div className="divide-y divide-gray-100">
+                {paymentMethods.map((method) => (
+                  <div 
+                    key={method.id}
+                    onClick={() => setSelectedMethod(method.id)}
+                    className={`flex items-start gap-4 p-6 cursor-pointer hover:bg-gray-50 transition-colors ${
+                      selectedMethod === method.id ? 'bg-[#EEF2FF]/50' : ''
+                    }`}
+                  >
+                    <div className="flex-shrink-0 w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mt-1">
+                      {method.icon}
+                    </div>
+                    
+                    <div className="flex-grow pt-1">
+                      <h4 className="text-[16px] font-bold text-[#111827] mb-1">
+                        {method.title}
+                      </h4>
+                      <p className="text-[13px] text-[#535766] max-w-md leading-relaxed">
+                        {method.description}
+                      </p>
+                    </div>
+
+                    <div className="flex-shrink-0 pt-2">
+                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${
+                        selectedMethod === method.id 
+                          ? 'border-[#03a685]' 
+                          : 'border-gray-300'
+                      }`}>
+                        {selectedMethod === method.id && (
+                          <div className="w-2.5 h-2.5 rounded-full bg-[#03a685]"></div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column (Proceed Button Block) */}
+          <div className="lg:w-1/3 mt-6 lg:mt-0">
+             <div className="bg-white rounded-xl shadow-[0_2px_20px_-4px_rgba(0,0,0,0.05)] p-6 sticky top-32 border border-gray-100">
+                <h3 className="font-bold text-[16px] text-[#111827] mb-4">Payment Summary</h3>
+                <p className="text-[#535766] text-[13px] mb-6">
+                  You are selecting <strong>{paymentMethods.find(m => m.id === selectedMethod)?.title}</strong> for this order.
+                </p>
+                <button 
+                  onClick={handleConfirmOrder}
+                  disabled={isProcessing}
+                  className={`w-full text-white font-bold text-[14px] py-3.5 rounded-lg shadow-sm transition-colors flex items-center justify-center gap-2 ${
+                    isProcessing ? 'bg-[#4338ca] opacity-70 cursor-not-allowed' : 'bg-[#4F46E5] hover:bg-[#6D4AFF]'
+                  }`}
+                >
+                  {isProcessing ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                      </svg>
+                      Confirm Order
+                    </>
+                  )}
+                </button>
+             </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Payment;

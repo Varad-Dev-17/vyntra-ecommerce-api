@@ -1,7 +1,9 @@
 import Order from "../models/order.js";
 import Cart from "../models/cart.js";
-import Product from "../models/product.js";
 import Coupon from "../models/coupon.js";
+import transport from "../middlewares/sendMail.js";
+import { orderEmailTemplate } from "../utils/orderEmailTemplate.js";
+import { cancelEmailTemplate } from "../utils/cancelEmailTemplate.js";
 
 // GET ALL ORDERS (Admin)
 export const getAllOrders = async (req, res) => {
@@ -85,7 +87,12 @@ export const getUserOrders = async (req, res) => {
 
     const [orders, total] = await Promise.all([
       Order.find(query)
-        .populate("items.product", "title images price")
+        .populate({
+          path: "items.product",
+          select: "title brand slug",
+          populate: { path: "brand", select: "name" }
+        })
+        .populate("items.variant", "mainImage attributes")
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limitNum)
@@ -181,8 +188,8 @@ export const createOrder = async (req, res) => {
     }
 
     // Get user's cart
-    const cart = await Cart.findOne({ user: userId }).populate("items.product");
-    if (!cart || cart.items.length === 0) {
+    const cart = await Cart.findOne({ userId }).populate("products.productId");
+    if (!cart || cart.products.length === 0) {
       return res.status(400).json({
         success: false,
         message: "Cart is empty",
@@ -194,10 +201,10 @@ export const createOrder = async (req, res) => {
     let subtotal = 0;
     const orderItems = [];
 
-    for (const item of cart.items) {
-      const product = item.product;
+    for (const item of cart.products) {
+      const product = item.productId;
 
-      if (!product || product.status !== "active") {
+      if (!product || product.status !== "Active") {
         return res.status(400).json({
           success: false,
           message: `Product ${
@@ -207,19 +214,25 @@ export const createOrder = async (req, res) => {
         });
       }
 
-      if (product.stock < item.quantity) {
+      // We should check variant stock, but if we don't populate variant, we can just use the product's price from cart logic
+      // In cartController, price is on the variant. Let's fetch variant to check stock and price.
+      const Variant = (await import("../models/variant.js")).default;
+      const variant = await Variant.findById(item.variantId);
+      
+      if (!variant || variant.stock < item.quantity) {
         return res.status(400).json({
           success: false,
-          message: `Only ${product.stock} items available for ${product.title}`,
+          message: `Only ${variant?.stock || 0} items available for ${product.title}`,
           data: null,
         });
       }
 
-      subtotal += product.price * item.quantity;
+      subtotal += variant.price * item.quantity;
       orderItems.push({
         product: product._id,
+        variant: variant._id,
         quantity: item.quantity,
-        price: product.price,
+        price: variant.price,
       });
     }
 
@@ -292,20 +305,43 @@ export const createOrder = async (req, res) => {
     });
 
     // Reduce stock
-    for (const item of cart.items) {
-      await Product.findByIdAndUpdate(item.product._id, {
+    const Variant = (await import("../models/variant.js")).default;
+    for (const item of cart.products) {
+      await Variant.findByIdAndUpdate(item.variantId, {
         $inc: { stock: -item.quantity },
       });
     }
 
     // Clear cart
-    cart.items = [];
+    cart.products = [];
     await cart.save();
 
     const populatedOrder = await Order.findById(order._id)
       .populate("items.product", "title images price")
+      .populate({
+        path: "items.variant",
+        populate: [
+          { path: "attributes.attribute" },
+          { path: "attributes.option" }
+        ]
+      })
       .populate("user", "username email")
       .lean();
+
+    // Send Order Confirmation Email
+    try {
+      if (populatedOrder.user && populatedOrder.user.email) {
+        await transport.sendMail({
+          from: process.env.NODE_CODE_SENDING_EMAIL_ADDRESS,
+          to: populatedOrder.user.email,
+          subject: `Order Confirmation - ${orderId}`,
+          html: orderEmailTemplate(populatedOrder, populatedOrder.user),
+        });
+      }
+    } catch (emailError) {
+      console.error("Failed to send order confirmation email:", emailError);
+      // We don't fail the order if the email fails
+    }
 
     return res.status(201).json({
       success: true,
@@ -420,11 +456,14 @@ export const cancelOrder = async (req, res) => {
       });
     }
 
-    // Restore stock
+    // Restore stock to Variants instead of Products
+    const Variant = (await import("../models/variant.js")).default;
     for (const item of order.items) {
-      await Product.findByIdAndUpdate(item.product, {
-        $inc: { stock: item.quantity },
-      });
+      if (item.variant) {
+        await Variant.findByIdAndUpdate(item.variant, {
+          $inc: { stock: item.quantity },
+        });
+      }
     }
 
     order.status = "cancelled";
@@ -432,7 +471,29 @@ export const cancelOrder = async (req, res) => {
 
     const populatedOrder = await Order.findById(id)
       .populate("items.product", "title images price")
+      .populate({
+        path: "items.variant",
+        populate: [
+          { path: "attributes.attribute" },
+          { path: "attributes.option" }
+        ]
+      })
+      .populate("user", "username email")
       .lean();
+
+    // Send Cancellation Email
+    try {
+      if (populatedOrder.user && populatedOrder.user.email) {
+        await transport.sendMail({
+          from: process.env.NODE_CODE_SENDING_EMAIL_ADDRESS,
+          to: populatedOrder.user.email,
+          subject: `Order Cancelled - ${populatedOrder.orderId}`,
+          html: cancelEmailTemplate(populatedOrder, populatedOrder.user),
+        });
+      }
+    } catch (emailError) {
+      console.error("Failed to send order cancellation email:", emailError);
+    }
 
     return res.status(200).json({
       success: true,

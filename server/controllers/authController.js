@@ -67,9 +67,8 @@ export const signUp = async (req, res) => {
       console.error("[Signup Flow] Email delivery failed:", mailError);
       return res.status(400).json({
         success: false,
-        message: `Failed to send verification email: ${
-          mailError.message || mailError
-        }`,
+        message: `Failed to send verification email: ${mailError.message || mailError
+          }`,
       });
     }
 
@@ -159,9 +158,25 @@ export const verifyVerificationCode = async (req, res) => {
       existingUser.verificationCodeValidation = undefined;
       await existingUser.save();
 
+      const token = jwt.sign(
+        {
+          userId: existingUser._id,
+          email: existingUser.email,
+          username: existingUser.username,
+          verified: existingUser.verified,
+          isAdmin: existingUser.isAdmin,
+          profileImage: existingUser.profileImage,
+          mobileNo: existingUser.mobileNo,
+          dateOfBirth: existingUser.dateOfBirth,
+          gender: existingUser.gender,
+        },
+        process.env.JWT_TOKEN_SECRET,
+        { expiresIn: "8h" }
+      );
+
       return res
         .status(200)
-        .json({ success: true, message: "Email verified successfully." });
+        .json({ success: true, message: "Email verified successfully.", token });
     }
     res
       .status(400)
@@ -190,7 +205,6 @@ export const signIn = async (req, res) => {
         .json({ success: false, message: "User does not exists." });
     }
 
-    // Block admin from normal signin
     if (existingUser.isAdmin) {
       return res.status(403).json({
         success: false,
@@ -219,6 +233,10 @@ export const signIn = async (req, res) => {
         username: existingUser.username,
         verified: existingUser.verified,
         isAdmin: existingUser.isAdmin,
+        profileImage: existingUser.profileImage,
+        mobileNo: existingUser.mobileNo,
+        dateOfBirth: existingUser.dateOfBirth,
+        gender: existingUser.gender,
       },
       process.env.JWT_TOKEN_SECRET,
       { expiresIn: "8h" }

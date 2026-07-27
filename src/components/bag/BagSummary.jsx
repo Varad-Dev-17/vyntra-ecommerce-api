@@ -108,12 +108,20 @@ const BagSummary = ({ totals }) => {
 
         {/* Buttons */}
         <div className="space-y-3 mb-8">
-          <button className="w-full bg-[#4F46E5] text-white font-bold text-[14px] py-3.5 rounded-lg shadow-sm hover:bg-[#6D4AFF] transition-colors flex items-center justify-center gap-2 cursor-pointer">
+          <button 
+            onClick={() => navigate("/checkout/address")}
+            disabled={!isTermsAccepted}
+            className={`w-full text-white font-bold text-[14px] py-3.5 rounded-lg shadow-sm transition-colors flex items-center justify-center gap-2 ${
+              isTermsAccepted 
+                ? 'bg-[#4F46E5] hover:bg-[#6D4AFF] cursor-pointer' 
+                : 'bg-gray-400 cursor-not-allowed'
+            }`}
+          >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
               <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
             </svg>
-            Place Order
+            Proceed to Address
           </button>
           
           <button 

@@ -95,7 +95,7 @@ export const getAllProducts = async (req, res) => {
         }).lean();
         colorOptionIds = opts.map(o => o._id);
       } else {
-        colorOptionIds = [new mongoose.Types.ObjectId()]; // Impossible match if color attribute not found
+        colorOptionIds = [new mongoose.Types.ObjectId()]; 
       }
     }
 

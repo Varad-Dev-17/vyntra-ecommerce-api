@@ -1,4 +1,7 @@
 import User from "../models/user.js";
+import { hmacProcess } from "../utils/hash.js";
+import { verificationEmailTemplate } from "../utils/verificationEmailTemplate.js";
+import transport from "../middlewares/sendMail.js";
 
 export const getAllUsers = async (req, res) => {
   try {
@@ -129,6 +132,191 @@ export const toggleUserStatus = async (req, res) => {
     });
   } catch (error) {
     console.error("[Toggle User Status] Server error:", error);
+    res.status(500).json({ success: false, message: "Server error." });
+  }
+};
+
+import { v2 as cloudinary } from "cloudinary";
+
+const configureCloudinary = () => {
+  cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+  });
+};
+
+export const updateProfilePhoto = async (req, res) => {
+  try {
+    const { userId } = req.user;
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: "No image provided" });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    configureCloudinary();
+
+    // If user already has a profile image, delete it from cloudinary
+    if (user.profileImage && user.profileImage.publicId) {
+      await cloudinary.uploader.destroy(user.profileImage.publicId);
+    }
+
+    // Upload new image
+    const b64 = Buffer.from(req.file.buffer).toString("base64");
+    const dataURI = "data:" + req.file.mimetype + ";base64," + b64;
+    
+    const result = await cloudinary.uploader.upload(dataURI, {
+      folder: "vyntra-users",
+      resource_type: "image",
+    });
+
+    user.profileImage = {
+      url: result.secure_url,
+      publicId: result.public_id,
+    };
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Profile photo updated successfully",
+      profileImage: user.profileImage,
+    });
+  } catch (error) {
+    console.error("[Update Profile Photo] Server error:", error);
+    res.status(500).json({ success: false, message: "Server error." });
+  }
+};
+
+export const removeProfilePhoto = async (req, res) => {
+  try {
+    const { userId } = req.user;
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    if (user.profileImage && user.profileImage.publicId) {
+      configureCloudinary();
+      await cloudinary.uploader.destroy(user.profileImage.publicId);
+      user.profileImage = undefined;
+      await user.save();
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Profile photo removed successfully",
+    });
+  } catch (error) {
+    console.error("[Remove Profile Photo] Server error:", error);
+    res.status(500).json({ success: false, message: "Server error." });
+  }
+};
+
+import jwt from "jsonwebtoken";
+
+export const updateProfileInfo = async (req, res) => {
+  try {
+    const { userId } = req.user;
+    const { username, email, mobileNo, dateOfBirth, gender } = req.body;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    let emailChanged = false;
+
+    // Handle email change
+    if (email && email !== user.email) {
+      const existingEmail = await User.findOne({ email });
+      if (existingEmail) {
+        return res.status(400).json({ success: false, message: "Email already in use" });
+      }
+
+      const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+      
+      try {
+        let info = await transport.sendMail({
+          from: process.env.NODE_CODE_SENDING_EMAIL_ADDRESS,
+          to: email,
+          subject: "Verify Your New Email",
+          html: verificationEmailTemplate(verificationCode, username || user.username),
+        });
+
+        if (!info.accepted || info.accepted.length === 0) {
+          throw new Error("Email was not accepted");
+        }
+      } catch (mailError) {
+        console.error("[Email Change Flow] Email delivery failed:", mailError);
+        return res.status(400).json({
+          success: false,
+          message: "Failed to send verification email.",
+        });
+      }
+
+      const hashedCodeValue = hmacProcess(
+        verificationCode,
+        process.env.HMAC_VERIFICATION_CODE_SECRET
+      );
+
+      user.email = email;
+      user.verified = false;
+      user.verificationCode = hashedCodeValue;
+      user.verificationCodeValidation = Date.now();
+      emailChanged = true;
+    }
+
+    // Optional: check if username is already taken by another user
+    if (username && username !== user.username) {
+      const existingUser = await User.findOne({ username });
+      if (existingUser) {
+        return res.status(400).json({ success: false, message: "Username already taken" });
+      }
+      user.username = username;
+    }
+
+    if (mobileNo !== undefined) user.mobileNo = mobileNo;
+    if (dateOfBirth !== undefined) user.dateOfBirth = dateOfBirth;
+    if (gender !== undefined) user.gender = gender;
+
+    await user.save();
+
+    const token = jwt.sign(
+      {
+        userId: user._id,
+        email: user.email,
+        username: user.username,
+        verified: user.verified,
+        isAdmin: user.isAdmin,
+        profileImage: user.profileImage,
+        mobileNo: user.mobileNo,
+        dateOfBirth: user.dateOfBirth,
+        gender: user.gender,
+      },
+      process.env.JWT_TOKEN_SECRET,
+      { expiresIn: "8h" }
+    );
+
+    res.status(200).json({
+      success: true,
+      message: emailChanged ? "Profile updated. Please verify your new email." : "Profile updated successfully",
+      emailChanged,
+      token,
+      user: {
+        username: user.username,
+        email: user.email,
+        verified: user.verified,
+        mobileNo: user.mobileNo,
+        dateOfBirth: user.dateOfBirth,
+        gender: user.gender,
+      }
+    });
+  } catch (error) {
+    console.error("[Update Profile Info] Server error:", error);
     res.status(500).json({ success: false, message: "Server error." });
   }
 };

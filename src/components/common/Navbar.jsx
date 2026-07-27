@@ -15,6 +15,7 @@ import {
   LayoutDashboard,
   Users,
   Package,
+  ChevronDown,
 } from "lucide-react";
 
 const Navbar = () => {
@@ -204,50 +205,23 @@ const Navbar = () => {
 
                 {/* Profile / Auth Section */}
                 {user ? (
-                  <div className="relative" ref={profileRef}>
-                    <button
-                      onClick={() => setIsProfileOpen(!isProfileOpen)}
-                      className={`flex flex-col items-center justify-center gap-1 ${textColor} transition-all duration-300 px-3 py-1.5 rounded-lg ${isScrolled ? "hover:bg-gray-100 hover:text-[#4F46E5]" : "hover:text-white/80"
-                        }`}
-                    >
-                      <User size={20} strokeWidth={1.5} />
-                      <span className="text-xs font-semibold hidden md:block">Profile</span>
-                    </button>
-
-                    {/* Profile Dropdown */}
-                    {isProfileOpen && (
-                      <div 
-                        className="absolute right-0 top-full mt-2 w-64 rounded-2xl shadow-xl border border-gray-100 bg-white overflow-hidden text-[#111827] ring-1 ring-black/5"
-                        style={{ fontFamily: "'Inter', sans-serif" }}
-                      >
-                        <div className="px-5 py-4 border-b border-gray-100 bg-gray-50/80">
-                          <p className="font-bold truncate text-[#111827] text-[15px] tracking-wide">
-                            {user.username || "User"}
-                          </p>
-                          <p className="text-[13px] truncate text-gray-500 mt-0.5 font-medium">
-                            {user.email}
-                          </p>
-                        </div>
-                        <div className="py-2 px-2 space-y-1">
-                          <Link
-                            to="/change-password"
-                            onClick={() => setIsProfileOpen(false)}
-                            className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-gray-100/80 text-gray-700 font-semibold text-[14px] transition-all duration-200"
-                          >
-                            <Lock className="w-4 h-4 text-gray-400" />
-                            Change Password
-                          </Link>
-                          <button
-                            onClick={handleLogout}
-                            className="w-full flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-red-50 text-red-600 font-semibold text-[14px] transition-all duration-200"
-                          >
-                            <LogOut className="w-4 h-4 text-red-500" />
-                            Logout
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
+                  <Link
+                    to="/account"
+                    className={`flex items-center gap-2 ${textColor} transition-all duration-300 pl-2 pr-3 py-1.5 rounded-full ${
+                      isScrolled ? "hover:bg-gray-100 hover:text-[#4F46E5]" : "hover:bg-white/10 hover:text-white"
+                    }`}
+                  >
+                    <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 overflow-hidden shrink-0">
+                      {user?.profileImage?.url ? (
+                        <img src={user.profileImage.url} alt="Profile" className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="text-[14px] font-bold">{user?.username?.charAt(0).toUpperCase() || 'U'}</span>
+                      )}
+                    </div>
+                    <span className="text-sm font-semibold hidden md:block">
+                      {user.username || "User"}
+                    </span>
+                  </Link>
                 ) : (
                   <>
                     {/* Desktop Login Button */}

@@ -19,7 +19,10 @@ import ForgotPasswordPage from "./pages/user/ForgotPasswordPage";
 import Products from "./pages/shop-now/ProductsPage";
 import ProductDetailsPage from "./pages/product-details/ProductDetailsPage";
 import Bag from "./pages/bag/Bag";
+import Address from "./pages/checkout/Address";
+import Payment from "./pages/checkout/Payment";
 import WishlistPage from "./pages/wishlist/WishlistPage";
+import MyAccount from "./pages/account/MyAccount";
 import { CartProvider } from "./context/CartContext";
 import { WishlistProvider } from "./context/WishlistContext";
 
@@ -178,6 +181,39 @@ const AppRoutes = () => {
         }
       />
 
+      <Route
+        path="/checkout/address"
+        element={
+          <ProtectedRoute>
+            <UserLayout>
+              <Address />
+            </UserLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/checkout/payment"
+        element={
+          <ProtectedRoute>
+            <UserLayout>
+              <Payment />
+            </UserLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/account"
+        element={
+          <ProtectedRoute>
+            <UserLayout>
+              <MyAccount />
+            </UserLayout>
+          </ProtectedRoute>
+        }
+      />
+
       {/* Admin Dashboard - Route Based Architecture */}
       <Route
         path="/admin"
@@ -255,6 +291,7 @@ function App() {
               borderRadius: "12px",
             },
             success: {
+              icon: null,
               style: {
                 background: "#ecfdf5",
                 color: "#059669",
@@ -266,6 +303,7 @@ function App() {
               },
             },
             error: {
+              icon: null,
               style: {
                 background: "#fef2f2",
                 color: "#dc2626",

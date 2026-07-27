@@ -8,6 +8,7 @@ import { useCart } from "../../context/CartContext";
 import BagItem from "../../components/bag/BagItem";
 import BagSummary from "../../components/bag/BagSummary";
 import { calculateBagTotals } from "../../components/bag/BagUtils";
+import CheckoutTracker from "../../components/bag/CheckoutTracker";
 
 const Bag = () => {
   const [cart, setCart] = useState(null);
@@ -126,7 +127,9 @@ const Bag = () => {
     <div className="min-h-screen bg-[#f9f9fb] pt-24 sm:pt-[100px] pb-12 sm:pb-24">
       <div className="w-full px-4 sm:px-6 lg:px-12 xl:px-24 mx-auto">
         
-        <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
+        <CheckoutTracker currentStep="bag" />
+        
+        <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 mt-6">
           {/* Left Column - Cart Items */}
           <div className="flex-grow lg:w-2/3">
             <div className="bg-white rounded-xl shadow-[0_2px_20px_-4px_rgba(0,0,0,0.05)] p-4 sm:p-6 lg:p-10 min-h-[300px] lg:min-h-[600px]">

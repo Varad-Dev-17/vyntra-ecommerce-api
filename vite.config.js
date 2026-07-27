@@ -34,6 +34,7 @@ export default defineConfig({
       "/reviews": proxyConfig,
       "/wishlist": proxyConfig,
       "/dashboard": proxyConfig,
+      "/addresses": proxyConfig,
     },
   },
 });
