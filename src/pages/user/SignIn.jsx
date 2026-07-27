@@ -92,7 +92,7 @@ const SignIn = () => {
             <h1
               className="text-[32px] font-bold tracking-tight"
               style={{
-                fontFamily: "Manrope, sans-serif",
+                
                 color: "#4648d4",
                 lineHeight: 1.2,
                 letterSpacing: "-0.01em",
@@ -103,7 +103,7 @@ const SignIn = () => {
             <p
               className="mt-2 text-center"
               style={{
-                fontFamily: "Be Vietnam Pro, sans-serif",
+                
                 fontSize: "16px",
                 lineHeight: 1.5,
                 color: "#464554",
@@ -122,7 +122,7 @@ const SignIn = () => {
               style={{
                 background: "#ffdad6",
                 color: "#93000a",
-                fontFamily: "Be Vietnam Pro, sans-serif",
+                
                 fontSize: "14px",
               }}
             >
@@ -138,7 +138,7 @@ const SignIn = () => {
                 htmlFor="email"
                 className="block ml-1"
                 style={{
-                  fontFamily: "Geist, sans-serif",
+                  
                   fontSize: "12px",
                   lineHeight: 1,
                   letterSpacing: "0.1em",
@@ -173,7 +173,7 @@ const SignIn = () => {
                   required
                   className="w-full h-14 pl-12 pr-4 rounded-xl transition-all duration-300"
                   style={{
-                    fontFamily: "Be Vietnam Pro, sans-serif",
+                    
                     fontSize: "16px",
                     color: "#1b1b23",
                     background: "rgba(255, 255, 255, 0.6)",
@@ -202,7 +202,7 @@ const SignIn = () => {
                 className="block ml-1"
                 placeholder="●●●●●●●●●"
                 style={{
-                  fontFamily: "Geist, sans-serif",
+                  
                   fontSize: "12px",
                   lineHeight: 1,
                   letterSpacing: "0.1em",
@@ -237,7 +237,7 @@ const SignIn = () => {
                   required
                   className="w-full h-14 pl-12 pr-12 rounded-xl transition-all duration-300"
                   style={{
-                    fontFamily: "Be Vietnam Pro, sans-serif",
+                    
                     fontSize: "16px",
                     color: "#1b1b23",
                     background: "rgba(255, 255, 255, 0.6)",
@@ -277,7 +277,7 @@ const SignIn = () => {
                 to="/forgot-password"
                 className="text-sm hover:underline transition-all"
                 style={{
-                  fontFamily: "Be Vietnam Pro, sans-serif",
+                  
                   color: "#4648d4",
                   fontWeight: 600,
                 }}
@@ -295,7 +295,7 @@ const SignIn = () => {
               className="w-full h-14 rounded-xl text-white font-semibold shadow-lg flex items-center justify-center gap-2 transition-all duration-300 disabled:opacity-70"
               style={{
                 background: "linear-gradient(135deg, #4648d4 0%, #6b38d4 100%)",
-                fontFamily: "Manrope, sans-serif",
+                
                 fontSize: "16px",
                 boxShadow: "0 10px 40px rgba(70, 72, 212, 0.25)",
               }}
@@ -319,7 +319,7 @@ const SignIn = () => {
             <div className="flex-1 h-px" style={{ background: "#c7c4d7" }} />
             <span
               style={{
-                fontFamily: "Geist, sans-serif",
+                
                 fontSize: "12px",
                 color: "#767586",
                 letterSpacing: "0.1em",
@@ -335,7 +335,7 @@ const SignIn = () => {
           <div className="text-center">
             <p
               style={{
-                fontFamily: "Be Vietnam Pro, sans-serif",
+                
                 fontSize: "16px",
                 lineHeight: 1.5,
                 color: "#464554",
@@ -357,7 +357,7 @@ const SignIn = () => {
               to="/admin/signin"
               className="inline-flex items-center gap-2 text-sm font-semibold hover:underline transition-all"
               style={{
-                fontFamily: "Be Vietnam Pro, sans-serif",
+                
                 color: "#904900",
               }}
             ></Link>

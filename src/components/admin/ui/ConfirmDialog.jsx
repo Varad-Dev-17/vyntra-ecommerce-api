@@ -42,7 +42,7 @@ const ConfirmDialog = ({
                 <AlertTriangle size={24} />
               </div>
               
-              <h3 className="text-xl font-bold text-[#4648d4] mb-2 font-['Manrope']">
+              <h3 className="text-xl font-bold text-[#4648d4] mb-2 ">
                 {title}
               </h3>
               

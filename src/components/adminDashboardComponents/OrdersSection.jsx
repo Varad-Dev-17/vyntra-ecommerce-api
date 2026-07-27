@@ -96,7 +96,7 @@ const OrdersSection = () => {
       header: 'Order ID',
       accessor: 'orderId',
       render: (row) => (
-        <span className="font-medium text-[#1a1a2e] font-['Geist']">
+        <span className="font-medium text-[#1a1a2e] ">
           {row.orderId || row._id.slice(-8).toUpperCase()}
         </span>
       )
@@ -131,7 +131,7 @@ const OrdersSection = () => {
       header: 'Amount',
       accessor: 'amount',
       render: (row) => (
-        <span className="font-bold text-[#1a1a2e] font-['Manrope']">
+        <span className="font-bold text-[#1a1a2e] ">
           ₹{row.totalAmount?.toLocaleString()}
         </span>
       )

@@ -15,6 +15,9 @@ export default {
         success: "#10B981",
         error: "#EF4444",
       },
+      fontFamily: {
+        sans: ['Montserrat', 'sans-serif'],
+      },
     },
   },
   plugins: [],

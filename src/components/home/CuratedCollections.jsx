@@ -86,10 +86,10 @@ const CuratedCollections = () => {
 
                   {/* Right Side: Text */}
                   <div className="w-full sm:w-[50%] h-auto sm:h-full py-6 sm:py-0 flex flex-col justify-center px-6 md:px-10">
-                    <h3 className="text-2xl md:text-3xl font-bold text-[#111827] font-['Inter'] mb-2 group-hover:text-[#5B4CF0] transition-colors">
+                    <h3 className="text-2xl md:text-3xl font-bold text-[#111827]  mb-2 group-hover:text-[#5B4CF0] transition-colors">
                       {category.title}
                     </h3>
-                    <p className="text-[14px] md:text-[15px] text-[#6B7280] font-['Inter'] mb-4">
+                    <p className="text-[14px] md:text-[15px] text-[#6B7280]  mb-4">
                       {category.subtitle}
                     </p>
                     <div className="w-8 h-8 rounded-full bg-[#FAFAFA] text-[#111827] flex items-center justify-center transition-transform duration-300 group-hover:translate-x-1 group-hover:bg-[#5B4CF0] group-hover:text-white">
@@ -135,14 +135,14 @@ const CuratedCollections = () => {
 
                   {/* Content Overlay */}
                   <div className="absolute bottom-6 md:bottom-8 left-0 w-full px-6 md:px-8 z-20 flex flex-col justify-end">
-                    <h3 className="text-[32px] md:text-[36px] font-bold text-white mb-2 font-['Inter']">
+                    <h3 className="text-[32px] md:text-[36px] font-bold text-white mb-2 ">
                       {collection.title}
                     </h3>
-                    <p className="text-[16px] text-white/85 mb-6 font-['Inter']">
+                    <p className="text-[16px] text-white/85 mb-6 ">
                       {collection.description}
                     </p>
 
-                    <div className="inline-flex items-center gap-2 text-white font-semibold font-['Inter'] text-[15px] w-max">
+                    <div className="inline-flex items-center gap-2 text-white font-semibold  text-[15px] w-max">
                       Shop Now
                       <ArrowRight
                         size={16}

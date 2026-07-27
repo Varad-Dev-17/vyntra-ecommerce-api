@@ -91,7 +91,7 @@ const DashboardSection = () => {
 
   return (
     <div className="p-6">
-      <h2 className="text-2xl font-bold text-[#1a1a2e] font-['Manrope'] mb-6">
+      <h2 className="text-2xl font-bold text-[#1a1a2e]  mb-6">
         Dashboard Overview
       </h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
@@ -130,7 +130,7 @@ const DashboardSection = () => {
                   </span>
                 )}
               </div>
-              <p className="text-2xl font-bold text-[#1a1a2e] font-['Manrope'] truncate">
+              <p className="text-2xl font-bold text-[#1a1a2e]  truncate">
                 {stat.value}
               </p>
               <p className="text-sm text-gray-400 mt-0.5">{stat.label}</p>

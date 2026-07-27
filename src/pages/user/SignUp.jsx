@@ -88,7 +88,7 @@ const SignUp = () => {
   };
 
   const inputStyle = {
-    fontFamily: "Be Vietnam Pro, sans-serif",
+    
     fontSize: "16px",
     color: "#1b1b23",
     background: "rgba(255, 255, 255, 0.6)",
@@ -96,7 +96,7 @@ const SignUp = () => {
   };
 
   const labelStyle = {
-    fontFamily: "Geist, sans-serif",
+    
     fontSize: "12px",
     lineHeight: 1,
     letterSpacing: "0.1em",
@@ -170,7 +170,7 @@ const SignUp = () => {
             <h1
               className="text-[32px] font-bold tracking-tight"
               style={{
-                fontFamily: "Manrope, sans-serif",
+                
                 color: "#4648d4",
                 lineHeight: 1.2,
                 letterSpacing: "-0.01em",
@@ -181,7 +181,7 @@ const SignUp = () => {
             <p
               className="mt-2 text-center"
               style={{
-                fontFamily: "Be Vietnam Pro, sans-serif",
+                
                 fontSize: "16px",
                 lineHeight: 1.5,
                 color: "#464554",
@@ -204,7 +204,7 @@ const SignUp = () => {
                 style={{
                   background: "#ffdad6",
                   color: "#93000a",
-                  fontFamily: "Be Vietnam Pro, sans-serif",
+                  
                   fontSize: "14px",
                 }}
               >
@@ -333,7 +333,7 @@ const SignUp = () => {
                   style={{
                     background:
                       "linear-gradient(135deg, #4648d4 0%, #6b38d4 100%)",
-                    fontFamily: "Manrope, sans-serif",
+                    
                     fontSize: "16px",
                     boxShadow: "0 10px 40px rgba(70, 72, 212, 0.25)",
                   }}
@@ -373,7 +373,7 @@ const SignUp = () => {
                   </div>
                   <p
                     style={{
-                      fontFamily: "Be Vietnam Pro, sans-serif",
+                      
                       fontSize: "14px",
                       color: "#464554",
                       lineHeight: 1.5,
@@ -421,7 +421,7 @@ const SignUp = () => {
                   style={{
                     background:
                       "linear-gradient(135deg, #4648d4 0%, #6b38d4 100%)",
-                    fontFamily: "Manrope, sans-serif",
+                    
                     fontSize: "16px",
                     boxShadow: "0 10px 40px rgba(70, 72, 212, 0.25)",
                   }}
@@ -444,7 +444,7 @@ const SignUp = () => {
                   onClick={() => setStep("form")}
                   className="w-full text-center py-2 transition-colors hover:text-[#4648d4]"
                   style={{
-                    fontFamily: "Be Vietnam Pro, sans-serif",
+                    
                     fontSize: "14px",
                     color: "#767586",
                   }}
@@ -478,7 +478,7 @@ const SignUp = () => {
                 <h2
                   className="text-2xl font-bold mb-3"
                   style={{
-                    fontFamily: "Manrope, sans-serif",
+                    
                     color: "#1b1b23",
                   }}
                 >
@@ -486,7 +486,7 @@ const SignUp = () => {
                 </h2>
                 <p
                   style={{
-                    fontFamily: "Be Vietnam Pro, sans-serif",
+                    
                     fontSize: "16px",
                     color: "#464554",
                     lineHeight: 1.5,
@@ -503,7 +503,7 @@ const SignUp = () => {
             <div className="mt-8 text-center">
               <p
                 style={{
-                  fontFamily: "Be Vietnam Pro, sans-serif",
+                  
                   fontSize: "16px",
                   lineHeight: 1.5,
                   color: "#464554",

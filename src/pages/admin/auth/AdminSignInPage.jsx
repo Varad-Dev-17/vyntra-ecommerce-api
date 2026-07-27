@@ -36,7 +36,7 @@ const AdminSignInPage = () => {
   };
 
   const inputBaseStyle = {
-    fontFamily: "Be Vietnam Pro, sans-serif",
+    
     fontSize: "16px",
     color: "#1b1b23",
     background: "rgba(255, 255, 255, 0.6)",
@@ -44,7 +44,7 @@ const AdminSignInPage = () => {
   };
 
   const labelStyle = {
-    fontFamily: "Geist, sans-serif",
+    
     fontSize: "12px",
     lineHeight: 1,
     letterSpacing: "0.1em",
@@ -120,7 +120,7 @@ const AdminSignInPage = () => {
             <h1
               className="text-[32px] font-bold tracking-tight"
               style={{
-                fontFamily: "Manrope, sans-serif",
+                
                 color: "#904900",
                 lineHeight: 1.2,
                 letterSpacing: "-0.01em",
@@ -131,7 +131,7 @@ const AdminSignInPage = () => {
             <p
               className="mt-2 text-center"
               style={{
-                fontFamily: "Be Vietnam Pro, sans-serif",
+                
                 fontSize: "16px",
                 lineHeight: 1.5,
                 color: "#464554",
@@ -150,7 +150,7 @@ const AdminSignInPage = () => {
               style={{
                 background: "#ffdad6",
                 color: "#93000a",
-                fontFamily: "Be Vietnam Pro, sans-serif",
+                
                 fontSize: "14px",
               }}
             >
@@ -255,7 +255,7 @@ const AdminSignInPage = () => {
               className="w-full h-14 rounded-xl text-white font-semibold shadow-lg flex items-center justify-center gap-2 transition-all duration-300 disabled:opacity-70"
               style={{
                 background: "linear-gradient(135deg, #904900 0%, #b55d00 100%)",
-                fontFamily: "Manrope, sans-serif",
+                
                 fontSize: "16px",
                 boxShadow: "0 10px 40px rgba(144, 73, 0, 0.25)",
               }}
@@ -278,7 +278,7 @@ const AdminSignInPage = () => {
           <div className="mt-8 text-center">
             <p
               style={{
-                fontFamily: "Be Vietnam Pro, sans-serif",
+                
                 fontSize: "16px",
                 lineHeight: 1.5,
                 color: "#464554",

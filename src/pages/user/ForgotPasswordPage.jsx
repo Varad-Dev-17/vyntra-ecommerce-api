@@ -105,7 +105,7 @@ const ForgotPasswordPage = () => {
             <h1
               className="text-[32px] font-bold tracking-tight"
               style={{
-                fontFamily: "Manrope, sans-serif",
+                
                 color: "#4648d4",
                 lineHeight: 1.2,
                 letterSpacing: "-0.01em",
@@ -116,7 +116,7 @@ const ForgotPasswordPage = () => {
             <p
               className="mt-2 text-center"
               style={{
-                fontFamily: "Be Vietnam Pro, sans-serif",
+                
                 fontSize: "16px",
                 lineHeight: 1.5,
                 color: "#464554",
@@ -139,7 +139,7 @@ const ForgotPasswordPage = () => {
               style={{
                 background: "#ffdad6",
                 color: "#93000a",
-                fontFamily: "Be Vietnam Pro, sans-serif",
+                
                 fontSize: "14px",
               }}
             >
@@ -156,7 +156,7 @@ const ForgotPasswordPage = () => {
               style={{
                 background: "#d4edda",
                 color: "#155724",
-                fontFamily: "Be Vietnam Pro, sans-serif",
+                
                 fontSize: "14px",
               }}
             >
@@ -171,7 +171,7 @@ const ForgotPasswordPage = () => {
                 <label
                   className="block ml-1"
                   style={{
-                    fontFamily: "Geist, sans-serif",
+                    
                     fontSize: "12px",
                     lineHeight: 1,
                     letterSpacing: "0.1em",
@@ -205,7 +205,7 @@ const ForgotPasswordPage = () => {
                     required
                     className="w-full h-14 pl-12 pr-4 rounded-xl transition-all duration-300"
                     style={{
-                      fontFamily: "Be Vietnam Pro, sans-serif",
+                      
                       fontSize: "16px",
                       color: "#1b1b23",
                       background: "rgba(255, 255, 255, 0.6)",
@@ -236,7 +236,7 @@ const ForgotPasswordPage = () => {
                 style={{
                   background:
                     "linear-gradient(135deg, #4648d4 0%, #6b38d4 100%)",
-                  fontFamily: "Manrope, sans-serif",
+                  
                   fontSize: "16px",
                   boxShadow: "0 10px 40px rgba(70, 72, 212, 0.25)",
                 }}
@@ -264,7 +264,7 @@ const ForgotPasswordPage = () => {
                 <label
                   className="block ml-1"
                   style={{
-                    fontFamily: "Geist, sans-serif",
+                    
                     fontSize: "12px",
                     lineHeight: 1,
                     letterSpacing: "0.1em",
@@ -281,7 +281,7 @@ const ForgotPasswordPage = () => {
                   readOnly
                   className="w-full h-14 px-4 rounded-xl transition-all duration-300 bg-gray-100 cursor-not-allowed"
                   style={{
-                    fontFamily: "Be Vietnam Pro, sans-serif",
+                    
                     fontSize: "16px",
                     color: "#767586",
                     border: "1px solid rgba(30, 41, 59, 0.1)",
@@ -294,7 +294,7 @@ const ForgotPasswordPage = () => {
                 <label
                   className="block ml-1"
                   style={{
-                    fontFamily: "Geist, sans-serif",
+                    
                     fontSize: "12px",
                     lineHeight: 1,
                     letterSpacing: "0.1em",
@@ -314,7 +314,7 @@ const ForgotPasswordPage = () => {
                   maxLength={6}
                   className="w-full h-14 px-4 rounded-xl transition-all duration-300 text-center tracking-widest"
                   style={{
-                    fontFamily: "Be Vietnam Pro, sans-serif",
+                    
                     fontSize: "20px",
                     color: "#1b1b23",
                     background: "rgba(255, 255, 255, 0.6)",
@@ -340,7 +340,7 @@ const ForgotPasswordPage = () => {
                 <label
                   className="block ml-1"
                   style={{
-                    fontFamily: "Geist, sans-serif",
+                    
                     fontSize: "12px",
                     lineHeight: 1,
                     letterSpacing: "0.1em",
@@ -361,7 +361,7 @@ const ForgotPasswordPage = () => {
                     minLength={6}
                     className="w-full h-14 pl-4 pr-12 rounded-xl transition-all duration-300"
                     style={{
-                      fontFamily: "Be Vietnam Pro, sans-serif",
+                      
                       fontSize: "16px",
                       color: "#1b1b23",
                       background: "rgba(255, 255, 255, 0.6)",
@@ -404,7 +404,7 @@ const ForgotPasswordPage = () => {
                 style={{
                   background:
                     "linear-gradient(135deg, #4648d4 0%, #6b38d4 100%)",
-                  fontFamily: "Manrope, sans-serif",
+                  
                   fontSize: "16px",
                   boxShadow: "0 10px 40px rgba(70, 72, 212, 0.25)",
                 }}
@@ -449,7 +449,7 @@ const ForgotPasswordPage = () => {
               <p
                 className="text-lg font-semibold mb-2"
                 style={{
-                  fontFamily: "Manrope, sans-serif",
+                  
                   color: "#155724",
                 }}
               >
@@ -457,7 +457,7 @@ const ForgotPasswordPage = () => {
               </p>
               <p
                 style={{
-                  fontFamily: "Be Vietnam Pro, sans-serif",
+                  
                   color: "#464554",
                 }}
               >
@@ -474,7 +474,7 @@ const ForgotPasswordPage = () => {
                 className="font-bold hover:underline transition-all"
                 style={{
                   color: "#4648d4",
-                  fontFamily: "Be Vietnam Pro, sans-serif",
+                  
                 }}
               >
                 ← Back to Sign In

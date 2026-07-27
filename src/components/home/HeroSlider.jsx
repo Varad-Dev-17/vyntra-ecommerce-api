@@ -40,7 +40,7 @@ const HeroSlider = () => {
               hidden: { opacity: 0, y: 15 },
               visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },
             }}
-            className="inline-block text-[15px] font-bold tracking-[0.15em] uppercase text-[#E72744] mb-4 md:mb-6 font-['Inter']"
+            className="inline-block text-[15px] font-bold tracking-[0.15em] uppercase text-[#E72744] mb-4 md:mb-6 "
           >
             NEW SEASON 2026
           </motion.span>
@@ -61,7 +61,7 @@ const HeroSlider = () => {
               hidden: { opacity: 0, y: 20 },
               visible: { opacity: 1, y: 0, transition: { duration: 0.8 } },
             }}
-            className="text-[15px] md:text-[17px] text-gray-200 font-['Inter'] max-w-[400px] mb-8 md:mb-10 leading-relaxed whitespace-pre-line"
+            className="text-[15px] md:text-[17px] text-gray-200  max-w-[400px] mb-8 md:mb-10 leading-relaxed whitespace-pre-line"
           >
             Where timeless fashion meets modern living.{"\n"}Curated collections for every style, every season.
           </motion.p>
@@ -75,13 +75,13 @@ const HeroSlider = () => {
           >
             <Link
               to="/products"
-              className="w-full sm:w-auto px-10 py-4 bg-[#4F46E5] text-white font-medium font-['Inter'] text-[15px] hover:bg-[#4338ca] transition-colors duration-250 rounded-[4px] text-center"
+              className="w-full sm:w-auto px-10 py-4 bg-[#4F46E5] text-white font-medium  text-[15px] hover:bg-[#4338ca] transition-colors duration-250 rounded-[4px] text-center"
             >
               Explore Collection
             </Link>
             <Link
               to="/new-in"
-              className="w-full sm:w-auto px-10 py-4 bg-transparent border border-white text-white font-medium font-['Inter'] text-[15px] hover:bg-white hover:text-[#111827] transition-all duration-300 rounded-[4px] text-center"
+              className="w-full sm:w-auto px-10 py-4 bg-transparent border border-white text-white font-medium  text-[15px] hover:bg-white hover:text-[#111827] transition-all duration-300 rounded-[4px] text-center"
             >
               Shop New Arrivals
             </Link>
@@ -96,7 +96,7 @@ const HeroSlider = () => {
         transition={{ delay: 1.5, duration: 1 }}
         className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-2 pointer-events-none"
       >
-        <span className="text-[11px] uppercase tracking-widest text-white/70 font-['Inter']">Scroll to Discover</span>
+        <span className="text-[11px] uppercase tracking-widest text-white/70 ">Scroll to Discover</span>
         <motion.div
           animate={{ y: [0, 8, 0] }}
           transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}

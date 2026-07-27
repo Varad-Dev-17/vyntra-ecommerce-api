@@ -216,29 +216,32 @@ const Navbar = () => {
 
                     {/* Profile Dropdown */}
                     {isProfileOpen && (
-                      <div className="absolute right-0 mt-4 w-56 rounded-xl shadow-lg border border-border bg-white overflow-hidden text-[#111827]">
-                        <div className="px-4 py-3 border-b border-border bg-gray-50/50">
-                          <p className="font-semibold truncate text-[#111827] text-sm font-['Inter']">
+                      <div 
+                        className="absolute right-0 top-full mt-2 w-64 rounded-2xl shadow-xl border border-gray-100 bg-white overflow-hidden text-[#111827] ring-1 ring-black/5"
+                        style={{ fontFamily: "'Inter', sans-serif" }}
+                      >
+                        <div className="px-5 py-4 border-b border-gray-100 bg-gray-50/80">
+                          <p className="font-bold truncate text-[#111827] text-[15px] tracking-wide">
                             {user.username || "User"}
                           </p>
-                          <p className="text-xs truncate text-gray-500 font-['Inter'] mt-0.5">
+                          <p className="text-[13px] truncate text-gray-500 mt-0.5 font-medium">
                             {user.email}
                           </p>
                         </div>
-                        <div className="py-2">
+                        <div className="py-2 px-2 space-y-1">
                           <Link
                             to="/change-password"
                             onClick={() => setIsProfileOpen(false)}
-                            className="flex items-center gap-3 px-4 py-2 hover:bg-gray-50 text-[#111827] text-sm font-['Inter'] transition-colors"
+                            className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-gray-100/80 text-gray-700 font-semibold text-[14px] transition-all duration-200"
                           >
                             <Lock className="w-4 h-4 text-gray-400" />
                             Change Password
                           </Link>
                           <button
                             onClick={handleLogout}
-                            className="w-full flex items-center gap-3 px-4 py-2 hover:bg-red-50 text-red-600 text-sm font-['Inter'] transition-colors"
+                            className="w-full flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-red-50 text-red-600 font-semibold text-[14px] transition-all duration-200"
                           >
-                            <LogOut className="w-4 h-4 text-red-400" />
+                            <LogOut className="w-4 h-4 text-red-500" />
                             Logout
                           </button>
                         </div>
@@ -246,16 +249,28 @@ const Navbar = () => {
                     )}
                   </div>
                 ) : (
-                  <Link
-                    to="/signin"
-                    className={`hidden md:flex items-center justify-center px-6 py-2 border rounded-full font-medium transition-all duration-300 ${isScrolled
-                        ? "border-[#111827] text-[#111827] hover:bg-[#111827] hover:text-white"
-                        : "border-white text-white hover:text-white/80"
-                      }`}
-                    style={{ fontSize: "15px", fontFamily: "'Inter', sans-serif", height: "40px" }}
-                  >
-                    Login
-                  </Link>
+                  <>
+                    {/* Desktop Login Button */}
+                    <Link
+                      to="/signin"
+                      className={`hidden md:flex items-center justify-center px-6 py-2 border rounded-full font-medium transition-all duration-300 ${isScrolled
+                          ? "border-[#111827] text-[#111827] hover:bg-[#111827] hover:text-white"
+                          : "border-white text-white hover:text-white/80"
+                        }`}
+                      style={{ fontSize: "15px", height: "40px" }}
+                    >
+                      Login
+                    </Link>
+
+                    {/* Mobile Login Icon */}
+                    <Link
+                      to="/signin"
+                      className={`md:hidden flex flex-col items-center justify-center gap-1 ${textColor} transition-all duration-300 px-2 py-1.5 rounded-lg ${isScrolled ? "hover:bg-gray-100 hover:text-[#4F46E5]" : "hover:text-white/80"
+                        }`}
+                    >
+                      <User size={20} strokeWidth={1.5} />
+                    </Link>
+                  </>
                 )}
 
                 {/* Mobile Menu Button */}

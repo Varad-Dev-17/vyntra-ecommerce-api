@@ -32,7 +32,7 @@ const Newsletter = () => {
             }}
           >
             <motion.h2
-              className="text-3xl font-bold text-[#4648D4] mb-4 font-['Manrope']"
+              className="text-3xl font-bold text-[#4648D4] mb-4 "
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -42,7 +42,7 @@ const Newsletter = () => {
             </motion.h2>
 
             <motion.p
-              className="text-lg text-[#464554] max-w-lg mb-8 font-['Be_Vietnam_Pro']"
+              className="text-lg text-[#464554] max-w-lg mb-8 "
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -71,7 +71,7 @@ const Newsletter = () => {
               />
               <motion.button
                 type="submit"
-                className="px-8 py-4 text-white font-semibold rounded-xl font-['Be_Vietnam_Pro']"
+                className="px-8 py-4 text-white font-semibold rounded-xl "
                 style={{
                   background:
                     "linear-gradient(135deg, #4648d4 0%, #6b38d4 100%)",

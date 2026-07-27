@@ -39,7 +39,7 @@ const ChangePasswordPage = () => {
   };
 
   const inputStyle = {
-    fontFamily: "Be Vietnam Pro, sans-serif",
+    
     fontSize: "16px",
     color: "#1b1b23",
     background: "rgba(255, 255, 255, 0.6)",
@@ -47,7 +47,7 @@ const ChangePasswordPage = () => {
   };
 
   const labelStyle = {
-    fontFamily: "Geist, sans-serif",
+    
     fontSize: "12px",
     lineHeight: 1,
     letterSpacing: "0.1em",
@@ -112,7 +112,7 @@ const ChangePasswordPage = () => {
             <h1
               className="text-[32px] font-bold tracking-tight"
               style={{
-                fontFamily: "Manrope, sans-serif",
+                
                 color: "#4648d4",
                 lineHeight: 1.2,
                 letterSpacing: "-0.01em",
@@ -123,7 +123,7 @@ const ChangePasswordPage = () => {
             <p
               className="mt-2 text-center"
               style={{
-                fontFamily: "Be Vietnam Pro, sans-serif",
+                
                 fontSize: "16px",
                 lineHeight: 1.5,
                 color: "#464554",
@@ -142,7 +142,7 @@ const ChangePasswordPage = () => {
               style={{
                 background: "#ffdad6",
                 color: "#93000a",
-                fontFamily: "Be Vietnam Pro, sans-serif",
+                
                 fontSize: "14px",
               }}
             >
@@ -159,7 +159,7 @@ const ChangePasswordPage = () => {
               style={{
                 background: "#d4edda",
                 color: "#155724",
-                fontFamily: "Be Vietnam Pro, sans-serif",
+                
                 fontSize: "14px",
               }}
             >
@@ -280,7 +280,7 @@ const ChangePasswordPage = () => {
               className="w-full h-14 rounded-xl text-white font-semibold shadow-lg flex items-center justify-center gap-2 transition-all duration-300 disabled:opacity-70"
               style={{
                 background: "linear-gradient(135deg, #4648d4 0%, #6b38d4 100%)",
-                fontFamily: "Manrope, sans-serif",
+                
                 fontSize: "16px",
                 boxShadow: "0 10px 40px rgba(70, 72, 212, 0.25)",
               }}
@@ -305,7 +305,7 @@ const ChangePasswordPage = () => {
               className="font-bold hover:underline transition-all"
               style={{
                 color: "#4648d4",
-                fontFamily: "Be Vietnam Pro, sans-serif",
+                
               }}
             >
               ← Back to Home
