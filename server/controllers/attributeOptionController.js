@@ -137,11 +137,10 @@ export const updateAttributeOption = async (req, res) => {
     if (displayName) {
       const existingOption = await AttributeOption.findOne({
         attribute: option.attribute,
-        displayName: displayName.trim(),
-        _id: { $ne: id },
+        displayName: displayName.trim()
       });
 
-      if (existingOption) {
+      if (existingOption && existingOption._id.toString() !== id) {
         return res.status(409).json({
           success: false,
           message: "An option with this display name already exists for this attribute.",

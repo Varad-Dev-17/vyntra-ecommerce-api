@@ -235,11 +235,10 @@ export const updateAttribute = async (req, res) => {
 
     if (name) {
       const existingAttribute = await Attribute.findOne({
-        name: name.trim(),
-        _id: { $ne: id },
+        name: name.trim()
       });
 
-      if (existingAttribute) {
+      if (existingAttribute && existingAttribute._id.toString() !== id) {
         return res.status(409).json({
           success: false,
           message: "An attribute with this name already exists.",

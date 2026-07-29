@@ -1,0 +1,163 @@
+[
+  {
+    "title": "Louis Philippe Men's Premium Shirt",
+    "brand": "Louis Philippe",
+    "category": "Shirts",
+    "department": "Men",
+    "shortDescription": "Premium men's shirt offering a smart and sophisticated casual look.",
+    "longDescription": "Premium men's shirt offering a smart and sophisticated casual look. Crafted with a premium cotton blend for comfort and style.",
+    "attributes": {
+      "Fit": "Slim Fit",
+      "Sleeve": "Full Sleeve",
+      "Fabric": "Cotton Blend",
+      "Material": "100% Cotton",
+      "Pattern": "Solid",
+      "Collar": "Button-Down"
+    },
+    "colors": ["Olive Green", "Blue", "Red", "White"],
+    "sizes": ["S", "M", "L", "XL", "XXL"],
+    "images": [
+      "/vyntra/men/shirt/Louis Philippe/Louis Philippe1.png",
+      "/vyntra/men/shirt/Louis Philippe/Louis Philippe2.png",
+      "/vyntra/men/shirt/Louis Philippe/Louis Philippe3.png",
+      "/vyntra/men/shirt/Louis Philippe/Louis Philippe4.png"
+    ],
+    "price": 1999,
+    "stock": 50
+  },
+  {
+    "title": "Peter England Men's Formal Shirt",
+    "brand": "Peter England",
+    "category": "Shirts",
+    "department": "Men",
+    "shortDescription": "Stylish formal shirt suitable for office and professional wear.",
+    "longDescription": "Stylish formal shirt suitable for office and professional wear. Designed for a sleek, modern look with cotton blend fabric.",
+    "attributes": {
+      "Fit": "Slim Fit",
+      "Sleeve": "Full Sleeve",
+      "Fabric": "Cotton Blend",
+      "Material": "Poly Cotton",
+      "Pattern": "Solid",
+      "Collar": "Spread"
+    },
+    "colors": ["Navy Blue", "Black", "Sky Blue"],
+    "sizes": ["S", "M", "L", "XL", "XXL"],
+    "images": [
+      "/vyntra/men/shirt/Peter England/Peter England1.png",
+      "/vyntra/men/shirt/Peter England/Peter England2.png",
+      "/vyntra/men/shirt/Peter England/Peter England3.png"
+    ],
+    "price": 1499,
+    "stock": 40
+  },
+  {
+    "title": "Raymond Men's Formal Shirt",
+    "brand": "Raymond",
+    "category": "Shirts",
+    "department": "Men",
+    "shortDescription": "Premium classic shirt designed for a clean and elegant formal look.",
+    "longDescription": "Premium classic shirt designed for a clean and elegant formal look. Made of 100% cotton for all-day comfort.",
+    "attributes": {
+      "Fit": "Regular Fit",
+      "Sleeve": "Full Sleeve",
+      "Fabric": "Cotton",
+      "Material": "100% Cotton",
+      "Pattern": "Solid",
+      "Collar": "Spread"
+    },
+    "colors": ["White", "Pink", "Sky Blue", "Red", "Purple"],
+    "sizes": ["S", "M", "L", "XL", "XXL"],
+    "images": [
+      "/vyntra/men/shirt/Raymond/Raymond5.png",
+      "/vyntra/men/shirt/Raymond/Raymond6.png",
+      "/vyntra/men/shirt/Raymond/Raymond7.png",
+      "/vyntra/men/shirt/Raymond/Raymond8.png",
+      "/vyntra/men/shirt/Raymond/Raymond9.png"
+    ],
+    "price": 2499,
+    "stock": 60
+  },
+  {
+    "title": "Manyavar Men's Casual Shirt",
+    "brand": "Manyavar",
+    "category": "Shirts",
+    "department": "Men",
+    "shortDescription": "Comfortable and stylish shirt suitable for casual occasions and outings.",
+    "longDescription": "Comfortable and stylish shirt suitable for casual occasions and outings. Featuring printed patterns on soft cotton fabric.",
+    "attributes": {
+      "Fit": "Regular Fit",
+      "Sleeve": "Full Sleeve",
+      "Fabric": "Cotton",
+      "Material": "Linen Blend",
+      "Pattern": "Printed",
+      "Collar": "Mandarin"
+    },
+    "colors": ["White", "Black", "Olive Green", "Red", "Grey", "Yellow"],
+    "sizes": ["S", "M", "L", "XL", "XXL"],
+    "images": [
+      "/vyntra/men/shirt/Manyavar/Manyavar1.png",
+      "/vyntra/men/shirt/Manyavar/Manyavar2.png",
+      "/vyntra/men/shirt/Manyavar/Manyavar3.png",
+      "/vyntra/men/shirt/Manyavar/Manyavar4.png",
+      "/vyntra/men/shirt/Manyavar/Manyavar5.png",
+      "/vyntra/men/shirt/Manyavar/Manyavar6.png"
+    ],
+    "price": 1799,
+    "stock": 30
+  },
+  {
+    "title": "Peter England Men's Solid Polo T-Shirt",
+    "brand": "Peter England",
+    "category": "T-Shirts",
+    "department": "Men",
+    "shortDescription": "Classic polo T-shirt suitable for casual and smart-casual wear.",
+    "longDescription": "Classic polo T-shirt suitable for casual and smart-casual wear. Made with breathable cotton for all-day ease.",
+    "attributes": {
+      "Fit": "Regular Fit",
+      "Sleeve": "Half Sleeve",
+      "Fabric": "Cotton",
+      "Material": "Pique Cotton",
+      "Pattern": "Solid",
+      "Neck": "Polo"
+    },
+    "colors": ["Navy Blue", "White", "Black", "Maroon", "Pastel Green", "Grey"],
+    "sizes": ["S", "M", "L", "XL", "XXL"],
+    "images": [
+      "/vyntra/men/t-shirt/Peter England/Peter England 1.png",
+      "/vyntra/men/t-shirt/Peter England/Peter England 2.png",
+      "/vyntra/men/t-shirt/Peter England/Peter England 3.png",
+      "/vyntra/men/t-shirt/Peter England/Peter England 4.png",
+      "/vyntra/men/t-shirt/Peter England/Peter England 5.png",
+      "/vyntra/men/t-shirt/Peter England/Peter England 6.png"
+    ],
+    "price": 1199,
+    "stock": 100
+  },
+  {
+    "title": "Raymond Men's Cotton T-Shirt",
+    "brand": "Raymond",
+    "category": "T-Shirts",
+    "department": "Men",
+    "shortDescription": "Comfortable cotton T-shirt with a clean and minimal look for everyday wear.",
+    "longDescription": "Comfortable cotton T-shirt with a clean and minimal look for everyday wear. Crafted for maximum comfort.",
+    "attributes": {
+      "Fit": "Regular Fit",
+      "Sleeve": "Half Sleeve",
+      "Fabric": "Cotton",
+      "Material": "Combed Cotton",
+      "Pattern": "Solid",
+      "Neck": "Round Neck"
+    },
+    "colors": ["White", "Black", "Blue", "Red", "Grey"],
+    "sizes": ["S", "M", "L", "XL", "XXL"],
+    "images": [
+      "/vyntra/men/t-shirt/Raymond/Raymond1.png",
+      "/vyntra/men/t-shirt/Raymond/Raymond2.png",
+      "/vyntra/men/t-shirt/Raymond/Raymond3.png",
+      "/vyntra/men/t-shirt/Raymond/Raymond4.png",
+      "/vyntra/men/t-shirt/Raymond/Raymond5.png"
+    ],
+    "price": 999,
+    "stock": 80
+  }
+]

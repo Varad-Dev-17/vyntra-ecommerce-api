@@ -68,7 +68,7 @@ const AttributeForm = ({ initialData = null, isEdit = false }) => {
 
   const fetchExistingOptions = async (attributeId) => {
     try {
-      const response = await axios.get(`${(import.meta.env.PROD ? '' : 'http://localhost:8000')}/attribute-options/attribute/${attributeId}`);
+      const response = await axios.get(`${(import.meta.env.PROD ? '' : 'http://localhost:8000')}/attribute-options/attribute/${attributeId}?limit=1000`);
       if (response.data.success && response.data.options) {
         setOptions(response.data.options.map(opt => ({
           _id: opt._id,
