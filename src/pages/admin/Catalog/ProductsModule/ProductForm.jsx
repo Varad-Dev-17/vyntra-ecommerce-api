@@ -18,7 +18,10 @@ const ProductForm = ({ isEdit = false }) => {
     status: 'Inactive',
     department: '',
     category: '',
-    brand: ''
+    brand: '',
+    returnable: true,
+    exchangeable: true,
+    returnDays: 7
   });
 
   const [slugModified, setSlugModified] = useState(false);
@@ -70,7 +73,10 @@ const ProductForm = ({ isEdit = false }) => {
             status: prod.status || 'Inactive',
             department: prod.department?._id || '',
             category: prod.category?._id || '',
-            brand: prod.brand?._id || ''
+            brand: prod.brand?._id || '',
+            returnable: prod.returnPolicy?.returnable ?? true,
+            exchangeable: prod.returnPolicy?.exchangeable ?? true,
+            returnDays: prod.returnPolicy?.returnDays ?? 7
           });
           setSlugModified(true);
           fetchedAttributesRef.current = prod.attributes || [];
@@ -257,9 +263,12 @@ const ProductForm = ({ isEdit = false }) => {
   };
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value, type, checked } = e.target;
     clearError(name);
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData(prev => ({ 
+      ...prev, 
+      [name]: type === 'checkbox' ? checked : value 
+    }));
   };
 
   // Submit Handler
@@ -267,7 +276,7 @@ const ProductForm = ({ isEdit = false }) => {
     e.preventDefault();
     const newErrors = {};
 
-    // 1. Validate Form
+    // Validate Form
     if (!formData.title?.trim()) newErrors.title = "Product Name is required.";
     if (!formData.slug?.trim()) newErrors.slug = "Product Slug is required.";
     if (!formData.department) newErrors.department = "Please select a department.";
@@ -276,7 +285,7 @@ const ProductForm = ({ isEdit = false }) => {
     if (!formData.shortDescription?.trim()) newErrors.shortDescription = "Short Description is required.";
     if (!formData.longDescription?.trim()) newErrors.longDescription = "Long Description is required.";
 
-    // 2. Validate Dynamic Attributes
+    // Validate Dynamic Attributes
     for (const config of dynamicAttributesConfig) {
       if (config.isRequired) {
         const attrVal = dynamicAttributes.find(a => a.attribute === config._id);
@@ -303,7 +312,7 @@ const ProductForm = ({ isEdit = false }) => {
       return;
     }
 
-    // 3. Construct Payload
+    // Construct Payload
     const payload = {
       title: formData.title,
       slug: formData.slug,
@@ -313,7 +322,12 @@ const ProductForm = ({ isEdit = false }) => {
       department: formData.department,
       category: formData.category,
       brand: formData.brand,
-      attributes: dynamicAttributes.filter(a => a.values && a.values.length > 0 && a.values[0] !== '') // only send non-empty attributes
+      attributes: dynamicAttributes.filter(a => a.values && a.values.length > 0 && a.values[0] !== ''), // only send non-empty attributes
+      returnPolicy: {
+        returnable: formData.returnable,
+        exchangeable: formData.exchangeable,
+        returnDays: parseInt(formData.returnDays) || 0
+      }
     };
 
     setIsSubmitting(true);
@@ -561,7 +575,7 @@ const ProductForm = ({ isEdit = false }) => {
       ) : (
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 sm:p-8">
           <div className="mb-4">
-            <h3 className="text-lg font-semibold text-[#4648d4]">Dynamic Attributes</h3>
+            <h3 className="text-lg font-semibold text-[#4648d4]">Attributes</h3>
           </div>
 
           {isDynamicAttributesLoading ? (
@@ -588,6 +602,58 @@ const ProductForm = ({ isEdit = false }) => {
           )}
         </div>
       )}
+
+      {/* Return & Exchange Policy */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 sm:p-8">
+        <h3 className="text-lg font-semibold text-[#4648d4] mb-4">Return / Exchange</h3>
+        
+        <div className="flex flex-wrap items-center gap-8">
+          {/* Returnable Toggle */}
+          <div className="flex items-center gap-3">
+            <label className="text-sm font-medium text-[#4648d4]">Returnable</label>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input 
+                type="checkbox" 
+                name="returnable"
+                checked={formData.returnable}
+                onChange={handleChange}
+                className="sr-only peer" 
+              />
+              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#4648d4]"></div>
+            </label>
+          </div>
+
+          {/* Exchangeable Toggle */}
+          <div className="flex items-center gap-3">
+            <label className="text-sm font-medium text-[#4648d4]">Exchangeable</label>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input 
+                type="checkbox" 
+                name="exchangeable"
+                checked={formData.exchangeable}
+                onChange={handleChange}
+                className="sr-only peer" 
+              />
+              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#4648d4]"></div>
+            </label>
+          </div>
+
+          {/* Return Window */}
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium text-[#4648d4]">Return In</span>
+            <input
+              type="number"
+              name="returnDays"
+              min="0"
+              value={formData.returnDays}
+              onChange={handleChange}
+              disabled={!formData.returnable && !formData.exchangeable}
+              className={`w-20 px-2 h-9 text-center border border-gray-200 rounded-lg outline-none focus:border-[#4648d4] focus:ring-1 focus:ring-[#4648d4] transition-colors ${(!formData.returnable && !formData.exchangeable) ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white'}`}
+            />
+            <span className="text-sm font-medium text-[#4648d4]">days</span>
+          </div>
+        </div>
+      </div>
 
       {/* Form Actions */}
       <div className="flex justify-center gap-4 pt-4 pb-6">

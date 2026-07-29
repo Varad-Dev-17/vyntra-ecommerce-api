@@ -35,6 +35,7 @@ export default defineConfig({
       "/wishlist": proxyConfig,
       "/dashboard": proxyConfig,
       "/addresses": proxyConfig,
+      "/return-requests": proxyConfig,
     },
   },
 });

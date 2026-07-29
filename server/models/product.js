@@ -31,8 +31,6 @@ const ProductImageSchema = new mongoose.Schema(
   { _id: false }
 );
 
-
-
 const ProductSchema = new mongoose.Schema(
   {
     title: {
@@ -81,7 +79,20 @@ const ProductSchema = new mongoose.Schema(
 
     attributes: [ProductAttributeSchema],
 
-
+    returnPolicy: {
+      returnable: {
+        type: Boolean,
+        default: true,
+      },
+      exchangeable: {
+        type: Boolean,
+        default: true,
+      },
+      returnDays: {
+        type: Number,
+        default: 7,
+      },
+    },
 
     ratingAverage: {
       type: Number,

@@ -133,6 +133,48 @@ router.post(
   }
 );
 
+// UPLOAD MULTIPLE IMAGES (User, max 5)
+router.post(
+  "/user-multiple",
+  identifier,
+  upload.array("images", 5),
+  async (req, res) => {
+    try {
+      if (!req.files || req.files.length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: "No images provided",
+          data: null,
+        });
+      }
+
+      const uploadPromises = req.files.map((file) =>
+        uploadToCloudinary(file.buffer, file.mimetype, "vyntra-returns")
+      );
+
+      const results = await Promise.all(uploadPromises);
+
+      const images = results.map((result) => ({
+        url: result.secure_url,
+        publicId: result.public_id,
+      }));
+
+      return res.status(200).json({
+        success: true,
+        message: "Images uploaded successfully",
+        data: images,
+      });
+    } catch (error) {
+      console.error("Upload error:", error);
+      return res.status(500).json({
+        success: false,
+        message: "Upload failed",
+        data: null,
+      });
+    }
+  }
+);
+
 // DELETE IMAGE (Admin only)
 router.delete("/image", identifier, isAdmin, async (req, res) => {
   try {

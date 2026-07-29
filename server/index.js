@@ -32,6 +32,7 @@ import orderAdminRoutes from "./routers/orderAdminRoutes.js";
 import reviewRoutes from "./routers/reviewRoutes.js";
 import wishlistRoutes from "./routers/wishlistRoutes.js";
 import couponRoutes from "./routers/couponRoutes.js";
+import returnRequestRoutes from "./routers/returnRequestRoutes.js";
 import uploadRoutes from "./routers/uploadRoutes.js";
 import cartRoutes from "./routers/cartRoutes.js";
 import dashboardRoutes from "./routers/dashboardRoutes.js";
@@ -88,6 +89,7 @@ app.use("/wishlist", wishlistRoutes);
 app.use("/reviews", reviewRoutes);
 app.use("/orders", orderPublicRoutes);
 app.use("/addresses", addressRoutes);
+app.use("/return-requests", returnRequestRoutes);
 
 // Static Files
 const distPath = path.join(__dirname, "../vyntra/dist");

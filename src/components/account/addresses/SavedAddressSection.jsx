@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { MapPin, Plus, Loader2 } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../../context/AuthContext';
 import AddressModal from './AddressModal';
-import ConfirmationModal from '../common/ConfirmationModal';
+import ConfirmationModal from '../../common/ConfirmationModal';
 
 const SavedAddressSection = () => {
   const { getAuthHeaders } = useAuth();

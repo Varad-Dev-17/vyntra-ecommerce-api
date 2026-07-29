@@ -341,6 +341,7 @@ export const addProduct = async (req, res) => {
       brand,
       attributes,
       status,
+      returnPolicy,
     } = req.body;
 
     // Validate required fields
@@ -441,7 +442,11 @@ export const addProduct = async (req, res) => {
       brand,
       attributes: validatedAttributes,
       status: status || "Inactive",
-      status: status || "Inactive",
+      returnPolicy: {
+        returnable: returnPolicy?.returnable ?? true,
+        exchangeable: returnPolicy?.exchangeable ?? true,
+        returnDays: returnPolicy?.returnDays !== undefined ? Math.max(0, parseInt(returnPolicy.returnDays) || 0) : 7,
+      },
     });
 
     const populatedProduct = await Product.findById(product._id)
@@ -478,6 +483,7 @@ export const updateProduct = async (req, res) => {
       brand,
       attributes,
       status,
+      returnPolicy,
     } = req.body;
 
     const product = await Product.findById(id);
@@ -563,6 +569,13 @@ export const updateProduct = async (req, res) => {
     if (shortDescription !== undefined) product.shortDescription = shortDescription.trim();
     if (longDescription !== undefined) product.longDescription = longDescription.trim();
     if (status) product.status = status;
+    
+    if (returnPolicy) {
+      if (!product.returnPolicy) product.returnPolicy = {};
+      if (returnPolicy.returnable !== undefined) product.returnPolicy.returnable = returnPolicy.returnable;
+      if (returnPolicy.exchangeable !== undefined) product.returnPolicy.exchangeable = returnPolicy.exchangeable;
+      if (returnPolicy.returnDays !== undefined) product.returnPolicy.returnDays = Math.max(0, parseInt(returnPolicy.returnDays) || 0);
+    }
 
     await product.save();
 

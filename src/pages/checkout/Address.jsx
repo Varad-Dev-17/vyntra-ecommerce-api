@@ -5,7 +5,7 @@ import axios from 'axios';
 import toast from 'react-hot-toast';
 import { useAuth } from '../../context/AuthContext';
 import CheckoutTracker from '../../components/bag/CheckoutTracker';
-import AddressModal from '../../components/account/AddressModal';
+import AddressModal from '../../components/account/addresses/AddressModal';
 
 const Address = () => {
   const navigate = useNavigate();

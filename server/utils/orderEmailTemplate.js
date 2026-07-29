@@ -1,40 +1,94 @@
 export const orderEmailTemplate = (order, user) => {
   // Generate a mock delivery date (e.g. 5 days from now)
-  const deliveryDate = new Date(new Date().setDate(new Date().getDate() + 5)).toLocaleDateString('en-GB');
+  const deliveryDateObj = new Date(new Date().setDate(new Date().getDate() + 5));
+  const deliveryDay = deliveryDateObj.toLocaleDateString('en-US', { weekday: 'long' });
 
   return `
-    <div style="font-family: Arial, sans-serif; max-width: 650px; margin: 0 auto; color: #333; background-color: #ffffff;">
-      <!-- Top indigo border -->
-      <div style="height: 4px; background-color: #4F46E5; width: 100%;"></div>
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333; background-color: #ffffff; border: 1px solid #eaeaea;">
       
-      <div style="padding: 30px 40px;">
-        <h1 style="font-size: 24px; font-weight: normal; margin-top: 0; margin-bottom: 25px; color: #111;">
-          Yay! Your Order Is Confirmed
-        </h1>
-        
-        <h2 style="font-size: 18px; margin-bottom: 15px; color: #111;">
-          Hi ${user.username}
-        </h2>
-        
-        <p style="font-size: 14px; line-height: 1.5; color: #333; margin-bottom: 35px;">
-          Thank you for your order. We will send you a confirmation when your
-          order ships. Please find below the receipt of your purchase.
-        </p>
+      <!-- Top banner -->
+      <div style="background-color: #4F46E5; padding: 15px 20px; text-align: center; color: #ffffff;">
+        <span style="font-size: 15px; font-weight: bold; margin: 0 10px;">Your Orders</span>
+        <span style="font-size: 15px; font-weight: bold; margin: 0 10px;">Deals</span>
+        <span style="font-size: 15px; font-weight: bold; margin: 0 10px;">Buy Again</span>
+      </div>
 
-        <!-- Table Header -->
+      <div style="padding: 20px 30px;">
+        <h1 style="font-size: 22px; font-weight: bold; margin-top: 10px; margin-bottom: 20px; color: #111; text-align: center;">
+          Thanks for your order!
+        </h1>
+
+        <!-- Progress Tracker -->
+        <table width="100%" cellspacing="0" cellpadding="0" style="margin: 25px 0;">
+          <tr>
+            <td width="25%" align="center">
+              <table width="100%" cellspacing="0" cellpadding="0">
+                <tr>
+                  <td width="50%"></td>
+                  <td width="24"><div style="width: 24px; height: 24px; background-color: #4F46E5; border-radius: 50%; color: white; line-height: 24px; font-size: 14px; text-align: center;">✓</div></td>
+                  <td width="50%" style="background-color: #4F46E5; height: 3px;"></td>
+                </tr>
+              </table>
+            </td>
+            <td width="25%" align="center">
+              <table width="100%" cellspacing="0" cellpadding="0">
+                <tr>
+                  <td width="50%" style="background-color: #4F46E5; height: 3px;"></td>
+                  <td width="24"><div style="width: 24px; height: 24px; background-color: #eaeaea; border-radius: 50%;"></div></td>
+                  <td width="50%" style="background-color: #eaeaea; height: 3px;"></td>
+                </tr>
+              </table>
+            </td>
+            <td width="25%" align="center">
+              <table width="100%" cellspacing="0" cellpadding="0">
+                <tr>
+                  <td width="50%" style="background-color: #eaeaea; height: 3px;"></td>
+                  <td width="24"><div style="width: 24px; height: 24px; background-color: #eaeaea; border-radius: 50%;"></div></td>
+                  <td width="50%" style="background-color: #eaeaea; height: 3px;"></td>
+                </tr>
+              </table>
+            </td>
+            <td width="25%" align="center">
+              <table width="100%" cellspacing="0" cellpadding="0">
+                <tr>
+                  <td width="50%" style="background-color: #eaeaea; height: 3px;"></td>
+                  <td width="24"><div style="width: 24px; height: 24px; background-color: #eaeaea; border-radius: 50%;"></div></td>
+                  <td width="50%"></td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td align="center" style="font-size: 12px; font-weight: bold; color: #111; padding-top: 8px;">Ordered</td>
+            <td align="center" style="font-size: 12px; color: #555; padding-top: 8px;">Shipped</td>
+            <td align="center" style="font-size: 12px; color: #555; padding-top: 8px;">Out for<br/>delivery</td>
+            <td align="center" style="font-size: 12px; color: #555; padding-top: 8px;">Delivered</td>
+          </tr>
+        </table>
+        
+        <hr style="border: 0; border-top: 1px solid #eaeaea; margin: 25px 0;" />
+
+        <h2 style="font-size: 18px; font-weight: bold; margin: 0 0 5px 0; color: #111;">
+          Arriving ${deliveryDay}
+        </h2>
+        <div style="font-size: 14px; font-weight: bold; color: #333; margin-bottom: 5px;">
+          ${order.shippingAddress.name} – ${order.shippingAddress.city}, ${order.shippingAddress.address}
+        </div>
+        <div style="font-size: 14px; color: #555; margin-bottom: 20px;">
+          Order # ${order.orderId}
+        </div>
+
+        <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}/account/orders" style="display: inline-block; background-color: #FBBF24; color: #111; text-decoration: none; padding: 10px 20px; font-size: 14px; font-weight: 500; border-radius: 20px; margin-bottom: 30px;">
+          View or edit order
+        </a>
+
+        <!-- Order Items -->
         <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
-          <thead>
-            <tr>
-              <th style="text-align: left; padding-bottom: 15px; border-bottom: 1px solid #eaeaea; font-weight: normal; font-size: 14px; color: #555;">Order Details</th>
-              <th style="text-align: center; padding-bottom: 15px; border-bottom: 1px solid #eaeaea; font-weight: normal; font-size: 14px; color: #555;">Delivery By</th>
-              <th style="text-align: right; padding-bottom: 15px; border-bottom: 1px solid #eaeaea; font-weight: normal; font-size: 14px; color: #555;">Price</th>
-            </tr>
-          </thead>
           <tbody>
             ${order.items.map((item) => {
-              // Extract Color and Size from variant attributes if they exist
               let color = '';
               let size = '';
+              let imageUrl = '';
               
               if (item.variant && item.variant.attributes) {
                 item.variant.attributes.forEach(attr => {
@@ -46,89 +100,49 @@ export const orderEmailTemplate = (order, user) => {
                   }
                 });
               }
+              if (item.variant && item.variant.mainImage && item.variant.mainImage.url) {
+                imageUrl = item.variant.mainImage.url;
+              } else if (item.product && item.product.images && item.product.images.length > 0) {
+                imageUrl = item.product.images[0].url;
+              }
 
               return `
               <tr>
-                <td style="padding: 25px 0; vertical-align: top;">
+                <td style="padding: 15px 0; width: 80px; vertical-align: top;">
+                  ${imageUrl ? `<img src="${imageUrl}" alt="${item.product.title}" style="width: 70px; height: auto; border-radius: 4px; border: 1px solid #eaeaea;" />` : `<div style="width: 70px; height: 70px; background-color: #f5f5f5; border-radius: 4px;"></div>`}
+                </td>
+                <td style="padding: 15px 15px; vertical-align: top;">
                   <div style="font-weight: 600; font-size: 14px; color: #111; margin-bottom: 8px;">${item.product.title}</div>
-                  <div style="font-size: 13px; color: #555; margin-bottom: 4px;">Quantity : ${item.quantity}</div>
-                  ${color ? `<div style="font-size: 13px; color: #555; margin-bottom: 4px;">Color : ${color}</div>` : ''}
-                  ${size ? `<div style="font-size: 13px; color: #555;">Size : ${size}</div>` : ''}
-                </td>
-                <td style="padding: 25px 0; text-align: center; vertical-align: middle; font-size: 14px; color: #111; font-weight: 600;">
-                  ${deliveryDate}
-                </td>
-                <td style="padding: 25px 0; text-align: right; vertical-align: middle; font-size: 14px; color: #111; font-weight: 600;">
-                  ₹ ${Number(item.price * item.quantity).toFixed(2)}
+                  <div style="font-size: 13px; color: #555; margin-bottom: 4px;">Quantity: ${item.quantity}</div>
+                  ${color ? `<div style="font-size: 13px; color: #555; margin-bottom: 4px;">Color: ${color}</div>` : ''}
+                  ${size ? `<div style="font-size: 13px; color: #555;">Size: ${size}</div>` : ''}
+                  <div style="font-size: 14px; font-weight: bold; color: #111; margin-top: 8px;">
+                    ₹${Number(item.price).toFixed(2)}
+                  </div>
                 </td>
               </tr>
             `}).join('')}
           </tbody>
         </table>
 
+        <hr style="border: 0; border-top: 1px solid #eaeaea; margin: 15px 0;" />
+        
         <!-- Totals Section -->
-        <div style="border-top: 1px dashed #cccccc; padding-top: 25px; margin-bottom: 40px;">
-          <table style="width: 100%; border-collapse: collapse;">
-            <tr>
-              <td style="width: 60%;"></td>
-              <td style="width: 40%;">
-                <table style="width: 100%; border-collapse: collapse;">
-                  <tr>
-                    <td style="text-align: right; padding: 5px 15px 5px 0; font-size: 14px; color: #555;">Total :</td>
-                    <td style="text-align: right; padding: 5px 0; font-size: 14px; font-weight: 600; color: #111;">₹ ${Number(order.subtotal).toFixed(2)}</td>
-                  </tr>
-                  <tr>
-                    <td style="text-align: right; padding: 5px 15px 5px 0; font-size: 14px; color: #555;">Shipping Charges :</td>
-                    <td style="text-align: right; padding: 5px 0; font-size: 14px; font-weight: 600; color: #111;">₹ 0.00</td>
-                  </tr>
-                  ${order.discountAmount > 0 ? `
-                  <tr>
-                    <td style="text-align: right; padding: 5px 15px 5px 0; font-size: 14px; color: #555;">Discount :</td>
-                    <td style="text-align: right; padding: 5px 0; font-size: 14px; font-weight: 600; color: #03a685;">- ₹ ${Number(order.discountAmount).toFixed(2)}</td>
-                  </tr>
-                  ` : ''}
-                  <tr>
-                    <td style="text-align: right; padding: 10px 15px 0 0; font-size: 15px; font-weight: 600; color: #111;">Grand Total :</td>
-                    <td style="text-align: right; padding: 10px 0 0 0; font-size: 15px; font-weight: 600; color: #111;">₹ ${Number(order.totalAmount).toFixed(2)}</td>
-                  </tr>
-                </table>
-              </td>
-            </tr>
-          </table>
-        </div>
-
-        <!-- Addresses Section -->
-        <table style="width: 100%; border-collapse: collapse; margin-bottom: 40px;">
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px;">
           <tr>
-            <td style="width: 48%; vertical-align: top; background-color: #f9f9fb; padding: 20px; border-radius: 4px;">
-              <div style="font-weight: 600; font-size: 14px; margin-bottom: 12px; color: #111;">Shipping Address:</div>
-              <div style="font-size: 13px; color: #555; line-height: 1.6;">
-                ${order.shippingAddress.name}<br/>
-                ${order.shippingAddress.address}<br/>
-                ${order.shippingAddress.city}<br/>
-                Phone: ${order.shippingAddress.phone}
-              </div>
-            </td>
-            <td style="width: 4%;"></td>
-            <td style="width: 48%; vertical-align: top; background-color: #f9f9fb; padding: 20px; border-radius: 4px;">
-              <div style="font-weight: 600; font-size: 14px; margin-bottom: 12px; color: #111;">Billing Address:</div>
-              <div style="font-size: 13px; color: #555; line-height: 1.6;">
-                ${order.shippingAddress.name}<br/>
-                ${order.shippingAddress.address}<br/>
-                ${order.shippingAddress.city}<br/>
-                Phone: ${order.shippingAddress.phone}
-              </div>
-            </td>
+            <td style="text-align: left; padding: 5px 0; font-size: 15px; font-weight: bold; color: #111;">Total</td>
+            <td style="text-align: right; padding: 5px 0; font-size: 15px; font-weight: bold; color: #111;">₹${Number(order.totalAmount).toFixed(2)}</td>
           </tr>
         </table>
-
-        <!-- Footer -->
-        <div style="font-size: 14px; color: #555; line-height: 1.6;">
-          Hope to see you soon,<br/>
-          <strong style="color: #111;">Vyntra Team</strong>
-        </div>
-
+        
       </div>
+      
+      <!-- Footer -->
+      <div style="background-color: #f9f9fb; padding: 20px 30px; font-size: 12px; color: #777; text-align: center; border-top: 1px solid #eaeaea;">
+        © ${new Date().getFullYear()} Vyntra. All rights reserved.
+      </div>
+
     </div>
   `;
 };
+

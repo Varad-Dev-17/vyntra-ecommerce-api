@@ -76,10 +76,21 @@ export const getAllOrders = async (req, res) => {
 export const getUserOrders = async (req, res) => {
   try {
     const userId = req.user.userId;
-    const { page = 1, limit = 10, status } = req.query;
+    const { page = 1, limit = 10, status, time } = req.query;
 
     const query = { user: userId };
-    if (status) query.status = status;
+    if (status && status !== 'all') query.status = status;
+
+    if (time && time !== 'anytime') {
+      const now = new Date();
+      if (time === 'last_30_days') {
+        query.createdAt = { $gte: new Date(now.setDate(now.getDate() - 30)) };
+      } else if (time === 'last_6_months') {
+        query.createdAt = { $gte: new Date(now.setMonth(now.getMonth() - 6)) };
+      } else if (time === 'last_year') {
+        query.createdAt = { $gte: new Date(now.setFullYear(now.getFullYear() - 1)) };
+      }
+    }
 
     const pageNum = Math.max(1, Number(page));
     const limitNum = Math.max(1, Number(limit));
@@ -92,7 +103,14 @@ export const getUserOrders = async (req, res) => {
           select: "title brand slug",
           populate: { path: "brand", select: "name" }
         })
-        .populate("items.variant", "mainImage attributes")
+        .populate({
+          path: "items.variant",
+          select: "mainImage attributes",
+          populate: [
+            { path: "attributes.attribute" },
+            { path: "attributes.option" }
+          ]
+        })
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limitNum)
@@ -131,8 +149,13 @@ export const getOrderById = async (req, res) => {
     const isAdmin = req.user.isAdmin;
 
     const order = await Order.findById(id)
-      .populate("user", "username email")
-      .populate("items.product", "title images price stock")
+      .populate("user", "username email phone")
+      .populate({
+        path: "items.product",
+        select: "title brand slug images",
+        populate: { path: "brand", select: "name" }
+      })
+      .populate("items.variant", "mainImage attributes sku price")
       .lean();
 
     if (!order) {
@@ -407,7 +430,14 @@ export const updateOrderStatus = async (req, res) => {
       }
     }
 
-    if (status) order.status = status;
+    if (status) {
+      if (status === "delivered" && order.status !== "delivered") {
+        order.deliveredAt = new Date();
+      } else if (status !== "delivered" && order.status === "delivered") {
+        order.deliveredAt = null;
+      }
+      order.status = status;
+    }
     if (paymentStatus) order.paymentStatus = paymentStatus;
     if (trackingNumber !== undefined) order.trackingNumber = trackingNumber;
 

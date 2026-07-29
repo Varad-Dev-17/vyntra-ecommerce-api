@@ -1,0 +1,252 @@
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import axios from 'axios';
+import toast from 'react-hot-toast';
+import { useAuth } from '../../../../context/AuthContext';
+import { Loader2, ChevronRight, ArrowLeft } from 'lucide-react';
+import ProductInfo from './ReturnExchangeForm/ProductInfo';
+import ActionSelector from './ReturnExchangeForm/ActionSelector';
+import ReasonDropdown from './ReturnExchangeForm/ReasonDropdown';
+import ImageUploadPlaceholder from './ReturnExchangeForm/ImageUploadPlaceholder';
+import ExchangeSection from './ReturnExchangeForm/ExchangeSection';
+
+const ReturnExchangeRequest = () => {
+  const { orderId, productId } = useParams();
+  const navigate = useNavigate();
+  const { getAuthHeaders } = useAuth();
+  
+  const location = useLocation();
+  const [isLoading, setIsLoading] = useState(true);
+  const [order, setOrder] = useState(null);
+  const [orderItem, setOrderItem] = useState(location.state?.orderItem || null);
+  
+  const [action, setAction] = useState('return'); // 'return' or 'exchange'
+  const [reason, setReason] = useState('');
+  const [additionalDetails, setAdditionalDetails] = useState('');
+  const [requestedVariantId, setRequestedVariantId] = useState('');
+  const [productVariants, setProductVariants] = useState([]);
+  const [images, setImages] = useState([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Dummy available sizes for UI purposes
+  const availableSizes = ['S', 'M', 'L', 'XL'];
+
+  useEffect(() => {
+    const fetchOrderDetails = async () => {
+      try {
+        const response = await axios.get(`/orders/${orderId}`, {
+          headers: getAuthHeaders(),
+        });
+        if (response.data.success) {
+          const fetchedOrder = response.data.data;
+          setOrder(fetchedOrder);
+          
+          // Find the specific product in the order
+          const item = fetchedOrder.items.find(i => i.product?._id === productId || i.product === productId);
+          
+          if (item) {
+            if (item.product?.slug) {
+              try {
+                const prodRes = await axios.get(`/products/slug/${item.product.slug}`);
+                if (prodRes.data.success && prodRes.data.data.product?.variants) {
+                  setProductVariants(prodRes.data.data.product.variants);
+                  
+                  // Ensure current item variant is populated
+                  const currentVariantId = typeof item.variant === 'object' ? item.variant._id : item.variant;
+                  const populatedVariant = prodRes.data.data.product.variants.find(v => v._id === currentVariantId);
+                  
+                  if (populatedVariant) {
+                    item.variant = populatedVariant;
+                  }
+                }
+              } catch (e) {
+                console.error('Failed to fetch populated product variants', e);
+              }
+            }
+            
+            setOrderItem(item);
+          } else {
+              toast.error('Product not found in this order');
+              navigate(-1);
+            }
+        }
+      } catch (error) {
+        toast.error('Failed to load order details');
+        navigate(-1);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (orderId && productId) {
+      fetchOrderDetails();
+    }
+  }, [orderId, productId, getAuthHeaders, navigate]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!reason) {
+      toast.error('Please select a reason');
+      return;
+    }
+    if (action === 'exchange' && !requestedVariantId) {
+      toast.error('Please select an exchange variant');
+      return;
+    }
+    
+    setIsSubmitting(true);
+    try {
+      const payload = {
+        orderId: order._id,
+        productId: orderItem.product._id,
+        variantId: orderItem.variant._id,
+        type: action,
+        reason,
+        additionalDetails,
+        images,
+      };
+
+      if (action === 'exchange') {
+        payload.requestedExchangeVariantId = requestedVariantId; 
+      }
+
+      const response = await axios.post('/return-requests', payload, {
+        headers: getAuthHeaders(),
+      });
+
+      if (response.data.success) {
+        toast.success(`${action.charAt(0).toUpperCase() + action.slice(1)} request submitted successfully`);
+        navigate('/account/orders');
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error(error.response?.data?.message || 'Failed to submit request');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-[60vh]">
+        <Loader2 className="w-8 h-8 text-[#4F46E5] animate-spin" />
+      </div>
+    );
+  }
+
+  if (!orderItem) return null;
+
+  return (
+    <div className="bg-white min-h-screen pt-24 pb-20">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        {/* Breadcrumb Navigation */}
+        <nav className="flex items-center text-[13px] text-gray-500 mb-6 font-medium">
+          <span className="hover:text-gray-900 cursor-pointer transition-colors" onClick={() => navigate('/account/profile')}>My Account</span>
+          <ChevronRight className="w-4 h-4 mx-2 text-gray-400" />
+          <span className="hover:text-gray-900 cursor-pointer transition-colors" onClick={() => navigate('/account/orders')}>My Orders</span>
+          <ChevronRight className="w-4 h-4 mx-2 text-gray-400" />
+          <span className="text-gray-900">Return / Exchange</span>
+        </nav>
+
+        <button 
+          onClick={() => navigate(-1)}
+          className="flex items-center gap-2 text-gray-500 hover:text-gray-900 mb-6 transition-colors font-medium text-[13px]"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back to Order
+        </button>
+
+        <div className="mb-8">
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Request Return or Exchange</h1>
+          <p className="text-[14px] text-gray-500 mt-2">Order #{order.orderId || order._id.toString().slice(-8)}</p>
+        </div>
+
+        {/* Product Info Section */}
+        <div className="mb-10 border-t border-b border-gray-100 py-8">
+          {(() => {
+            let color = '';
+            let size = '';
+            
+            if (orderItem.variant && orderItem.variant.attributes) {
+              orderItem.variant.attributes.forEach(attr => {
+                if (attr.attribute?.name?.toLowerCase() === 'color') {
+                  color = attr.option?.displayName || color;
+                }
+                if (attr.attribute?.name?.toLowerCase() === 'size') {
+                  size = attr.option?.displayName || size;
+                }
+              });
+            }
+
+            return (
+              <ProductInfo 
+                product={orderItem.product} 
+                variant={orderItem.variant} 
+                quantity={orderItem.quantity} 
+                price={orderItem.price}
+                color={color}
+                size={size}
+              />
+            );
+          })()}
+        </div>
+          
+        {/* Main Form Area */}
+        <form onSubmit={handleSubmit} className="space-y-10">
+          <ActionSelector action={action} setAction={setAction} />
+          
+          {action === 'exchange' && (
+            <ExchangeSection 
+              requestedVariantId={requestedVariantId} 
+              setRequestedVariantId={setRequestedVariantId} 
+              productVariants={productVariants}
+              currentVariantId={orderItem.variant._id}
+              currentPrice={orderItem.price}
+            />
+          )}
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+             <div className="col-span-1">
+               <ReasonDropdown reason={reason} setReason={setReason} />
+             </div>
+          </div>
+
+          <div>
+            <label className="block text-[14px] font-bold text-gray-900 mb-3">Additional Details</label>
+            <textarea
+              rows="4"
+              value={additionalDetails}
+              onChange={(e) => setAdditionalDetails(e.target.value)}
+              placeholder="Please provide any additional details about your request..."
+              className="w-full border border-gray-300 rounded-lg px-4 py-3 text-[14px] text-gray-900 focus:outline-none focus:border-[#4F46E5] focus:ring-1 focus:ring-[#4F46E5] placeholder-gray-400 resize-none transition-colors"
+            ></textarea>
+          </div>
+          
+          <div>
+            <ImageUploadPlaceholder images={images} setImages={setImages} />
+          </div>
+
+          <div className="pt-8 mt-8 border-t border-gray-100 flex gap-4">
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className={`px-8 py-3 bg-[#4F46E5] text-white rounded-lg text-[14px] font-bold hover:bg-[#4338ca] transition-colors shadow-sm flex items-center justify-center min-w-[160px] ${isSubmitting ? 'opacity-70 cursor-not-allowed' : ''}`}
+            >
+              {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Submit Request'}
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate(-1)}
+              className="px-8 py-3 bg-white border border-gray-300 rounded-lg text-[14px] font-bold text-gray-700 hover:bg-gray-50 transition-colors shadow-sm"
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+export default ReturnExchangeRequest;

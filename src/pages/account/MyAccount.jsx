@@ -1,16 +1,18 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { User, Package, Lock, MapPin, LogOut } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import ProfileSection from '../../components/account/ProfileSection';
-import OrdersSection from '../../components/account/OrdersSection';
-import ChangePasswordSection from '../../components/account/ChangePasswordSection';
-import SavedAddressSection from '../../components/account/SavedAddressSection';
+import ProfileSection from '../../components/account/profile/ProfileSection';
+import OrdersSection from '../../components/account/orders/OrdersSection';
+import ChangePasswordSection from '../../components/account/security/ChangePasswordSection';
+import SavedAddressSection from '../../components/account/addresses/SavedAddressSection';
 
 const MyAccount = () => {
   const navigate = useNavigate();
+  const { tab } = useParams();
   const { logout } = useAuth();
-  const [activeTab, setActiveTab] = useState('profile');
+  
+  const activeTab = tab || 'profile';
 
   const handleLogout = async () => {
     if (window.confirm("Are you sure you want to logout?")) {
@@ -29,7 +31,7 @@ const MyAccount = () => {
           <div className="w-full md:w-64 border-r border-gray-100 p-6 shrink-0 flex flex-col">
             <nav className="space-y-2 flex-1">
                <button 
-                  onClick={() => setActiveTab('profile')}
+                  onClick={() => navigate('/account/profile')}
                   className={`w-full text-left px-4 py-2.5 rounded-full font-bold text-[14px] transition-colors flex items-center gap-3 ${
                     activeTab === 'profile' ? 'bg-[#EEF2FF] text-[#4F46E5]' : 'text-gray-500 hover:text-gray-900'
                   }`}
@@ -38,7 +40,7 @@ const MyAccount = () => {
                   <span>My Profile</span>
                </button>
                <button 
-                  onClick={() => setActiveTab('orders')}
+                  onClick={() => navigate('/account/orders')}
                   className={`w-full text-left px-4 py-2.5 rounded-full font-medium text-[14px] transition-colors flex items-center gap-3 ${
                     activeTab === 'orders' ? 'bg-[#EEF2FF] text-[#4F46E5] font-bold' : 'text-gray-500 hover:text-gray-900'
                   }`}
@@ -47,7 +49,7 @@ const MyAccount = () => {
                   <span>Orders</span>
                </button>
                <button 
-                  onClick={() => setActiveTab('addresses')}
+                  onClick={() => navigate('/account/addresses')}
                   className={`w-full text-left px-4 py-2.5 rounded-full font-medium text-[14px] transition-colors flex items-center gap-3 ${
                     activeTab === 'addresses' ? 'bg-[#EEF2FF] text-[#4F46E5] font-bold' : 'text-gray-500 hover:text-gray-900'
                   }`}
@@ -58,7 +60,7 @@ const MyAccount = () => {
             </nav>
             <div className="mt-8 pt-6 border-t border-gray-100 flex flex-col gap-2">
                <button 
-                  onClick={() => setActiveTab('security')}
+                  onClick={() => navigate('/account/security')}
                   className={`w-full text-left px-4 py-2.5 rounded-full font-medium text-[14px] transition-colors flex items-center gap-3 ${
                     activeTab === 'security' ? 'bg-[#EEF2FF] text-[#4F46E5] font-bold' : 'text-gray-500 hover:text-gray-900'
                   }`}

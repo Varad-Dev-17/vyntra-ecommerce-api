@@ -23,6 +23,7 @@ import Address from "./pages/checkout/Address";
 import Payment from "./pages/checkout/Payment";
 import WishlistPage from "./pages/wishlist/WishlistPage";
 import MyAccount from "./pages/account/MyAccount";
+import OrderDetails from "./components/account/orders/orderdetails/OrderDetails";
 import { CartProvider } from "./context/CartContext";
 import { WishlistProvider } from "./context/WishlistContext";
 
@@ -51,6 +52,7 @@ import AddProduct from "./pages/admin/Catalog/ProductsModule/AddProduct";
 import EditProduct from "./pages/admin/Catalog/ProductsModule/EditProduct";
 import ProductVariants from "./pages/admin/Catalog/ProductsModule/ProductVariants";
 
+import ReturnExchangeRequest from "./components/account/orders/returnexchange/ReturnExchangeRequest";
 import StockManagement from "./pages/admin/StockManagement/StockManagement";
 import Orders from "./pages/admin/Orders/Orders";
 import Users from "./pages/admin/Users/Users";
@@ -204,7 +206,33 @@ const AppRoutes = () => {
       />
 
       <Route
+        path="/account/orders/:orderId"
+        element={
+          <ProtectedRoute>
+            <UserLayout>
+              <OrderDetails />
+            </UserLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/account/orders/:orderId/return/:productId"
+        element={
+          <ProtectedRoute>
+            <UserLayout>
+              <ReturnExchangeRequest />
+            </UserLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
         path="/account"
+        element={<Navigate to="/account/profile" replace />}
+      />
+      <Route
+        path="/account/:tab"
         element={
           <ProtectedRoute>
             <UserLayout>

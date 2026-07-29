@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../../context/AuthContext';
 import { Pencil, Trash2, Loader2, X, Check } from 'lucide-react';
 
 const ProfileSection = () => {

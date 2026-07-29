@@ -7,7 +7,7 @@ import api from "../../api/axiosConfig";
 import { useCart } from "../../context/CartContext";
 import BagItem from "../../components/bag/BagItem";
 import BagSummary from "../../components/bag/BagSummary";
-import { calculateBagTotals } from "../../components/bag/BagUtils";
+import { calculateBagTotals } from "../../utils/BagUtils";
 import CheckoutTracker from "../../components/bag/CheckoutTracker";
 
 const Bag = () => {
