@@ -50,12 +50,12 @@ const DepartmentForm = ({ initialData = null, isEdit = false }) => {
     setIsLoading(true);
     try {
       if (isEdit) {
-        await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/admin/departments/${initialData._id}`, formData, {
+        await axios.put(`${(import.meta.env.PROD ? '' : 'http://localhost:8000')}/admin/departments/${initialData._id}`, formData, {
           withCredentials: true
         });
         toast.success('Department updated successfully!');
       } else {
-        await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/admin/departments`, formData, {
+        await axios.post(`${(import.meta.env.PROD ? '' : 'http://localhost:8000')}/admin/departments`, formData, {
           withCredentials: true
         });
         toast.success('Department created successfully!');

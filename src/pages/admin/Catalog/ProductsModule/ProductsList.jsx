@@ -59,9 +59,9 @@ const ProductsList = () => {
     const fetchFilterOptions = async () => {
       try {
         const [deptsRes, catsRes, brandsRes] = await Promise.all([
-          axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/departments`, { params: { limit: 1000 } }),
-          axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/categories`, { params: { limit: 1000 } }),
-          axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/brands`, { params: { limit: 1000 } })
+          axios.get(`${(import.meta.env.PROD ? '' : 'http://localhost:8000')}/departments`, { params: { limit: 1000 } }),
+          axios.get(`${(import.meta.env.PROD ? '' : 'http://localhost:8000')}/categories`, { params: { limit: 1000 } }),
+          axios.get(`${(import.meta.env.PROD ? '' : 'http://localhost:8000')}/brands`, { params: { limit: 1000 } })
         ]);
         
         if (deptsRes.data.success) setDepartments(deptsRes.data.departments || deptsRes.data.data);
@@ -78,7 +78,7 @@ const ProductsList = () => {
   const fetchProducts = useCallback(async () => {
     setIsLoading(true);
     try {
-      const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/admin/products`, {
+      const response = await axios.get(`${(import.meta.env.PROD ? '' : 'http://localhost:8000')}/admin/products`, {
         params: {
           page: currentPage,
           limit,
@@ -123,7 +123,7 @@ const ProductsList = () => {
     if (!productToDelete) return;
     setIsDeleting(true);
     try {
-      await axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/admin/products/${productToDelete._id}`, {
+      await axios.delete(`${(import.meta.env.PROD ? '' : 'http://localhost:8000')}/admin/products/${productToDelete._id}`, {
         withCredentials: true
       });
       toast.success('Product deleted successfully');

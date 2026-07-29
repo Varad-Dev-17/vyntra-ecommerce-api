@@ -45,7 +45,7 @@ const BrandsList = () => {
   const fetchBrands = useCallback(async () => {
     setIsLoading(true);
     try {
-      const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/brands`, {
+      const response = await axios.get(`${(import.meta.env.PROD ? '' : 'http://localhost:8000')}/brands`, {
         params: {
           page: currentPage,
           limit,
@@ -84,7 +84,7 @@ const BrandsList = () => {
     if (!brandToDelete) return;
     setIsDeleting(true);
     try {
-      await axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/admin/brands/${brandToDelete._id}`, {
+      await axios.delete(`${(import.meta.env.PROD ? '' : 'http://localhost:8000')}/admin/brands/${brandToDelete._id}`, {
         withCredentials: true
       });
       toast.success('Brand deleted successfully');
@@ -103,7 +103,7 @@ const BrandsList = () => {
   const handleToggleStatus = async (brand) => {
     const newStatus = brand.status === 'Active' ? 'Inactive' : 'Active';
     try {
-      const response = await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/admin/brands/${brand._id}`, {
+      const response = await axios.put(`${(import.meta.env.PROD ? '' : 'http://localhost:8000')}/admin/brands/${brand._id}`, {
         status: newStatus
       }, { withCredentials: true });
       

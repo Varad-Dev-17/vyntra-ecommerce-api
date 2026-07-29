@@ -14,7 +14,7 @@ const EditCategory = () => {
   useEffect(() => {
     const fetchCategory = async () => {
       try {
-        const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/categories/${id}`);
+        const response = await axios.get(`${(import.meta.env.PROD ? '' : 'http://localhost:8000')}/categories/${id}`);
         if (response.data.success) {
           setCategory(response.data.category);
         }

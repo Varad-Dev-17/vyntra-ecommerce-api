@@ -92,12 +92,12 @@ app.use("/addresses", addressRoutes);
 app.use("/return-requests", returnRequestRoutes);
 
 // Static Files
-const distPath = path.join(__dirname, "../vyntra/dist");
+const distPath = path.join(__dirname, "../dist");
 
 if (fs.existsSync(distPath)) {
   app.use(express.static(distPath));
 
-  app.get("*", (req, res) => {
+  app.get(/.*/, (req, res) => {
     res.sendFile(path.join(distPath, "index.html"));
   });
 }

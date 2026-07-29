@@ -14,7 +14,7 @@ const EditDepartment = () => {
   useEffect(() => {
     const fetchDepartment = async () => {
       try {
-        const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/departments/${id}`);
+        const response = await axios.get(`${(import.meta.env.PROD ? '' : 'http://localhost:8000')}/departments/${id}`);
         if (response.data.success) {
           setDepartment(response.data.department);
         }

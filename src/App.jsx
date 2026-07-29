@@ -82,7 +82,7 @@ const ProtectedRoute = ({ children, adminOnly = false }) => {
 // ============================================
 const UserLayout = ({ children }) => {
   const location = useLocation();
-  const hideFooterPaths = ["/signin", "/signup", "/admin/signin"];
+  const hideFooterPaths = ["/signin", "/signup", "/admin-login"];
   const showFooter = !hideFooterPaths.includes(location.pathname);
 
   return (
@@ -120,7 +120,7 @@ const AppRoutes = () => {
       />
       <Route path="/signin" element={<SignIn />} />
       <Route path="/signup" element={<SignUp />} />
-      <Route path="/admin/signin" element={<AdminSignInPage />} />
+      <Route path="/admin-login" element={<AdminSignInPage />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
       <Route

@@ -21,7 +21,7 @@ const CategoryForm = ({ initialData = null, isEdit = false }) => {
   useEffect(() => {
     const fetchDepartments = async () => {
       try {
-        const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/departments`, {
+        const response = await axios.get(`${(import.meta.env.PROD ? '' : 'http://localhost:8000')}/departments`, {
           params: { status: 'Active', limit: 1000 }
         });
         if (response.data.success) {
@@ -88,12 +88,12 @@ const CategoryForm = ({ initialData = null, isEdit = false }) => {
     setIsLoading(true);
     try {
       if (isEdit) {
-        await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/admin/categories/${initialData._id}`, formData, {
+        await axios.put(`${(import.meta.env.PROD ? '' : 'http://localhost:8000')}/admin/categories/${initialData._id}`, formData, {
           withCredentials: true
         });
         toast.success('Category updated successfully!');
       } else {
-        await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/admin/categories`, formData, {
+        await axios.post(`${(import.meta.env.PROD ? '' : 'http://localhost:8000')}/admin/categories`, formData, {
           withCredentials: true
         });
         toast.success('Category created successfully!');
