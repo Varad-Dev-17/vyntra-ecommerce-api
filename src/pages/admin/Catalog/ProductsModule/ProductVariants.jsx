@@ -208,7 +208,7 @@ const ProductVariants = () => {
             await Promise.all(attributes.map(async (attr) => {
               if (['select', 'color', 'multiselect'].includes(attr.fieldType)) {
                 try {
-                  const optRes = await axios.get(`${(import.meta.env.PROD ? '' : 'http://localhost:8000')}/attribute-options/attribute/${attr._id}`, {
+                  const optRes = await axios.get(`${(import.meta.env.PROD ? '' : 'http://localhost:8000')}/attribute-options/attribute/${attr._id}?limit=1000`, {
                     signal: abortController.signal
                   });
                   if (optRes.data.success) {

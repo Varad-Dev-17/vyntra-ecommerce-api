@@ -113,7 +113,7 @@ const AttributesList = () => {
     setIsLoadingOptions(true);
 
     try {
-      const response = await axios.get(`${(import.meta.env.PROD ? '' : 'http://localhost:8000')}/attribute-options/attribute/${attribute._id}`);
+      const response = await axios.get(`${(import.meta.env.PROD ? '' : 'http://localhost:8000')}/attribute-options/attribute/${attribute._id}?limit=1000`);
       if (response.data.success) {
         setAttributeOptions(response.data.options || []);
       }

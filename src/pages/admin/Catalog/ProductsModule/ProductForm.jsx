@@ -186,7 +186,7 @@ const ProductForm = ({ isEdit = false }) => {
             let options = [];
             if (['select', 'color', 'multiselect'].includes(attr.fieldType)) {
               try {
-                const optRes = await axios.get(`${(import.meta.env.PROD ? '' : 'http://localhost:8000')}/attribute-options/attribute/${attr._id}`);
+                const optRes = await axios.get(`${(import.meta.env.PROD ? '' : 'http://localhost:8000')}/attribute-options/attribute/${attr._id}?limit=1000`);
                 if (optRes.data.success) {
                   options = optRes.data.options;
                 }
