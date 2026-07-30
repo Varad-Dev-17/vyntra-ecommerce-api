@@ -110,29 +110,33 @@ const OrdersSection = () => {
     setPage(1);
   };
 
-  const getStatusBadge = (status) => {
+  const getStatusBadge = (status, orderId) => {
     const styles = {
-      pending: "bg-orange-50 text-orange-500 border-orange-100",
-      processing: "bg-blue-50 text-blue-500 border-blue-100",
-      shipped: "bg-green-50 text-green-500 border-green-100",
-      delivered: "bg-emerald-50 text-emerald-500 border-emerald-100",
-      cancelled: "bg-red-50 text-red-500 border-red-100",
+      pending: "bg-orange-50 text-orange-600 border-orange-100 hover:bg-orange-100 cursor-pointer",
+      processing: "bg-blue-50 text-blue-600 border-blue-100 hover:bg-blue-100 cursor-pointer",
+      shipped: "bg-green-50 text-green-600 border-green-100 hover:bg-green-100 cursor-pointer",
+      delivered: "bg-emerald-50 text-emerald-600 border-emerald-100 cursor-default",
+      cancelled: "bg-red-50 text-red-600 border-red-100 cursor-default",
     };
-    const style = styles[status] || "bg-gray-50 text-gray-500 border-gray-100";
+    
+    const nextStatusMap = {
+      pending: 'processing',
+      processing: 'shipped',
+      shipped: 'delivered'
+    };
+    
+    const style = styles[status] || "bg-gray-50 text-gray-500 border-gray-100 cursor-default";
+    const nextStatus = nextStatusMap[status];
+    
     return (
-      <div className={`inline-flex items-center justify-center px-3 py-1 rounded-md text-[11px] font-semibold border ${style} capitalize`}>
+      <div 
+        onClick={() => nextStatus && handleStatusUpdate(orderId, nextStatus)}
+        title={nextStatus ? `Click to mark as ${nextStatus}` : ""}
+        className={`inline-flex items-center justify-center px-3 py-1.5 rounded-md text-xs font-semibold border ${style} capitalize transition-colors shadow-sm`}
+      >
         {status}
       </div>
     );
-  };
-  
-  const getNextStatusOptions = (currentStatus) => {
-    switch(currentStatus) {
-      case 'pending': return [{ value: 'processing', label: 'Processing' }];
-      case 'processing': return [{ value: 'shipped', label: 'Shipped' }];
-      case 'shipped': return [{ value: 'delivered', label: 'Delivered' }];
-      default: return [];
-    }
   };
 
   const columns = [
@@ -146,13 +150,51 @@ const OrdersSection = () => {
       )
     },
     {
+      header: 'Product',
+      accessor: 'product',
+      render: (row) => {
+        const item = row.items && row.items.length > 0 ? row.items[0] : null;
+        if (!item) return <span>N/A</span>;
+        
+        const productName = item.product?.title || "Unknown Product";
+        const productImage = item.variant?.mainImage?.url || item.product?.images?.[0]?.url || "";
+        
+        let color = "";
+        let size = "";
+        if (item.variant && item.variant.attributes) {
+          const colorAttr = item.variant.attributes.find(a => a.attribute?.name?.toLowerCase() === 'color');
+          const sizeAttr = item.variant.attributes.find(a => a.attribute?.name?.toLowerCase() === 'size');
+          if (colorAttr) color = colorAttr.option?.displayName;
+          if (sizeAttr) size = sizeAttr.option?.displayName;
+        }
+        
+        const variantText = [color, size].filter(Boolean).join(" / ");
+        
+        return (
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-md overflow-hidden bg-gray-100 flex-shrink-0 border border-gray-200">
+              {productImage ? (
+                <img src={productImage} alt={productName} className="w-full h-full object-cover" />
+              ) : (
+                <Package className="w-5 h-5 m-auto text-gray-400 mt-2.5" />
+              )}
+            </div>
+            <div className="flex flex-col">
+              <span className="font-semibold text-gray-900 line-clamp-1 text-sm">{productName}</span>
+              <span className="text-xs text-gray-500 mt-0.5">{variantText || "Default"}</span>
+              {row.items.length > 1 && (
+                <span className="text-[10px] text-[#4648d4] font-medium mt-0.5">+{row.items.length - 1} more items</span>
+              )}
+            </div>
+          </div>
+        );
+      }
+    },
+    {
       header: 'Customer',
       accessor: 'customer',
       render: (row) => (
-        <div className="flex flex-col">
-          <span className="font-semibold text-gray-900">{row.user?.username || "Unknown"}</span>
-          <span className="text-xs text-gray-500">{row.user?.email || "No email"}</span>
-        </div>
+        <span className="font-semibold text-gray-900">{row.user?.username || "Unknown"}</span>
       )
     },
     {
@@ -173,29 +215,16 @@ const OrdersSection = () => {
       }
     },
     {
-      header: 'Amount',
-      accessor: 'amount',
-      render: (row) => (
-        <span className="font-bold text-gray-900">
-          ₹{row.totalAmount?.toLocaleString()}
-        </span>
-      )
-    },
-    {
       header: 'Payment Method',
       accessor: 'paymentMethod',
       render: (row) => {
         const method = row.paymentMethod || 'cod';
-        let shortText = 'COD';
         let longText = 'Cash on Delivery';
-        
-        if (method === 'upi') { shortText = 'UPI'; longText = 'Online Payment'; }
-        else if (method === 'card') { shortText = 'Credit Card'; longText = 'Online Payment'; } 
+        if (method === 'upi' || method === 'card') { longText = 'Online Payment'; } 
         
         return (
-          <div className="flex flex-col items-start gap-1">
-            <span className="font-semibold text-gray-900 uppercase text-xs">{shortText}</span>
-            <span className="text-[10px] px-2 py-0.5 rounded-full bg-purple-50 text-purple-600 font-medium">{longText}</span>
+          <div className="flex items-center">
+            <span className="text-xs px-2.5 py-1 rounded-full bg-purple-50 text-purple-600 font-medium whitespace-nowrap">{longText}</span>
           </div>
         );
       }
@@ -204,31 +233,10 @@ const OrdersSection = () => {
       header: 'Status',
       accessor: 'status',
       render: (row) => (
-        <div className="flex flex-col gap-1.5 items-start">
-           {getStatusBadge(row.status)}
-           {getNextStatusOptions(row.status).length > 0 && (
-             <select
-               value=""
-               onChange={(e) => handleStatusUpdate(row._id, e.target.value)}
-               className="text-[11px] font-medium border border-gray-200 rounded px-1.5 py-0.5 bg-gray-50 text-gray-600 outline-none cursor-pointer hover:bg-gray-100 transition-colors shadow-sm"
-             >
-                <option value="" disabled>Update to...</option>
-                {getNextStatusOptions(row.status).map(opt => (
-                  <option key={opt.value} value={opt.value}>{opt.label}</option>
-                ))}
-             </select>
-           )}
+        <div className="flex items-center">
+           {getStatusBadge(row.status, row._id)}
         </div>
       )
-    },
-    {
-      header: 'Items',
-      accessor: 'items',
-      align: 'center',
-      render: (row) => {
-        const count = row.items?.length || 0;
-        return <span className="text-gray-600 font-medium">{count} Item{count !== 1 ? 's' : ''}</span>;
-      }
     },
     {
       header: 'Actions',

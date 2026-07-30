@@ -1,97 +1,55 @@
-export const GST_RATES = {
-  fashion: { threshold: 2500, lowRate: 0.05, highRate: 0.18 },
-  tech: { rate: 0.18 },
-  home: { rate: 0.18 },
-  lifestyle: {
-    "soaps/shampoos": 0.05,
-    default: 0.18,
-  },
-  sports: { rate: 0.18 },
-  apparel: { threshold: 2500, lowRate: 0.05, highRate: 0.18 },
-  accessories: { threshold: 2500, lowRate: 0.05, highRate: 0.18 },
-};
-
-export const calculateGST = (price, category, subcategory = "") => {
-  const normalizedCategory = category?.toLowerCase().trim() || "fashion";
-  const rateConfig = GST_RATES[normalizedCategory];
-
-  if (!rateConfig)
-    return { rate: 0.18, cgst: 0.09, sgst: 0.09 };
-
-  let rate = 0.18;
-
-  if (rateConfig.threshold !== undefined) {
-    rate =
-      price <= rateConfig.threshold ? rateConfig.lowRate : rateConfig.highRate;
-  } else if (rateConfig.rate !== undefined) {
-    rate = rateConfig.rate;
-  } else if (typeof rateConfig === "object" && !rateConfig.threshold) {
-    const normalizedSub = subcategory.toLowerCase().trim();
-    rate = rateConfig[normalizedSub] || rateConfig.default;
-  }
-
-  return {
-    rate,
-    cgst: rate / 2,
-    sgst: rate / 2,
-  };
-};
-
-export const calculateBagTotals = (items) => {
+export const calculateBagTotals = (items, couponDiscount = 0) => {
   let subtotal = 0;
   let totalMRP = 0;
   let totalTax = 0;
-  let totalCGST = 0;
-  let totalSGST = 0;
 
   const itemBreakdown = items.map((item) => {
-    // The price from the database is treated as EXCLUSIVE of GST.
-    const priceExclusive = parseFloat(item.price) || 0;
-    const mrp = parseFloat(item.mrp) || priceExclusive;
+    const itemSellingPrice = parseFloat(item.price) || 0;
+    const mrp = parseFloat(item.mrp) || itemSellingPrice;
+    const gstRate = parseFloat(item.gstRate) || 0;
     
-    const itemTotalExclusive = priceExclusive * item.quantity;
+    const itemTotalSellingPrice = itemSellingPrice * item.quantity;
     const itemTotalMRP = mrp * item.quantity;
     
-    // Safely extract category string if it's an object from populate
-    const categoryName = typeof item.category === "object" ? item.category?.name : item.category;
-    
-    const gst = calculateGST(
-      priceExclusive,
-      categoryName || "fashion",
-      ""
-    );
+    // Reverse GST Calculation from the Selling Price
+    const itemBasePrice = itemTotalSellingPrice / (1 + (gstRate / 100));
+    const itemTax = itemTotalSellingPrice - itemBasePrice;
 
-    const itemTax = itemTotalExclusive * gst.rate;
-    
-    const itemCGST = itemTax / 2;
-    const itemSGST = itemTax / 2;
-
-    subtotal += itemTotalExclusive;
+    subtotal += itemTotalSellingPrice;
     totalMRP += itemTotalMRP;
     totalTax += itemTax;
-    totalCGST += itemCGST;
-    totalSGST += itemSGST;
 
     return {
       ...item,
-      itemTotal: itemTotalExclusive,
-      gstRate: (gst.rate * 100).toFixed(0),
-      cgst: itemCGST,
-      sgst: itemSGST,
+      itemTotal: itemTotalSellingPrice,
+      gstRate: gstRate,
+      cgst: itemTax / 2,
+      sgst: itemTax / 2,
       taxAmount: itemTax,
-      basePriceTotal: itemTotalExclusive,
+      basePriceTotal: itemBasePrice,
     };
   });
+
+  const finalSubtotal = Math.max(0, subtotal - couponDiscount);
+
+  // 3-tier delivery rule
+  let shippingAmount = 0;
+  if (finalSubtotal < 500) shippingAmount = 99;
+  else if (finalSubtotal < 1000) shippingAmount = 49;
+  else shippingAmount = 0;
+
+  const totalDiscount = (totalMRP - subtotal) + couponDiscount;
 
   return {
     items: itemBreakdown,
     totalMRP,
     subtotal,
-    discountOnMRP: totalMRP - subtotal,
+    discountOnMRP: totalDiscount,
+    couponDiscount,
     totalTax,
-    totalCGST,
-    totalSGST,
-    shipping: subtotal > 0 ? 0 : 0, 
-    grandTotal: subtotal + totalTax, 
+    totalCGST: totalTax / 2,
+    totalSGST: totalTax / 2,
+    shipping: shippingAmount, 
+    grandTotal: finalSubtotal + shippingAmount, 
   };
 };

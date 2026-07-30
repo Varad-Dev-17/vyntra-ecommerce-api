@@ -49,6 +49,7 @@ const ProductVariants = () => {
           sku: '',
           mrp: '',
           price: '',
+          gstRate: '',
           stock: 0,
           status: 'Active'
         }
@@ -101,6 +102,7 @@ const ProductVariants = () => {
         stock: v.stock,
         mrp: v.mrp,
         price: v.price,
+        gstRate: v.gstRate,
         status: v.status
       });
     });
@@ -312,6 +314,7 @@ const ProductVariants = () => {
           sku: '',
           mrp: '',
           price: '',
+          gstRate: '',
           stock: 0,
           status: 'Active'
         }
@@ -338,6 +341,7 @@ const ProductVariants = () => {
       stock: item.stock,
       mrp: item.mrp,
       price: item.price,
+      gstRate: item.gstRate,
       status: item.status
     }));
 
@@ -443,6 +447,7 @@ const ProductVariants = () => {
       if (!item.sku) return toast.error(`SKU is required for item ${i + 1}.`);
       if (item.mrp === '') return toast.error(`MRP is required for item ${i + 1}.`);
       if (item.price === '') return toast.error(`Selling Price is required for item ${i + 1}.`);
+      if (item.gstRate === '') return toast.error(`GST Rate is required for item ${i + 1}.`);
       if (Number(item.price) > Number(item.mrp)) {
         return toast.error(`Selling Price cannot exceed MRP for item ${i + 1}.`);
       }
@@ -475,6 +480,7 @@ const ProductVariants = () => {
         stock: item.stock,
         mrp: item.mrp,
         price: item.price,
+        gstRate: Number(item.gstRate),
         status: item.status,
         mainImage: currentGroup.mainImage,
         galleryImages: currentGroup.galleryImages
@@ -744,6 +750,7 @@ const ProductVariants = () => {
                          <th className="py-3 px-3 text-xs font-semibold text-[#4648d4] uppercase tracking-wider">Stock</th>
                          <th className="py-3 px-3 text-xs font-semibold text-[#4648d4] uppercase tracking-wider">MRP</th>
                          <th className="py-3 px-3 text-xs font-semibold text-[#4648d4] uppercase tracking-wider">Price</th>
+                         <th className="py-3 px-3 text-xs font-semibold text-[#4648d4] uppercase tracking-wider w-24">GST</th>
                          <th className="py-3 px-3 text-xs font-semibold text-[#4648d4] uppercase tracking-wider w-24">Status</th>
                          {secondaryAttributes.length > 0 && (
                            <th className="py-3 px-3 text-xs font-semibold text-[#4648d4] uppercase tracking-wider w-12 text-center">Act</th>
@@ -780,6 +787,16 @@ const ProductVariants = () => {
                              </td>
                              <td className="p-2 w-24 relative">
                                <input type="number" value={item.price} onChange={e => updateItem(index, 'price', e.target.value)} className={`w-full px-2 py-2 text-sm border rounded-lg outline-none focus:ring-1 text-gray-900 ${priceError ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-gray-200 focus:border-[#4648d4] focus:ring-[#4648d4]'}`} />
+                             </td>
+                             <td className="p-2 w-24">
+                               <select value={item.gstRate} onChange={e => updateItem(index, 'gstRate', e.target.value)} className="w-full px-2 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-[#4648d4] bg-white text-gray-900">
+                                 <option value="">Select</option>
+                                 <option value="0">0%</option>
+                                 <option value="5">5%</option>
+                                 <option value="12">12%</option>
+                                 <option value="18">18%</option>
+                                 <option value="28">28%</option>
+                               </select>
                              </td>
                              <td className="p-2">
                                <select value={item.status} onChange={e => updateItem(index, 'status', e.target.value)} className="w-full px-2 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-[#4648d4] bg-white text-gray-900">

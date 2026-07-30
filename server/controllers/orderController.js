@@ -53,6 +53,14 @@ export const getAllOrders = async (req, res) => {
       Order.find(query)
         .populate("user", "username email")
         .populate("items.product", "title images price")
+        .populate({
+          path: "items.variant",
+          select: "mainImage attributes",
+          populate: [
+            { path: "attributes.attribute" },
+            { path: "attributes.option" }
+          ]
+        })
         .sort(sort)
         .skip(skip)
         .limit(limitNum)
@@ -233,6 +241,8 @@ export const createOrder = async (req, res) => {
 
     // Validate stock and calculate totals
     let subtotal = 0;
+    let totalMRP = 0;
+    let taxAmount = 0;
     const orderItems = [];
 
     for (const item of cart.products) {
@@ -248,8 +258,6 @@ export const createOrder = async (req, res) => {
         });
       }
 
-      // We should check variant stock, but if we don't populate variant, we can just use the product's price from cart logic
-      // In cartController, price is on the variant. Let's fetch variant to check stock and price.
       const Variant = (await import("../models/variant.js")).default;
       const variant = await Variant.findById(item.variantId);
       
@@ -261,17 +269,32 @@ export const createOrder = async (req, res) => {
         });
       }
 
-      subtotal += variant.price * item.quantity;
+      const itemMRP = (variant.mrp || variant.price) * item.quantity;
+      const itemSellingPrice = variant.price * item.quantity;
+      const gstRate = variant.gstRate || 0;
+      
+      // basePrice = sellingPrice / (1 + gstRate/100)
+      const itemBasePrice = itemSellingPrice / (1 + (gstRate / 100));
+      const itemGSTAmount = itemSellingPrice - itemBasePrice;
+
+      subtotal += itemSellingPrice;
+      totalMRP += itemMRP;
+      taxAmount += itemGSTAmount;
+
       orderItems.push({
         product: product._id,
         variant: variant._id,
         quantity: item.quantity,
-        price: variant.price,
+        mrp: variant.mrp || variant.price,
+        sellingPrice: variant.price,
+        basePrice: variant.price / (1 + (gstRate / 100)),
+        gstRate: gstRate,
+        gstAmount: variant.price - (variant.price / (1 + (gstRate / 100))),
       });
     }
 
     // Apply coupon if provided
-    let discountAmount = 0;
+    let couponDiscount = 0;
     let couponApplied = null;
 
     if (couponCode?.trim()) {
@@ -292,16 +315,16 @@ export const createOrder = async (req, res) => {
 
         if (isValid) {
           if (coupon.type === "percentage") {
-            discountAmount = (subtotal * coupon.value) / 100;
+            couponDiscount = (subtotal * coupon.value) / 100;
           } else {
-            discountAmount = coupon.value;
+            couponDiscount = coupon.value;
           }
 
           if (
             coupon.maxDiscountAmount &&
-            discountAmount > coupon.maxDiscountAmount
+            couponDiscount > coupon.maxDiscountAmount
           ) {
-            discountAmount = coupon.maxDiscountAmount;
+            couponDiscount = coupon.maxDiscountAmount;
           }
 
           couponApplied = {
@@ -317,7 +340,16 @@ export const createOrder = async (req, res) => {
       }
     }
 
-    const totalAmount = Math.max(0, subtotal - discountAmount);
+    const finalSubtotal = Math.max(0, subtotal - couponDiscount);
+    
+    // 3-tier delivery rule
+    let shippingAmount = 0;
+    if (finalSubtotal < 500) shippingAmount = 99;
+    else if (finalSubtotal < 1000) shippingAmount = 49;
+    else shippingAmount = 0;
+
+    const totalAmount = finalSubtotal + shippingAmount;
+    const totalDiscountAmount = (totalMRP - subtotal) + couponDiscount;
     
     let orderId = "";
     try {
@@ -335,8 +367,11 @@ export const createOrder = async (req, res) => {
       user: userId,
       items: orderItems,
       shippingAddress,
+      totalMRP: Math.round(totalMRP * 100) / 100,
       subtotal: Math.round(subtotal * 100) / 100,
-      discountAmount: Math.round(discountAmount * 100) / 100,
+      discountAmount: Math.round(totalDiscountAmount * 100) / 100,
+      shippingAmount: Math.round(shippingAmount * 100) / 100,
+      taxAmount: Math.round(taxAmount * 100) / 100,
       totalAmount: Math.round(totalAmount * 100) / 100,
       coupon: couponApplied,
       paymentMethod,

@@ -74,6 +74,7 @@ export const getCart = async (req, res) => {
         category: product.category,
         price: variant.price,
         mrp: variant.mrp,
+        gstRate: variant.gstRate,
         image: variant.mainImage?.url,
         colorName,
         sizeName,

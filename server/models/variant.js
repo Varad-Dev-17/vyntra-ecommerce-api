@@ -51,6 +51,11 @@ const VariantSchema = new mongoose.Schema(
       required: true,
       min: 0,
     },
+    gstRate: {
+      type: Number,
+      required: true,
+      enum: [0, 5, 12, 18, 28],
+    },
     stock: {
       type: Number,
       default: 0,

@@ -214,10 +214,48 @@ const OrderDetails = () => {
 
         {/* Payment Block */}
         <div className="bg-white border border-gray-100 rounded-xl p-5 shadow-sm">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="font-bold text-[14px] text-gray-900">Total Order Price</h3>
-            <p className="font-bold text-[14px] text-gray-900">₹ {order.totalAmount}</p>
+          <h3 className="font-bold text-[14px] text-gray-900 mb-4">Order Summary</h3>
+          
+          <div className="space-y-3 text-[13px] text-gray-600 mb-4 border-b border-gray-100 pb-4">
+            {order.totalMRP !== undefined && order.totalMRP > 0 && (
+              <div className="flex justify-between">
+                <span>Total MRP</span>
+                <span>₹ {order.totalMRP}</span>
+              </div>
+            )}
+            
+            {order.discountAmount !== undefined && order.discountAmount > 0 && (
+              <div className="flex justify-between text-green-600">
+                <span>Total Savings</span>
+                <span>- ₹ {order.discountAmount}</span>
+              </div>
+            )}
+            
+            <div className="flex justify-between">
+              <span>Subtotal</span>
+              <span>₹ {order.subtotal}</span>
+            </div>
+            
+            {order.shippingAmount !== undefined && (
+              <div className="flex justify-between">
+                <span>Shipping</span>
+                <span>{order.shippingAmount === 0 ? <span className="text-green-600">FREE</span> : `₹ ${order.shippingAmount}`}</span>
+              </div>
+            )}
+            
+            {order.taxAmount !== undefined && (
+              <div className="flex justify-between">
+                <span>Tax (GST Inclusive)</span>
+                <span>₹ {order.taxAmount}</span>
+              </div>
+            )}
           </div>
+          
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="font-bold text-[14px] text-gray-900">Grand Total</h3>
+            <p className="font-bold text-[16px] text-gray-900">₹ {order.totalAmount}</p>
+          </div>
+          
           <div className="bg-gray-50 rounded-lg p-3 flex items-center gap-3 text-[13px] text-gray-700 border border-gray-100">
             <div className="bg-white px-2 py-1 rounded text-[10px] font-bold text-gray-500 border border-gray-200 uppercase tracking-wider">
               {order.paymentMethod === 'cod' ? 'COD' : 'UPI'}

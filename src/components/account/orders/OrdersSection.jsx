@@ -242,7 +242,7 @@ const OrdersSection = () => {
                       {size && <span>Size: {size}</span>}
                       <span>Qty: {item.quantity}</span>
                     </div>
-                    {item.price && <p className="text-[14px] font-bold text-gray-900">₹{item.price}</p>}
+                    <p className="text-[14px] font-bold text-gray-900">Order Total: ₹{order.totalAmount}</p>
                   </div>
 
                   <ChevronRight className="w-5 h-5 text-gray-400 absolute right-5 top-1/2 -translate-y-1/2" />
