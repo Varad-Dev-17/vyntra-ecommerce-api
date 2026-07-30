@@ -1,7 +1,7 @@
 export const orderEmailTemplate = (order, user) => {
   // Generate a mock delivery date (e.g. 5 days from now)
   const deliveryDateObj = new Date(new Date().setDate(new Date().getDate() + 5));
-  const deliveryDay = deliveryDateObj.toLocaleDateString('en-US', { weekday: 'long' });
+  const deliveryDay = deliveryDateObj.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
 
   return `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333; background-color: #ffffff; border: 1px solid #eaeaea;">
@@ -77,10 +77,6 @@ export const orderEmailTemplate = (order, user) => {
         <div style="font-size: 14px; color: #555; margin-bottom: 20px;">
           Order # ${order.orderId}
         </div>
-
-        <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}/account/orders" style="display: inline-block; background-color: #FBBF24; color: #111; text-decoration: none; padding: 10px 20px; font-size: 14px; font-weight: 500; border-radius: 20px; margin-bottom: 30px;">
-          View or edit order
-        </a>
 
         <!-- Order Items -->
         <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
