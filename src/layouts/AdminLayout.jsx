@@ -9,7 +9,7 @@ const AdminLayout = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   return (
-    <div className="min-h-screen bg-[#f8f7fc]">
+    <div className="min-h-screen bg-[#f8f7fc] text-[13px]">
       {/* Mobile Sidebar Overlay */}
       <AnimatePresence>
         {sidebarOpen && (
@@ -36,9 +36,9 @@ const AdminLayout = () => {
       <AnimatePresence>
         {sidebarOpen && (
           <motion.div
-            initial={{ x: -280 }}
+            initial={{ x: -240 }}
             animate={{ x: 0 }}
-            exit={{ x: -280 }}
+            exit={{ x: -240 }}
             className="fixed left-0 top-0 z-50 lg:hidden h-full"
           >
             <Sidebar onClose={() => setSidebarOpen(false)} isCollapsed={false} />
@@ -47,7 +47,7 @@ const AdminLayout = () => {
       </AnimatePresence>
 
       {/* Main Content Area */}
-      <div className={`transition-all duration-300 min-h-screen flex flex-col relative ${isCollapsed ? 'lg:ml-[72px]' : 'lg:ml-[280px]'}`}>
+      <div className={`transition-all duration-300 min-h-screen flex flex-col relative ${isCollapsed ? 'lg:ml-[72px]' : 'lg:ml-[240px]'}`}>
         
         {/* Toggle Button (Outside Sidebar) */}
         <div className="sticky top-0 z-30 flex items-center p-4 lg:p-6 pb-0 lg:pb-0 bg-transparent pointer-events-none">

@@ -46,8 +46,8 @@ const Sidebar = ({ onClose, isCollapsed, toggleCollapse }) => {
 
   return (
     <motion.aside
-      initial={{ x: -280 }}
-      animate={{ x: 0, width: isCollapsed ? 72 : 280 }}
+      initial={{ x: -240 }}
+      animate={{ x: 0, width: isCollapsed ? 72 : 240 }}
       transition={{ duration: 0.3, ease: "easeInOut" }}
       className="min-h-screen bg-white border-r border-gray-100 flex flex-col fixed left-0 top-0 z-40 overflow-hidden"
     >

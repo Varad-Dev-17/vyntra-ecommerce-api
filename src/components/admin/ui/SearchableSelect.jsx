@@ -135,7 +135,7 @@ const SearchableSelect = ({
 
   // Determine styles based on size
   const heightClass = size === 'sm' ? 'h-10' : 'h-12';
-  const paddingClass = size === 'sm' ? 'px-3 py-2 text-sm' : 'px-4 py-3 text-base';
+  const paddingClass = size === 'sm' ? 'px-3 py-2 text-[13px]' : 'px-4 py-3 text-[14px]';
   
   let triggerClass = `w-full flex items-center justify-between ${heightClass} ${paddingClass} bg-white border outline-none transition-all cursor-pointer select-none`;
   
@@ -158,7 +158,7 @@ const SearchableSelect = ({
   return (
     <div className={`relative w-full ${className}`} ref={containerRef}>
       {label && (
-        <label className="block text-sm font-medium text-[#4648d4] mb-2">
+        <label className="block text-[13px] font-medium text-[#4648d4] mb-2">
           {label} {required && <span className="text-red-500">*</span>}
         </label>
       )}
@@ -192,7 +192,7 @@ const SearchableSelect = ({
               <input
                 ref={searchInputRef}
                 type="text"
-                className="w-full h-10 pl-9 pr-4 text-sm bg-gray-50 border-none rounded-lg outline-none focus:ring-1 focus:ring-[#4648d4]/30 focus:bg-white transition-colors"
+                className="w-full h-10 pl-9 pr-4 text-[13px] bg-gray-50 border-none rounded-lg outline-none focus:ring-1 focus:ring-[#4648d4]/30 focus:bg-white transition-colors"
                 placeholder="Search..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -217,7 +217,7 @@ const SearchableSelect = ({
                 const isSelected = opt.value === value;
                 const isHighlighted = index === highlightedIndex;
 
-                let optionClass = "flex items-center justify-between px-3 py-2.5 text-sm rounded-lg cursor-pointer transition-colors";
+                let optionClass = "flex items-center justify-between px-3 py-2.5 text-[13px] rounded-lg cursor-pointer transition-colors";
                 
                 if (isSelected) {
                   optionClass += " bg-indigo-50/50 text-[#4648d4] font-medium";

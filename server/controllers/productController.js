@@ -8,6 +8,7 @@ import AttributeOption from "../models/attributeOption.js";
 import ProductReview from "../models/productReview.js";
 import Variant from "../models/variant.js";
 import { v2 as cloudinary } from "cloudinary";
+import { getNextSequence } from "../utils/counterHelper.js";
 
 // GET ALL PRODUCTS (with pagination, search, sort, filter)
 export const getAllProducts = async (req, res) => {
@@ -432,7 +433,16 @@ export const addProduct = async (req, res) => {
       }
     }
 
+    let productIdSequence = "";
+    try {
+      const seq = await getNextSequence('productId');
+      productIdSequence = `PROD-${seq}`;
+    } catch (err) {
+      console.error("Failed to generate productId", err);
+    }
+
     const product = await Product.create({
+      productId: productIdSequence,
       title: title.trim(),
       slug: slug.trim().toLowerCase(),
       shortDescription: shortDescription.trim(),

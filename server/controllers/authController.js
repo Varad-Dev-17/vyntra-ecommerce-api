@@ -3,6 +3,7 @@ import { hashPassword, doHashValidation, hmacProcess } from "../utils/hash.js";
 import { verificationEmailTemplate } from "../utils/verificationEmailTemplate.js";
 import { forgotPasswordEmailTemplate } from "../utils/forgotPasswordEmailTemplate.js";
 import jwt from "jsonwebtoken";
+import { getNextSequence } from "../utils/counterHelper.js";
 
 import {
   signupSchema,
@@ -86,6 +87,13 @@ export const signUp = async (req, res) => {
       verificationCode: hashedCodeValue,
       verificationCodeValidation: Date.now(),
     });
+
+    try {
+      const seq = await getNextSequence('customerId');
+      newUser.customerId = `CUST-${seq}`;
+    } catch (seqError) {
+      console.error("Failed to generate customerId", seqError);
+    }
 
     const result = await newUser.save();
     result.password = undefined;

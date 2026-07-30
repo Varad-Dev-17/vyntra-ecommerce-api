@@ -33,6 +33,7 @@ const ProductImageSchema = new mongoose.Schema(
 
 const ProductSchema = new mongoose.Schema(
   {
+    productId: { type: String, unique: true, sparse: true },
     title: {
       type: String,
       required: true,

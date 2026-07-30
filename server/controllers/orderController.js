@@ -4,6 +4,7 @@ import Coupon from "../models/coupon.js";
 import transport from "../middlewares/sendMail.js";
 import { orderEmailTemplate } from "../utils/orderEmailTemplate.js";
 import { cancelEmailTemplate } from "../utils/cancelEmailTemplate.js";
+import { getNextSequence } from "../utils/counterHelper.js";
 
 // GET ALL ORDERS (Admin)
 export const getAllOrders = async (req, res) => {
@@ -16,6 +17,9 @@ export const getAllOrders = async (req, res) => {
       sortOrder = "desc",
       status,
       paymentStatus,
+      paymentMethod,
+      startDate,
+      endDate,
     } = req.query;
 
     const query = {};
@@ -30,6 +34,13 @@ export const getAllOrders = async (req, res) => {
 
     if (status) query.status = status;
     if (paymentStatus) query.paymentStatus = paymentStatus;
+    if (paymentMethod) query.paymentMethod = paymentMethod;
+    if (startDate || endDate) {
+      query.createdAt = {};
+      if (startDate) query.createdAt.$gte = new Date(startDate);
+      // To include the entire end date, we can set it to the end of the day or just use as is if it's an ISO string with time
+      if (endDate) query.createdAt.$lte = new Date(endDate);
+    }
 
     const sort = {};
     sort[sortBy] = sortOrder === "asc" ? 1 : -1;
@@ -307,10 +318,16 @@ export const createOrder = async (req, res) => {
     }
 
     const totalAmount = Math.max(0, subtotal - discountAmount);
-    const orderId = `ORD-${Date.now()}-${Math.random()
-      .toString(36)
-      .substr(2, 6)
-      .toUpperCase()}`;
+    
+    let orderId = "";
+    try {
+      const seq = await getNextSequence('orderId');
+      orderId = `ORD-${seq}`;
+    } catch (err) {
+      console.error("Failed to generate orderId sequence", err);
+      // Fallback if counter fails
+      orderId = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
+    }
 
     // Create order
     const order = await Order.create({
@@ -407,35 +424,45 @@ export const updateOrderStatus = async (req, res) => {
       });
     }
 
-    if (status && !validStatuses.includes(status)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid status",
-        data: null,
-      });
-    }
-
-    if (paymentStatus && !validPaymentStatuses.includes(paymentStatus)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid payment status",
-        data: null,
-      });
-    }
-
-    // Handle cancellation - restore stock
-    if (status === "cancelled" && order.status !== "cancelled") {
-      for (const item of order.items) {
-        await Product.findByIdAndUpdate(item.product, {
-          $inc: { stock: item.quantity },
-        });
-      }
-    }
-
     if (status) {
-      if (status === "delivered" && order.status !== "delivered") {
+      if (!validStatuses.includes(status)) {
+        return res.status(400).json({ success: false, message: "Invalid status", data: null });
+      }
+
+      const currentStatus = order.status;
+      const transitionRules = {
+        pending: ["processing", "cancelled"],
+        processing: ["shipped", "cancelled"],
+        shipped: ["delivered", "cancelled"],
+        delivered: [],
+        cancelled: [],
+      };
+
+      if (status !== currentStatus) {
+        if (!transitionRules[currentStatus].includes(status)) {
+          return res.status(400).json({
+            success: false,
+            message: `Invalid status transition from ${currentStatus} to ${status}`,
+            data: null,
+          });
+        }
+      }
+
+      // Handle cancellation - restore stock
+      if (status === "cancelled" && currentStatus !== "cancelled") {
+        const Variant = (await import("../models/variant.js")).default;
+        for (const item of order.items) {
+          if (item.variant) {
+            await Variant.findByIdAndUpdate(item.variant, {
+              $inc: { stock: item.quantity },
+            });
+          }
+        }
+      }
+
+      if (status === "delivered" && currentStatus !== "delivered") {
         order.deliveredAt = new Date();
-      } else if (status !== "delivered" && order.status === "delivered") {
+      } else if (status !== "delivered" && currentStatus === "delivered") {
         order.deliveredAt = null;
       }
       order.status = status;
@@ -543,3 +570,50 @@ export const cancelOrder = async (req, res) => {
     });
   }
 };
+
+// GET ORDER STATS (Admin)
+export const getOrderStats = async (req, res) => {
+  try {
+    const Order = (await import("../models/order.js")).default;
+    const stats = await Order.aggregate([
+      {
+        $group: {
+          _id: "$status",
+          count: { $sum: 1 }
+        }
+      }
+    ]);
+
+    const totalOrders = await Order.countDocuments();
+    
+    // Format response
+    const formattedStats = {
+      total: totalOrders,
+      pending: 0,
+      processing: 0,
+      shipped: 0,
+      delivered: 0,
+      cancelled: 0
+    };
+
+    stats.forEach(stat => {
+      if (formattedStats.hasOwnProperty(stat._id)) {
+        formattedStats[stat._id] = stat.count;
+      }
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Order stats fetched successfully",
+      data: formattedStats
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch order stats",
+      data: null
+    });
+  }
+};
+

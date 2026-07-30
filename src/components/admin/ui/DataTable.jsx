@@ -9,8 +9,11 @@ const DataTable = ({
   selectable = false,
   selectedRows = [],
   onSelectionChange = null,
-  toolbarActions = null
+  toolbarActions = null,
+  noBorders = false
 }) => {
+  const borderClass = noBorders ? '' : 'border-r border-gray-100 last:border-r-0';
+
   return (
     <div className="overflow-x-auto overflow-y-auto max-h-full">
       <table className="w-full whitespace-nowrap border-collapse">
@@ -19,7 +22,7 @@ const DataTable = ({
             {columns.map((col, index) => (
               <th
                 key={index}
-                className={`px-6 py-4 text-[17px] font-bold text-[#4648d4] border-r border-gray-100 last:border-r-0 align-middle ${col.align === 'left' ? 'text-left' : col.align === 'right' ? 'text-right' : 'text-center'
+                className={`px-6 py-4 text-[14px] font-bold text-[#4648d4] ${borderClass} align-middle ${col.align === 'left' ? 'text-left' : col.align === 'right' ? 'text-right' : 'text-center'
                   }`}
               >
                 {col.header}
@@ -56,7 +59,7 @@ const DataTable = ({
                 {columns.map((col, colIndex) => (
                   <td
                     key={colIndex}
-                    className={`px-6 py-5 text-[16] border-r border-gray-100 last:border-r-0 align-middle ${col.align === 'left' ? 'text-left' : col.align === 'right' ? 'text-right' : 'text-center'
+                    className={`px-6 py-5 text-[13px] ${borderClass} align-middle ${col.align === 'left' ? 'text-left' : col.align === 'right' ? 'text-right' : 'text-center'
                       }`}
                   >
                     {col.render ? col.render(row, rowIndex) : row[col.accessor]}

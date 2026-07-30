@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema(
   {
+    customerId: { type: String, unique: true, sparse: true },
     profileImage: {
       url: { type: String },
       publicId: { type: String }
