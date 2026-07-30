@@ -27,7 +27,16 @@ const SmoothScrollProvider = ({ children }) => {
     }
     requestAnimationFrame(raf);
 
-    return () => lenis.destroy();
+    // Force recalculate scroll height when DOM changes (e.g. async products loading)
+    const resizeObserver = new ResizeObserver(() => {
+      lenis.resize();
+    });
+    resizeObserver.observe(document.body);
+
+    return () => {
+      resizeObserver.disconnect();
+      lenis.destroy();
+    };
   }, []);
 
   return <>{children}</>;
