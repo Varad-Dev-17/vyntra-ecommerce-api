@@ -354,11 +354,13 @@ export const createOrder = async (req, res) => {
     // Send Order Confirmation Email
     try {
       if (populatedOrder.user && populatedOrder.user.email) {
-        await transport.sendMail({
+        transport.sendMail({
           from: `"Vyntra Orders" <${process.env.NODE_CODE_SENDING_EMAIL_ADDRESS}>`,
           to: populatedOrder.user.email,
           subject: `Order Confirmation - ${orderId}`,
           html: orderEmailTemplate(populatedOrder, populatedOrder.user),
+        }).catch(emailError => {
+          console.error("Failed to send order confirmation email:", emailError);
         });
       }
     } catch (emailError) {
@@ -514,11 +516,13 @@ export const cancelOrder = async (req, res) => {
     // Send Cancellation Email
     try {
       if (populatedOrder.user && populatedOrder.user.email) {
-        await transport.sendMail({
+        transport.sendMail({
           from: `"Vyntra Orders" <${process.env.NODE_CODE_SENDING_EMAIL_ADDRESS}>`,
           to: populatedOrder.user.email,
           subject: `Order Cancelled - ${populatedOrder.orderId}`,
           html: cancelEmailTemplate(populatedOrder, populatedOrder.user),
+        }).catch(emailError => {
+          console.error("Failed to send order cancellation email:", emailError);
         });
       }
     } catch (emailError) {
