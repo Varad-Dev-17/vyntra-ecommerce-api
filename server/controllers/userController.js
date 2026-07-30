@@ -241,7 +241,7 @@ export const updateProfileInfo = async (req, res) => {
       
       try {
         let info = await transport.sendMail({
-          from: process.env.NODE_CODE_SENDING_EMAIL_ADDRESS,
+          from: `"Vyntra" <${process.env.NODE_CODE_SENDING_EMAIL_ADDRESS}>`,
           to: email,
           subject: "Verify Your New Email",
           html: verificationEmailTemplate(verificationCode, username || user.username),
