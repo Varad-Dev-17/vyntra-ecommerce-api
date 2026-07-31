@@ -91,6 +91,54 @@ export const getAllOrders = async (req, res) => {
   }
 };
 
+// GET ORDER BY ID (Admin)
+export const getAdminOrderById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const order = await Order.findById(id)
+      .populate("user", "username email phone")
+      .populate({
+        path: "items.product",
+        select: "title brand slug images price",
+        populate: { path: "brand", select: "name" }
+      })
+      .populate("items.variant", "mainImage attributes sku price")
+      .lean();
+
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: "Order not found",
+        data: null,
+      });
+    }
+
+    // Also fetch any return requests associated with this order
+    const ReturnRequest = (await import("../models/returnRequest.js")).default;
+    const returnRequests = await ReturnRequest.find({ order: id })
+      .populate("product", "title")
+      .populate("originalVariant", "attributes")
+      .lean();
+
+    return res.status(200).json({
+      success: true,
+      message: "Order fetched successfully",
+      data: {
+        ...order,
+        returnRequests,
+      },
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch order",
+      data: null,
+    });
+  }
+};
+
 // GET USER ORDERS
 export const getUserOrders = async (req, res) => {
   try {

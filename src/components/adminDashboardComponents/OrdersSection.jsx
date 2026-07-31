@@ -171,7 +171,7 @@ const OrdersSection = () => {
         const variantText = [color, size].filter(Boolean).join(" / ");
         
         return (
-          <div className="flex items-center gap-3">
+          <div className="flex items-center justify-center gap-3">
             <div className="w-10 h-10 rounded-md overflow-hidden bg-gray-100 flex-shrink-0 border border-gray-200">
               {productImage ? (
                 <img src={productImage} alt={productName} className="w-full h-full object-cover" />
@@ -179,7 +179,7 @@ const OrdersSection = () => {
                 <Package className="w-5 h-5 m-auto text-gray-400 mt-2.5" />
               )}
             </div>
-            <div className="flex flex-col">
+            <div className="flex flex-col items-center text-center">
               <span className="font-semibold text-gray-900 line-clamp-1 text-sm">{productName}</span>
               <span className="text-xs text-gray-500 mt-0.5">{variantText || "Default"}</span>
               {row.items.length > 1 && (
@@ -203,7 +203,7 @@ const OrdersSection = () => {
       render: (row) => {
         const d = new Date(row.createdAt);
         return (
-          <div className="flex flex-col">
+          <div className="flex flex-col items-center justify-center text-center">
             <span className="text-gray-900 font-medium">
               {d.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
             </span>
@@ -223,7 +223,7 @@ const OrdersSection = () => {
         if (method === 'upi' || method === 'card') { longText = 'Online Payment'; } 
         
         return (
-          <div className="flex items-center">
+          <div className="flex items-center justify-center">
             <span className="text-xs px-2.5 py-1 rounded-full bg-purple-50 text-purple-600 font-medium whitespace-nowrap">{longText}</span>
           </div>
         );
@@ -233,22 +233,24 @@ const OrdersSection = () => {
       header: 'Status',
       accessor: 'status',
       render: (row) => (
-        <div className="flex items-center">
+        <div className="flex items-center justify-center">
            {getStatusBadge(row.status, row._id)}
         </div>
       )
     },
     {
       header: 'Actions',
-      align: 'right',
+      align: 'center',
       render: (row) => (
-        <button
-          onClick={() => navigate(`/admin/orders/${row._id}`)}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[13px] font-semibold text-[#4648d4] bg-indigo-50 hover:bg-indigo-100 rounded-md transition-colors border border-indigo-100 shadow-sm"
-        >
-          <Eye size={14} />
-          View
-        </button>
+        <div className="flex items-center justify-center">
+          <button
+            onClick={() => navigate(`/admin/orders/${row._id}`)}
+            className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-[13px] font-semibold text-[#4648d4] bg-indigo-50 hover:bg-indigo-100 rounded-md transition-colors border border-indigo-100 shadow-sm"
+          >
+            <Eye size={14} />
+            View
+          </button>
+        </div>
       )
     }
   ];

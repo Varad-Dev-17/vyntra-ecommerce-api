@@ -28,6 +28,7 @@ import attributeOptionAdminRoutes from "./routers/attributeOptionAdminRoutes.js"
 import attributeMappingAdminRoutes from "./routers/attributeMappingAdminRoutes.js";
 import orderPublicRoutes from "./routers/orderPublicRoutes.js";
 import orderAdminRoutes from "./routers/orderAdminRoutes.js";
+import adminReturnRoutes from "./routers/adminReturnRoutes.js";
 
 // Single-purpose routes
 import reviewRoutes from "./routers/reviewRoutes.js";
@@ -73,6 +74,7 @@ app.use("/admin/attribute-options", attributeOptionAdminRoutes);
 // Attribute Mapping (refactored to map Attributes to Categories)
 app.use("/admin/attribute-mapping", attributeMappingAdminRoutes);
 app.use("/admin/orders", orderAdminRoutes);
+app.use("/admin/returns", adminReturnRoutes);
 app.use("/admin/coupons", couponRoutes);
 app.use("/admin/dashboard", dashboardRoutes);
 app.use("/admin/upload", uploadRoutes);

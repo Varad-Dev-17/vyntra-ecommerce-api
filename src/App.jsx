@@ -58,6 +58,8 @@ import Orders from "./pages/admin/Orders/Orders";
 import Users from "./pages/admin/Users/Users";
 import Coupons from "./pages/admin/Coupons/Coupons";
 import Reviews from "./pages/admin/Reviews/Reviews";
+import Returns from "./pages/admin/Returns/Returns";
+import RequestDetailsView from "./components/adminDashboardComponents/RequestDetailsView";
 
 const ProtectedRoute = ({ children, adminOnly = false }) => {
   const { user, loading } = useAuth();
@@ -291,9 +293,15 @@ const AppRoutes = () => {
           <Route path=":id/variants" element={<ProductVariants />} />
         </Route>
 
-        {/* Other direct modules */}
         <Route path="stock-management" element={<StockManagement />} />
-        <Route path="orders" element={<Orders />} />
+        <Route path="orders">
+          <Route index element={<Orders />} />
+          <Route path=":id" element={<RequestDetailsView />} />
+        </Route>
+        <Route path="returns">
+          <Route index element={<Returns />} />
+          <Route path=":id" element={<RequestDetailsView />} />
+        </Route>
         <Route path="users" element={<Users />} />
         <Route path="coupons" element={<Coupons />} />
         <Route path="reviews" element={<Reviews />} />
