@@ -168,10 +168,10 @@ const OrdersSection = () => {
           if (sizeAttr) size = sizeAttr.option?.displayName;
         }
         
-        const variantText = [color, size].filter(Boolean).join(" / ");
+        const variantText = [color ? `Color: ${color}` : '', size ? `Size: ${size}` : ''].filter(Boolean).join(" | ");
         
         return (
-          <div className="flex items-center justify-center gap-3">
+          <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-md overflow-hidden bg-gray-100 flex-shrink-0 border border-gray-200">
               {productImage ? (
                 <img src={productImage} alt={productName} className="w-full h-full object-cover" />
@@ -179,9 +179,9 @@ const OrdersSection = () => {
                 <Package className="w-5 h-5 m-auto text-gray-400 mt-2.5" />
               )}
             </div>
-            <div className="flex flex-col items-center text-center">
+            <div className="flex flex-col text-left">
               <span className="font-semibold text-gray-900 line-clamp-1 text-sm">{productName}</span>
-              <span className="text-xs text-gray-500 mt-0.5">{variantText || "Default"}</span>
+              {variantText && <span className="text-[11px] text-gray-500 mt-0.5">{variantText}</span>}
               {row.items.length > 1 && (
                 <span className="text-[10px] text-[#4648d4] font-medium mt-0.5">+{row.items.length - 1} more items</span>
               )}

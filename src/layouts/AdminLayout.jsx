@@ -50,7 +50,7 @@ const AdminLayout = () => {
       <div className={`transition-all duration-300 min-h-screen flex flex-col relative ${isCollapsed ? 'lg:ml-[72px]' : 'lg:ml-[240px]'}`}>
         
         {/* Toggle Button (Outside Sidebar) */}
-        <div className="sticky top-0 z-30 flex items-center p-4 lg:p-6 pb-0 lg:pb-0 bg-transparent pointer-events-none">
+        <div className="sticky top-0 z-30 flex items-center pt-4 lg:pt-6 px-2 lg:px-2 pb-0 bg-transparent pointer-events-none">
           <button
             onClick={() => {
               if (window.innerWidth < 1024) {
@@ -59,15 +59,15 @@ const AdminLayout = () => {
                 setIsCollapsed(!isCollapsed);
               }
             }}
-            className="pointer-events-auto p-2 bg-white rounded-lg shadow-sm border border-gray-100 text-gray-600 hover:bg-gray-50 transition-colors flex items-center justify-center"
+            className="pointer-events-auto p-1.5 bg-white rounded-lg shadow-sm border border-gray-100 text-gray-600 hover:bg-gray-50 transition-colors flex items-center justify-center"
             title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
           >
-            <Menu size={20} />
+            <Menu size={18} />
           </button>
         </div>
 
         {/* Page Content */}
-        <main className="flex-1 overflow-x-hidden p-4 lg:p-6 lg:pt-4 flex flex-col">
+        <main className="flex-1 overflow-x-hidden p-4 lg:pr-6 lg:pl-12 lg:pb-6 lg:-mt-[34px] flex flex-col">
           <Outlet />
         </main>
       </div>

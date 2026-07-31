@@ -139,7 +139,6 @@ const ReturnsSection = () => {
       render: (row) => (
         <div className="flex flex-col">
             <span className="font-semibold text-gray-900">{row.user?.username || "Unknown"}</span>
-            <span className="text-xs text-gray-500">{row.user?.email || ""}</span>
         </div>
       )
     },
@@ -148,12 +147,10 @@ const ReturnsSection = () => {
       accessor: 'order',
       render: (row) => {
           let orderIdDisplay = "N/A";
-          let d = null;
           
           if (row.order) {
               if (typeof row.order === 'object' && row.order.orderId) {
                   orderIdDisplay = row.order.orderId;
-                  if (row.order.createdAt) d = new Date(row.order.createdAt);
               } else if (typeof row.order === 'string' || row.order instanceof String) {
                   orderIdDisplay = `ID: ${row.order.substring(row.order.length - 6).toUpperCase()}`;
               }
@@ -164,7 +161,6 @@ const ReturnsSection = () => {
           return (
             <div className="flex flex-col">
                 <span className="font-semibold text-gray-900">{orderIdDisplay}</span>
-                {d && <span className="text-xs text-gray-500">{d.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</span>}
             </div>
           );
       }
@@ -180,7 +176,16 @@ const ReturnsSection = () => {
         const productName = product.title || "Unknown Product";
         const productImage = variant?.mainImage?.url || "";
         
-        // Try to find variant details if possible, or just show product name.
+        let color = "";
+        let size = "";
+        if (variant && variant.attributes) {
+          const colorAttr = variant.attributes.find(a => a.attribute?.name?.toLowerCase() === 'color' || a.name?.toLowerCase() === 'color');
+          const sizeAttr = variant.attributes.find(a => a.attribute?.name?.toLowerCase() === 'size' || a.name?.toLowerCase() === 'size');
+          if (colorAttr) color = colorAttr.option?.displayName;
+          if (sizeAttr) size = sizeAttr.option?.displayName;
+        }
+        const variantText = [color ? `Color: ${color}` : '', size ? `Size: ${size}` : ''].filter(Boolean).join(" | ");
+
         return (
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-md overflow-hidden bg-gray-100 flex-shrink-0 border border-gray-200">
@@ -190,9 +195,9 @@ const ReturnsSection = () => {
                 <Package className="w-5 h-5 m-auto text-gray-400 mt-2.5" />
               )}
             </div>
-            <div className="flex flex-col">
+            <div className="flex flex-col text-left">
               <span className="font-semibold text-gray-900 line-clamp-1 text-sm">{productName}</span>
-              {/* Optional: Add variant info if available in populated product */}
+              {variantText && <span className="text-[11px] text-gray-500 mt-0.5">{variantText}</span>}
             </div>
           </div>
         );

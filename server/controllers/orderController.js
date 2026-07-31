@@ -1,5 +1,8 @@
 import Order from "../models/order.js";
 import Cart from "../models/cart.js";
+import User from "../models/user.js";
+import Variant from "../models/variant.js";
+import Address from "../models/address.js";
 import Coupon from "../models/coupon.js";
 import transport from "../middlewares/sendMail.js";
 import { orderEmailTemplate } from "../utils/orderEmailTemplate.js";
@@ -97,7 +100,7 @@ export const getAdminOrderById = async (req, res) => {
     const { id } = req.params;
 
     const order = await Order.findById(id)
-      .populate("user", "username email phone")
+      .populate("user", "username email mobileNo gender")
       .populate({
         path: "items.product",
         select: "title brand slug images price",
@@ -112,6 +115,16 @@ export const getAdminOrderById = async (req, res) => {
         message: "Order not found",
         data: null,
       });
+    }
+
+    // Fallback for older orders that missed pincode in schema
+    if (order.shippingAddress && !order.shippingAddress.pincode) {
+      const userAddress = await Address.findOne({ userId: order.user._id, isDefault: true }) || await Address.findOne({ userId: order.user._id });
+      if (userAddress) {
+        order.shippingAddress.pincode = userAddress.pincode;
+        if (!order.shippingAddress.state) order.shippingAddress.state = userAddress.state;
+        if (!order.shippingAddress.country) order.shippingAddress.country = userAddress.country;
+      }
     }
 
     // Also fetch any return requests associated with this order
@@ -216,7 +229,7 @@ export const getOrderById = async (req, res) => {
     const isAdmin = req.user.isAdmin;
 
     const order = await Order.findById(id)
-      .populate("user", "username email phone")
+      .populate("user", "username email mobileNo gender")
       .populate({
         path: "items.product",
         select: "title brand slug images",
