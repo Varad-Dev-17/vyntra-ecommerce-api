@@ -45,9 +45,9 @@ const ProductPriceSection = ({
 
   const milestoneSteps = [
     {
-      title: "Order Placed",
+      title: "Order Confirmed",
       date: formatDate(order.createdAt),
-      subtitle: "Confirmed.",
+      subtitle: "Verified & approved.",
       isCompleted: !isCancelled && (currentIndex >= 0 || status === "delivered"),
       isCurrent: status === "pending",
       actionValue: "pending",

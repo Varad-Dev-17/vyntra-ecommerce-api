@@ -181,12 +181,11 @@ const AdminCaseDetailsPage = () => {
     );
   }
 
-  // Derive display values for Header
   const activeEntity = isReturnView && returnData ? returnData : orderData || returnData;
   const activeStatus = activeEntity?.status || "pending";
 
   const orderStatusOptions = [
-    { value: "pending", label: "1. Order Placed" },
+    { value: "pending", label: "1. Order Confirmed" },
     { value: "packed", label: "2. Packed" },
     { value: "shipped", label: "3. Shipped" },
     { value: "on_the_way", label: "4. On The Way" },

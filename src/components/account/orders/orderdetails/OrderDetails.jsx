@@ -79,7 +79,7 @@ const OrderDetails = () => {
   if (!order) return null;
 
   const statusDisplayMap = {
-    pending: "Order Placed",
+    pending: "Order Confirmed",
     processing: "Packed",
     packed: "Packed",
     shipped: "Shipped",

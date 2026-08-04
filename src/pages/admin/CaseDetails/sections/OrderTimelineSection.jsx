@@ -33,9 +33,9 @@ const OrderTimelineSection = ({ order = {}, returnRequest = null, onUpdateStatus
   // 1. Milestone Tracker Steps
   const milestoneSteps = [
     {
-      title: "Order Placed",
+      title: "Order Confirmed",
       date: formatDate(order.createdAt),
-      subtitle: "Order placed by customer & confirmed.",
+      subtitle: "Order received and verified.",
       isCompleted: !isCancelled && (currentIndex >= 0 || status === "delivered"),
       isCurrent: status === "pending",
       actionValue: "pending",

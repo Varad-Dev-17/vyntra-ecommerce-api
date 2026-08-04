@@ -132,7 +132,7 @@ const OrdersSection = () => {
     };
 
     const displayLabelMap = {
-      pending: "Order Placed",
+      pending: "Order Confirmed",
       processing: "Packed",
       packed: "Packed",
       shipped: "Shipped",
@@ -293,14 +293,14 @@ const OrdersSection = () => {
           </div>
         </div>
         
-        {/* Pending / Order Placed */}
+        {/* Pending / Order Confirmed */}
         <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm flex flex-col gap-2">
           <div className="flex items-center gap-3">
              <div className="w-10 h-10 rounded-full bg-orange-50 flex items-center justify-center text-orange-500 shrink-0 border border-orange-100">
                <Clock size={20} />
              </div>
              <div className="flex flex-col">
-               <p className="text-[11px] text-gray-500 font-semibold uppercase tracking-wide">Order Placed</p>
+               <p className="text-[11px] text-gray-500 font-semibold uppercase tracking-wide">Order Confirmed</p>
              </div>
           </div>
           <div className="flex items-end justify-between mt-1">
@@ -416,7 +416,7 @@ const OrdersSection = () => {
                   className="px-3 py-2 bg-white border border-gray-200 rounded-lg outline-none focus:ring-1 focus:ring-[#4648d4] text-[13px] text-gray-700 cursor-pointer w-[140px]"
                 >
                   <option value="">All Status</option>
-                  <option value="pending">Order Placed</option>
+                  <option value="pending">Order Confirmed</option>
                   <option value="packed">Packed</option>
                   <option value="shipped">Shipped</option>
                   <option value="on_the_way">On The Way</option>

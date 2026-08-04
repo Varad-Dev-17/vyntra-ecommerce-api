@@ -286,7 +286,7 @@ const OrdersSection = () => {
                       </div>
                     ) : (
                       <div className="flex items-center gap-1.5 text-amber-600">
-                        <span>Order Placed</span>
+                        <span>Order Confirmed</span>
                         <Clock className="w-4 h-4 shrink-0 animate-pulse" />
                       </div>
                     )}
@@ -339,7 +339,7 @@ const OrdersSection = () => {
                           </span>
                         ) : order.status === 'pending' ? (
                           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200">
-                            Order Placed
+                            Order Confirmed
                           </span>
                         ) : null}
                       </div>

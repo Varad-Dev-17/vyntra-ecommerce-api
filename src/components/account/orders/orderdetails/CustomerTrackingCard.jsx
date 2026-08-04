@@ -48,14 +48,14 @@ const CustomerTrackingCard = ({ order = null }) => {
         </div>
         <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${status === "delivered" ? "bg-green-50 text-green-700 border border-green-200" : isCancelled ? "bg-red-50 text-red-700 border border-red-200" : "bg-indigo-50 text-[#4F46E5] border border-indigo-200"
           }`}>
-          {status === "pending" ? "Order Placed" : status === "processing" ? "Packed" : status === "on_the_way" ? "On The Way" : status.replace(/_/g, " ")}
+          {status === "pending" ? "Order Confirmed" : status === "processing" ? "Packed" : status === "on_the_way" ? "On The Way" : status.replace(/_/g, " ")}
         </span>
       </div>
 
       {!isCancelled ? (
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 pt-2">
           {[
-            { label: "Order Placed", desc: "Confirmed", icon: Clock, idx: 0 },
+            { label: "Order Confirmed", desc: "Verified & Approved", icon: Clock, idx: 0 },
             { label: "Packed", desc: "Packed & Verified", icon: Package, idx: 1 },
             { label: "Shipped", desc: order.trackingNumber ? `AWB: ${order.trackingNumber}` : "Dispatched", icon: Truck, idx: 2 },
             { label: "On The Way", desc: "Out for Delivery", icon: Truck, idx: 3 },

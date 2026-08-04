@@ -19,7 +19,7 @@ const TimelineItem = ({ steps = [], currentStatus = "", onStepClick = null, isCa
     if (t.includes("return") || t.includes("exchange")) return [RefreshCw, "bg-amber-500 border-amber-600 text-white"];
     if (t.includes("shipped") || t.includes("on the way") || t.includes("on_the_way") || t.includes("pickup") || t.includes("picked up")) return [Truck, "bg-indigo-500 border-indigo-600 text-white"];
     if (t.includes("packed") || t.includes("processing") || t.includes("received")) return [Package, "bg-blue-500 border-blue-600 text-white"];
-    if (t.includes("order created") || t.includes("order placed") || t.includes("delivered")) return [CheckCircle2, "bg-[#4648d4] border-[#3b3db0] text-white"];
+    if (t.includes("order created") || t.includes("order placed") || t.includes("order confirmed") || t.includes("delivered")) return [CheckCircle2, "bg-[#4648d4] border-[#3b3db0] text-white"];
     return [Clock, "bg-gray-200 border-gray-300 text-gray-600"];
   };
 
