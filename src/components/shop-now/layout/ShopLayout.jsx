@@ -1,11 +1,11 @@
 const ShopLayout = ({ sidebar, children }) => {
   return (
-    <div className="min-h-screen bg-[#FAFAFB] pt-24 pb-16">
-      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col lg:flex-row gap-8 items-start">
+    <div className="min-h-screen bg-[#FAFAFB] pt-[84px] pb-12">
+      <div className="max-w-[1600px] mx-auto px-3 sm:px-4 lg:px-4">
+        <div className="flex flex-col lg:flex-row gap-3.5 lg:gap-4 items-start">
           
           {/* Left Filter Sidebar Container */}
-          <aside className="w-full lg:w-[280px] shrink-0 lg:sticky lg:top-24">
+          <aside className="w-full lg:w-[230px] shrink-0 lg:sticky lg:top-[84px]">
             {sidebar}
           </aside>
 

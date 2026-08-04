@@ -97,7 +97,7 @@ const ProductGrid = ({ paginatedProducts, activeColors = [], priceRange = { min:
   return (
     <motion.div
       layout
-      className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6 gap-y-6 sm:gap-y-10 pb-10 sm:pb-20"
+      className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-5 gap-y-6 sm:gap-y-8 pb-10 sm:pb-20"
     >
       <AnimatePresence mode="popLayout">
         {displayItems.map((item, index) => {
@@ -154,7 +154,8 @@ const ProductGrid = ({ paginatedProducts, activeColors = [], priceRange = { min:
             _id: `${product._id}-${colorName}`,
             slug: product.slug,
             brand: product.brand?.name || product.brand || "Vyntra",
-            productName: `${product.title} ${colorName !== 'default' ? `- ${colorName}` : ''}`.trim(),
+            title: product.title,
+            productName: product.title,
             price,
             mrp,
             discountPercentage,
