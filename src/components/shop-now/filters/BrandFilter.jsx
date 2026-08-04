@@ -4,6 +4,9 @@ import { motion, AnimatePresence } from "framer-motion";
 
 const BrandFilter = ({ brands = [], activeBrands = [], onChange }) => {
   const [isOpen, setIsOpen] = useState(true);
+  const [showAll, setShowAll] = useState(false);
+
+  const displayedBrands = showAll ? brands : brands.slice(0, 5);
 
   return (
     <div className="border-b border-[#E5E7EB] pb-5 mb-5">
@@ -22,7 +25,7 @@ const BrandFilter = ({ brands = [], activeBrands = [], onChange }) => {
             exit={{ height: 0, opacity: 0 }}
             className="overflow-hidden flex flex-col gap-3"
           >
-            {brands.map((brand) => {
+            {displayedBrands.map((brand) => {
               const isActive = activeBrands.includes(brand.name);
               
               const toggleBrand = () => {
@@ -53,6 +56,19 @@ const BrandFilter = ({ brands = [], activeBrands = [], onChange }) => {
                 </label>
               );
             })}
+
+            {brands.length > 5 && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setShowAll(!showAll);
+                }}
+                className="text-[#6D4AFF] text-left text-[14px] font-semibold pt-1 pl-1 hover:underline w-fit transition-all"
+              >
+                {showAll ? "- show less" : `+ ${brands.length - 5} more`}
+              </button>
+            )}
           </motion.div>
         )}
       </AnimatePresence>

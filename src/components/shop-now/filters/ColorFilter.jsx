@@ -4,6 +4,9 @@ import { motion, AnimatePresence } from "framer-motion";
 
 const ColorFilter = ({ colors = [], activeColors = [], onChange }) => {
   const [isOpen, setIsOpen] = useState(true);
+  const [showAll, setShowAll] = useState(false);
+
+  const displayedColors = showAll ? colors : colors.slice(0, 12);
 
   return (
     <div className="border-b border-[#E5E7EB] pb-5 mb-5">
@@ -20,10 +23,10 @@ const ColorFilter = ({ colors = [], activeColors = [], onChange }) => {
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            className="overflow-hidden"
+            className="overflow-hidden flex flex-col gap-2"
           >
             <div className="flex flex-wrap gap-3 p-1">
-              {colors.map((color) => {
+              {displayedColors.map((color) => {
                 // Color options have displayName (e.g. "Red") and sometimes a storedValue with hex,
                 // but the UI typically uses displayName for both name and to fetch a generic hex if unavailable.
                 const colorName = color.displayName || color.name;
@@ -54,6 +57,19 @@ const ColorFilter = ({ colors = [], activeColors = [], onChange }) => {
                 );
               })}
             </div>
+
+            {colors.length > 12 && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setShowAll(!showAll);
+                }}
+                className="text-[#6D4AFF] text-left text-[14px] font-semibold pt-1 pl-1 hover:underline w-fit transition-all"
+              >
+                {showAll ? "- show less" : `+ ${colors.length - 12} more`}
+              </button>
+            )}
           </motion.div>
         )}
       </AnimatePresence>

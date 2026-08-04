@@ -233,7 +233,7 @@ const ProductsPage = () => {
   return (
     <ShopLayout
       sidebar={
-        <div className="bg-[#FFFFFF] border border-[#E5E7EB] rounded-[16px] shadow-[0_2px_10px_rgba(0,0,0,0.02)] p-6 lg:p-8 transition-all duration-300">
+        <div className="bg-[#FFFFFF] border border-[#E5E7EB] rounded-[16px] shadow-[0_2px_10px_rgba(0,0,0,0.02)] p-6 lg:p-8 transition-all duration-300 max-h-[calc(100vh-110px)] overflow-y-auto">
           <FilterSidebar 
             departments={departmentsList}
             activeDepartment={activeDepartment}

@@ -4,6 +4,9 @@ import { motion, AnimatePresence } from "framer-motion";
 
 const CategoryFilters = ({ categories = [], activeCategory = "all", onChange }) => {
   const [isOpen, setIsOpen] = useState(true);
+  const [showAll, setShowAll] = useState(false);
+
+  const displayedCategories = showAll ? categories : categories.slice(0, 5);
 
   return (
     <div className="border-b border-[#E5E7EB] pb-5 mb-5">
@@ -37,7 +40,7 @@ const CategoryFilters = ({ categories = [], activeCategory = "all", onChange }) 
               </div>
             </label>
 
-            {categories.map((cat) => {
+            {displayedCategories.map((cat) => {
               const isActive = activeCategory === cat.name;
               return (
                 <label 
@@ -59,6 +62,19 @@ const CategoryFilters = ({ categories = [], activeCategory = "all", onChange }) 
                 </label>
               );
             })}
+
+            {categories.length > 5 && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setShowAll(!showAll);
+                }}
+                className="text-[#6D4AFF] text-left text-[14px] font-semibold pt-1 pl-1 hover:underline w-fit transition-all"
+              >
+                {showAll ? "- show less" : `+ ${categories.length - 5} more`}
+              </button>
+            )}
           </motion.div>
         )}
       </AnimatePresence>

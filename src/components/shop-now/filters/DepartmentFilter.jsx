@@ -3,10 +3,29 @@ import { ChevronUp, ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const DepartmentFilter = ({ departments = [], activeDepartment = "all", onChange }) => {
+  const [showAll, setShowAll] = useState(false);
+
+  const displayedDepartments = showAll ? departments : departments.slice(0, 5);
+
   return (
     <div className="border-b border-[#E5E7EB] pb-5 mb-5 mt-2">
       <div className="flex flex-col gap-3">
-        {departments.map((dept) => {
+        {/* All option */}
+        <label 
+          className="flex items-center justify-between cursor-pointer group"
+          onClick={() => onChange && onChange("all")}
+        >
+          <div className="flex items-center gap-3">
+            <div className={`w-4 h-4 rounded-full border flex items-center justify-center transition-colors ${activeDepartment === "all" ? 'border-[#6D4AFF]' : 'border-[#E5E7EB] group-hover:border-[#6D4AFF]'}`}>
+              {activeDepartment === "all" && <div className="w-2 h-2 rounded-full bg-[#6D4AFF]" />}
+            </div>
+            <span className={`text-[15px] ${activeDepartment === "all" ? 'text-[#111827] font-medium' : 'text-[#4B5563]'}`}>
+              All
+            </span>
+          </div>
+        </label>
+
+        {displayedDepartments.map((dept) => {
           const isActive = activeDepartment === dept.name;
           return (
             <label 
@@ -25,6 +44,19 @@ const DepartmentFilter = ({ departments = [], activeDepartment = "all", onChange
             </label>
           );
         })}
+
+        {departments.length > 5 && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              setShowAll(!showAll);
+            }}
+            className="text-[#6D4AFF] text-left text-[14px] font-semibold pt-1 pl-1 hover:underline w-fit transition-all"
+          >
+            {showAll ? "- show less" : `+ ${departments.length - 5} more`}
+          </button>
+        )}
       </div>
     </div>
   );
