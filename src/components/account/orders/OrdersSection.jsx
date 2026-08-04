@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Package, Loader2, Filter, ChevronRight, X, CheckCircle2, Truck, Clock } from 'lucide-react';
+import { Package, Loader2, Filter, ChevronRight, X, CheckCircle2, Truck, Clock, ShoppingBag, ShieldCheck, RefreshCw } from 'lucide-react';
 import axios from 'axios';
 import { useAuth } from '../../../context/AuthContext';
 import ReturnExchangeButton from './returnexchange/ReturnExchangeButton';
@@ -125,38 +125,68 @@ const OrdersSection = () => {
   };
 
   return (
-    <div className="max-w-4xl">
-      <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-100">
-        <div>
-          <h2 className="text-xl font-bold text-gray-900">All orders</h2>
-          <p className="text-sm text-gray-500 mt-1">from {activeFilterTime.replace(/_/g, ' ')}</p>
+    <div className="w-full">
+      {/* Status Filter Tabs with Inline Filters Button */}
+      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-gray-200 mb-6">
+        <div className="flex items-center gap-4 sm:gap-8 overflow-x-auto no-scrollbar -mb-px">
+          {[
+            { id: 'all', label: 'All Orders' },
+            { id: 'processing', label: 'Processing' },
+            { id: 'shipped', label: 'Shipped' },
+            { id: 'delivered', label: 'Delivered' },
+            { id: 'cancelled', label: 'Cancelled' }
+          ].map((tab) => {
+            const isActive = activeFilterStatus === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => {
+                  setActiveFilterStatus(tab.id);
+                  setTempStatus(tab.id);
+                }}
+                className={`pb-3 px-1 text-sm sm:text-[15px] transition-all duration-200 whitespace-nowrap cursor-pointer relative ${
+                  isActive 
+                    ? 'text-[#4F46E5] font-bold border-b-2 border-[#4F46E5]' 
+                    : 'text-gray-500 hover:text-gray-800 font-medium border-b-2 border-transparent'
+                }`}
+              >
+                {tab.label}
+              </button>
+            );
+          })}
         </div>
 
         <button
           onClick={openFilterModal}
-          className="flex items-center gap-2 px-4 py-2 rounded-full border border-gray-300 hover:bg-gray-50 text-sm font-medium transition-colors"
+          className="flex items-center gap-1.5 px-4 py-1.5 mb-2 rounded-full border border-gray-300 hover:bg-gray-50 text-xs sm:text-sm font-medium text-gray-700 transition-all shadow-2xs shrink-0 cursor-pointer"
         >
-          <Filter className="w-4 h-4" />
-          Filters
+          <Filter className="w-3.5 h-3.5 text-[#4F46E5]" />
+          <span>Filters</span>
         </button>
       </div>
 
       {isLoading ? (
-        <div className="flex justify-center items-center h-64">
-          <Loader2 className="w-8 h-8 text-[#4F46E5] animate-spin" />
+        <div className="flex justify-center items-center h-80">
+          <Loader2 className="w-10 h-10 text-[#4F46E5] animate-spin" />
         </div>
       ) : orderItems.length === 0 ? (
-        <div className="h-full flex flex-col items-center justify-center py-20 bg-white rounded-xl border border-gray-100 shadow-sm">
-          <div className="w-16 h-16 rounded-full bg-gray-50 flex items-center justify-center mb-4">
-            <Package className="w-8 h-8 text-gray-300" />
+        <div className="flex flex-col items-center justify-center py-24 bg-white rounded-2xl border border-gray-200/80 shadow-xs text-center px-4">
+          <div className="w-20 h-20 rounded-full bg-indigo-50 flex items-center justify-center mb-5 border border-indigo-100">
+            <Package className="w-10 h-10 text-[#4F46E5]" />
           </div>
-          <h2 className="text-lg font-bold text-gray-900 mb-2">No Orders Found</h2>
-          <p className="text-gray-500 text-center max-w-sm text-sm">
-            We couldn't find any orders matching your current filters.
+          <h2 className="text-xl font-bold text-gray-900 mb-2">No Orders Found</h2>
+          <p className="text-gray-500 max-w-md text-sm leading-relaxed">
+            We couldn't find any orders matching your current filter selection. Try adjusting your filters to see more results.
           </p>
+          <button
+            onClick={clearFilters}
+            className="mt-6 px-6 py-2.5 bg-[#4F46E5] hover:bg-[#4338CA] text-white text-sm font-medium rounded-xl transition-all shadow-sm cursor-pointer"
+          >
+            Reset Filters
+          </button>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-5">
           {orderItems.map(({ order, item }, index) => {
             let color = '';
             let size = '';
@@ -175,7 +205,6 @@ const OrdersSection = () => {
             const brandName = item.product?.brand?.name;
             const statusDisplay = order.status.charAt(0).toUpperCase() + order.status.slice(1);
             
-            // Check if there is an active return/exchange request for this specific item+variant in this order
             const activeRequest = returnRequests.find(req => 
               req.order === order._id && 
               (req.product?._id || req.product) === (item.product?._id || item.product) &&
@@ -184,68 +213,159 @@ const OrdersSection = () => {
             );
             
             const eligibility = getReturnEligibility(order, item, activeRequest);
+            const deliveryDate = order.deliveredAt || order.updatedAt || order.createdAt;
 
             return (
               <div
                 key={`${order._id}-${index}`}
-                className="bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-md transition-shadow cursor-pointer mb-4"
+                className="bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-md transition-all duration-300 cursor-pointer w-full"
                 onClick={() => navigate(`/account/orders/${order._id}`)}
               >
-                {/* Header: Status */}
-                <div className="px-5 py-4 flex items-center justify-between border-b border-gray-100">
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-full border-2 border-gray-100 flex items-center justify-center bg-white shadow-sm flex-shrink-0">
-                      {getStatusIcon(order.status)}
-                    </div>
+                {/* Card Header Row: Order ID, Placed Date & Status */}
+                <div className="px-5 py-3 bg-gray-50 border-b border-gray-100 flex flex-wrap items-center justify-between gap-4 text-xs sm:text-sm">
+                  <div className="flex flex-wrap items-center gap-x-6 gap-y-1">
                     <div>
-                      <h3 className={`text-[17px] font-medium ${getStatusColor(order.status)}`}>
-                        {statusDisplay}
-                      </h3>
-                      <p className="text-[14px] text-gray-500 mt-0.5">
-                        On {new Date(order.createdAt).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}
-                      </p>
+                      <span className="font-medium text-gray-600">Order ID: </span>
+                      <span className="font-medium text-[#4F46E5]">#{order.orderId || order._id}</span>
+                    </div>
+                    <div className="text-gray-500">
+                      Placed on: <span className="text-gray-700 font-medium">{new Date(order.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
                     </div>
                   </div>
-                  {(order.status === 'pending' || order.status === 'processing') && (
-                    <button
-                      onClick={(e) => handleCancelOrder(e, order._id)}
-                      className="px-4 py-1.5 text-sm font-medium text-red-600 border border-red-200 rounded-md hover:bg-red-50 transition-colors"
-                    >
-                      Cancel Order
-                    </button>
-                  )}
-                  {order.status === 'delivered' && (
-                    <ReturnExchangeButton 
-                      orderId={order._id} 
-                      productId={item.product?._id} 
-                      item={item}
-                      eligibility={eligibility}
-                    />
-                  )}
+
+                  {/* Far-right Status Indicator */}
+                  <div className="flex items-center gap-2 font-medium text-xs sm:text-sm">
+                    {order.status === 'delivered' ? (
+                      <div className="flex items-center gap-1.5 text-green-600">
+                        <span>Delivered on: {new Date(deliveryDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+                        <CheckCircle2 className="w-4 h-4 text-green-600 shrink-0" />
+                      </div>
+                    ) : order.status === 'shipped' ? (
+                      <div className="flex items-center gap-1.5 text-purple-600">
+                        <span>Shipped (On the way)</span>
+                        <Truck className="w-4 h-4 shrink-0" />
+                      </div>
+                    ) : order.status === 'cancelled' ? (
+                      <div className="flex items-center gap-1.5 text-red-600">
+                        <span>Cancelled on: {new Date(order.updatedAt || order.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+                        <X className="w-4 h-4 shrink-0" />
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-1.5 text-amber-600">
+                        <span className="capitalize">{order.status || 'Processing'} Order</span>
+                        <Clock className="w-4 h-4 shrink-0 animate-pulse" />
+                      </div>
+                    )}
+                  </div>
                 </div>
 
-                {/* Body: Product Info */}
-                <div className="p-5 flex items-center gap-5 relative">
-                  <img
-                    src={item.variant?.mainImage?.url || 'https://via.placeholder.com/100'}
-                    alt={item.product?.title || 'Product'}
-                    className="w-24 h-24 sm:w-28 sm:h-28 object-contain rounded-lg border border-gray-100 bg-white"
-                  />
-
-                  <div className="flex-1">
-                    {brandName && <h4 className="text-[16px] font-bold text-[#0F172A] mb-1">{brandName}</h4>}
-                    <p className="text-[15px] text-[#334155] mb-2 pr-8">
-                      {item.product?.title || 'Unknown Product'}
-                    </p>
-                    <div className="text-[14px] text-gray-500 flex flex-wrap gap-x-3 mb-1.5">
-                      {color && <span>Color: {color}</span>}
-                      {size && <span>Size: {size}</span>}
-                      <span>Qty: {item.quantity}</span>
+                {/* Card Body: Product Info & Action Stack */}
+                <div className="p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-6 relative">
+                  {/* Left & Center: Product Image + Specs */}
+                  <div className="flex items-start sm:items-center gap-4 sm:gap-6 flex-1 min-w-0">
+                    <div className="w-20 h-28 sm:w-24 sm:h-32 rounded-lg bg-gray-100 border border-gray-200/80 shrink-0 overflow-hidden relative group">
+                      <img
+                        src={item.variant?.mainImage?.url || item.product?.images?.[0]?.url || 'https://via.placeholder.com/150'}
+                        alt={item.product?.title || 'Product'}
+                        className="w-full h-full object-cover object-top transition-transform duration-300 group-hover:scale-105"
+                      />
                     </div>
-                    <p className="text-[14px] font-bold text-gray-900">Order Total: ₹{order.totalAmount}</p>
+
+                    <div className="flex-1 min-w-0">
+                      {/* Status Tag Pill Badge above title */}
+                      <div className="mb-1.5">
+                        {activeRequest ? (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#EEF2FF] text-[#4F46E5] border border-indigo-100">
+                            <RefreshCw className="w-3 h-3 animate-spin-slow text-[#4F46E5]" />
+                            {activeRequest.type === 'exchange' ? 'Exchange' : 'Return'} Requested
+                          </span>
+                        ) : order.status === 'delivered' ? (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-200">
+                            Delivered
+                          </span>
+                        ) : order.status === 'shipped' ? (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-50 text-purple-700 border border-purple-200">
+                            Shipped
+                          </span>
+                        ) : null}
+                      </div>
+
+                      {brandName && (
+                        <h4 className="text-[15px] font-bold text-[#0F172A] tracking-tight mb-0.5 truncate">
+                          {brandName}
+                        </h4>
+                      )}
+                      <p className="text-[14px] text-[#334155] mb-2 truncate pr-4">
+                        {item.product?.title || 'Unknown Product'}
+                      </p>
+
+                      {/* Specifications with vertical divider */}
+                      <div className="text-[13px] text-gray-500 flex flex-wrap items-center gap-x-2 gap-y-1 mb-2">
+                        {color && (
+                          <span className="flex items-center gap-2">
+                            <span>Color: {color}</span>
+                            <span className="text-gray-300">|</span>
+                          </span>
+                        )}
+                        {size && (
+                          <span className="flex items-center gap-2">
+                            <span>Size: {size}</span>
+                            <span className="text-gray-300">|</span>
+                          </span>
+                        )}
+                        <span>Qty: {item.quantity}</span>
+                      </div>
+
+                      {/* Price Display */}
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-[15px] font-bold text-gray-900">
+                          ₹{item.price ? (item.price * item.quantity).toLocaleString('en-IN') : order.totalAmount?.toLocaleString('en-IN')}
+                        </span>
+                        {order.items?.length > 1 && (
+                          <span className="text-xs text-gray-400 font-medium">
+                            (Order Total: ₹{order.totalAmount?.toLocaleString('en-IN')})
+                          </span>
+                        )}
+                      </div>
+                    </div>
                   </div>
 
-                  <ChevronRight className="w-5 h-5 text-gray-400 absolute right-5 top-1/2 -translate-y-1/2" />
+                  {/* Right Actions Column - Button Stack without Rate & Review */}
+                  <div className="w-full sm:w-52 shrink-0 flex flex-col gap-2.5 justify-center border-t sm:border-t-0 pt-4 sm:pt-0 border-gray-100">
+                    {(order.status === 'pending' || order.status === 'processing') && (
+                      <button
+                        onClick={(e) => handleCancelOrder(e, order._id)}
+                        className="w-full py-1.5 px-4 text-sm font-medium text-red-600 border border-red-200 rounded-md hover:bg-red-50 transition-colors"
+                      >
+                        Cancel Order
+                      </button>
+                    )}
+
+                    {order.status === 'delivered' && (
+                      <ReturnExchangeButton 
+                        orderId={order._id} 
+                        productId={item.product?._id || item.product} 
+                        item={item}
+                        eligibility={eligibility}
+                      />
+                    )}
+
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const pId = item.product?._id || item.product;
+                        if (pId && typeof pId === 'string') {
+                          navigate(`/product/${pId}`);
+                        } else {
+                          navigate(`/account/orders/${order._id}`);
+                        }
+                      }}
+                      className="w-full flex items-center justify-center gap-1.5 py-1.5 px-4 text-sm font-medium text-gray-700 border border-gray-300 rounded-md bg-white hover:bg-gray-50 transition-all duration-200 cursor-pointer group"
+                    >
+                      <ShoppingBag className="w-3.5 h-3.5 text-gray-500 group-hover:text-[#4F46E5] transition-colors shrink-0" />
+                      <span>Buy Again</span>
+                    </button>
+                  </div>
                 </div>
               </div>
             );

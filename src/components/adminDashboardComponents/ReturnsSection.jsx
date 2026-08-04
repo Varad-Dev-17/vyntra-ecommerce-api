@@ -115,7 +115,7 @@ const ReturnsSection = () => {
     
     return (
       <div 
-        className={`inline-flex items-center justify-center px-3 py-1.5 rounded-md text-xs font-semibold border ${style} capitalize shadow-sm cursor-default`}
+        className={`inline-flex items-center justify-center px-2 py-0.5 rounded text-[11px] font-bold border ${style} capitalize shadow-2xs cursor-default`}
       >
         {displayStatus}
       </div>
@@ -127,8 +127,7 @@ const ReturnsSection = () => {
       header: 'Request ID',
       accessor: '_id',
       render: (row) => (
-        <span className="font-bold text-[#4648d4]">
-          {/* Format request ID slightly differently or use a dedicated ID if available */}
+        <span className="font-bold text-[#4648d4] text-xs">
           RET{row._id.slice(-4).toUpperCase()}
         </span>
       )
@@ -138,7 +137,7 @@ const ReturnsSection = () => {
       accessor: 'user',
       render: (row) => (
         <div className="flex flex-col">
-            <span className="font-semibold text-gray-900">{row.user?.username || "Unknown"}</span>
+            <span className="font-medium text-slate-700 text-xs">{row.user?.username || "Unknown"}</span>
         </div>
       )
     },
@@ -160,7 +159,7 @@ const ReturnsSection = () => {
 
           return (
             <div className="flex flex-col">
-                <span className="font-semibold text-gray-900">{orderIdDisplay}</span>
+                <span className="font-medium text-slate-700 text-xs">{orderIdDisplay}</span>
             </div>
           );
       }
@@ -187,17 +186,17 @@ const ReturnsSection = () => {
         const variantText = [color ? `Color: ${color}` : '', size ? `Size: ${size}` : ''].filter(Boolean).join(" | ");
 
         return (
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-md overflow-hidden bg-gray-100 flex-shrink-0 border border-gray-200">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded overflow-hidden bg-gray-100 shrink-0 border border-gray-200">
               {productImage ? (
                 <img src={productImage} alt={productName} className="w-full h-full object-cover" />
               ) : (
-                <Package className="w-5 h-5 m-auto text-gray-400 mt-2.5" />
+                <Package className="w-4 h-4 m-auto text-gray-400 mt-2" />
               )}
             </div>
             <div className="flex flex-col text-left">
-              <span className="font-semibold text-gray-900 line-clamp-1 text-sm">{productName}</span>
-              {variantText && <span className="text-[11px] text-gray-500 mt-0.5">{variantText}</span>}
+              <span className="font-medium text-slate-700 line-clamp-1 text-xs">{productName}</span>
+              {variantText && <span className="text-[10px] text-gray-400 mt-0.5">{variantText}</span>}
             </div>
           </div>
         );
@@ -210,7 +209,7 @@ const ReturnsSection = () => {
             const style = row.type === 'exchange' ? 'bg-purple-50 text-purple-600' : 'bg-emerald-50 text-emerald-600';
             return (
                 <div className="flex items-center justify-center">
-                    <span className={`text-xs px-2.5 py-1 rounded-full font-medium capitalize ${style}`}>
+                    <span className={`text-[11px] px-2 py-0.5 rounded font-medium capitalize ${style}`}>
                         {row.type}
                     </span>
                 </div>
@@ -246,7 +245,7 @@ const ReturnsSection = () => {
             }
             return (
                 <div className="flex items-center justify-center">
-                    <span className={`text-[11px] px-2 py-1 rounded-md font-medium whitespace-nowrap ${color}`}>
+                    <span className={`text-[11px] px-2 py-0.5 rounded font-medium whitespace-nowrap ${color}`}>
                         {label}
                     </span>
                 </div>
@@ -260,10 +259,10 @@ const ReturnsSection = () => {
         const d = new Date(row.createdAt);
         return (
           <div className="flex flex-col items-center justify-center text-center">
-            <span className="text-gray-900 font-medium text-sm">
+            <span className="text-slate-700 font-medium text-xs">
               {d.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
             </span>
-            <span className="text-xs text-gray-500">
+            <span className="text-[10px] text-gray-400">
               {d.toLocaleTimeString("en-IN", { hour: '2-digit', minute: '2-digit' })}
             </span>
           </div>
@@ -277,9 +276,9 @@ const ReturnsSection = () => {
         <div className="flex items-center justify-center gap-2">
           <button
             onClick={() => navigate(`/admin/returns/${row._id}`)}
-            className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-[13px] font-semibold text-[#4648d4] bg-indigo-50 hover:bg-indigo-100 rounded-md transition-colors border border-indigo-100 shadow-sm"
+            className="inline-flex items-center justify-center gap-1.5 px-2.5 py-1 text-xs font-semibold text-[#4648d4] bg-indigo-50 hover:bg-indigo-100 rounded transition-colors border border-indigo-100 shadow-2xs"
           >
-            <Eye size={14} />
+            <Eye size={13} />
             View
           </button>
         </div>

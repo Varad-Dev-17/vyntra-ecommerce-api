@@ -60,6 +60,26 @@ const OrderSchema = new mongoose.Schema(
     },
     deliveredAt: { type: Date, default: null },
     trackingNumber: String,
+    adminNotes: [
+      {
+        note: { type: String, required: true },
+        createdBy: { type: String, default: "Admin" },
+        category: { type: String, default: "admin" },
+        visibleToCustomer: { type: Boolean, default: true },
+        createdAt: { type: Date, default: Date.now },
+      },
+    ],
+    timeline: [
+      {
+        eventId: { type: String, required: true },
+        type: { type: String, required: true },
+        description: { type: String },
+        performedBy: { type: String, default: "System" },
+        createdBy: { type: String, default: "System" },
+        timestamp: { type: Date, default: Date.now },
+        metadata: { type: mongoose.Schema.Types.Mixed, default: {} },
+      },
+    ],
   },
   { timestamps: true }
 );

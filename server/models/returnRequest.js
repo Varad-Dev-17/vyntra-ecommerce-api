@@ -73,16 +73,52 @@ const ReturnRequestSchema = new mongoose.Schema(
         "pending",
         "approved",
         "rejected",
+        "pickup_scheduled",
+        "picked_up",
         "received",
         "refunded",
         "exchanged"
       ],
       default: "pending",
     },
-    adminNotes: {
+    qcStatus: {
       type: String,
-      default: "",
+      enum: ["pending", "passed", "failed"],
+      default: "pending",
     },
+    qcReason: {
+      type: String,
+    },
+    refundStatus: {
+      type: String,
+      enum: ["not_required", "initiated", "processing", "completed", "failed"],
+      default: "not_required",
+    },
+    refundAmount: { type: Number },
+    refundMethod: { type: String },
+    refundTransactionId: { type: String },
+    refundFailureReason: { type: String },
+    refundProcessedAt: { type: Date },
+    adminNotes: [
+      {
+        note: { type: String, required: true },
+        createdBy: { type: String, default: "Admin" },
+        category: { type: String, default: "admin" },
+        visibleToCustomer: { type: Boolean, default: true },
+        createdAt: { type: Date, default: Date.now },
+      },
+    ],
+    timeline: [
+      {
+        eventId: { type: String, required: true },
+        type: { type: String, required: true },
+        description: { type: String },
+        performedBy: { type: String, default: "System" },
+        createdBy: { type: String, default: "System" },
+        timestamp: { type: Date, default: Date.now },
+        metadata: { type: mongoose.Schema.Types.Mixed, default: {} },
+      },
+    ],
   },
   { timestamps: true }
 );

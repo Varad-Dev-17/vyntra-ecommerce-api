@@ -139,67 +139,73 @@ const ExchangeSection = ({ requestedVariantId, setRequestedVariantId, productVar
       </div>
 
       {selectedVariant && (
-        <div className="bg-gray-50 p-6 rounded-lg border border-gray-200 mt-6 space-y-5">
-          {/* Variants Comparison */}
-          <div className="flex flex-col md:flex-row gap-4 md:items-center justify-between">
-            {/* Current Variant */}
-            <div className="flex-1">
-              <p className="text-[12px] uppercase font-bold text-gray-500 tracking-wider mb-2">Current Variant</p>
-              <div className="bg-white p-3 rounded-md border border-gray-200 shadow-sm">
-                <p className="text-[13px] text-gray-600 mb-1">Color: <span className="font-semibold text-gray-900">{currAttrs.color}</span></p>
-                <p className="text-[13px] text-gray-600 mb-1">Size: <span className="font-semibold text-gray-900">{currAttrs.size}</span></p>
-                <p className="text-[13px] text-gray-600">Price: <span className="font-semibold text-gray-900">₹{currentPrice}</span></p>
+        <div className="p-5 rounded-2xl border border-gray-200 bg-gray-50/70 shadow-2xs mt-6 space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 relative">
+            
+            {/* Original Variant */}
+            <div className="space-y-3 p-4 bg-white rounded-xl border border-gray-200 shadow-2xs relative">
+              <span className="inline-block px-2.5 py-1 bg-rose-50 text-rose-700 text-[11px] font-bold rounded-md border border-rose-100">
+                Original (Returning)
+              </span>
+              <div className="flex items-center gap-4 pt-1">
+                {(currentVariant?.mainImage?.url || selectedVariant?.mainImage?.url) ? (
+                  <img src={currentVariant?.mainImage?.url || selectedVariant?.mainImage?.url} alt="Original" className="w-16 h-20 object-cover rounded-lg border border-gray-100 shadow-2xs shrink-0" />
+                ) : (
+                  <div className="w-16 h-20 rounded-lg bg-gray-100 border border-gray-200 shrink-0" />
+                )}
+                <div className="space-y-1">
+                  <div className="text-xs text-gray-700 font-medium space-y-0.5">
+                    {currAttrs.color && <div>Color: <strong className="text-slate-700 font-bold">{currAttrs.color}</strong></div>}
+                    {currAttrs.size && <div>Size: <strong className="text-slate-700 font-bold">{currAttrs.size}</strong></div>}
+                  </div>
+                  <div className="text-sm font-bold text-[#4648d4] font-mono pt-1">
+                    ₹{Number(currentPrice).toLocaleString("en-IN")}
+                  </div>
+                </div>
               </div>
             </div>
 
-            {/* Arrow */}
-            <div className="hidden md:flex flex-col items-center justify-center text-gray-400 px-2">
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-              </svg>
-            </div>
-            <div className="flex md:hidden justify-center text-gray-400 py-1">
-              <svg className="w-5 h-5 rotate-90" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+            {/* Middle Arrow divider on wide screens */}
+            <div className="hidden sm:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-[#4648d4] text-white items-center justify-center z-10 shadow-lg border-2 border-white">
+              <svg className="w-5 h-5 stroke-[2.5]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
               </svg>
             </div>
 
-            {/* Requested Variant */}
-            <div className="flex-1">
-              <p className="text-[12px] uppercase font-bold text-[#4F46E5] tracking-wider mb-2">Requested Variant</p>
-              <div className="bg-white p-3 rounded-md border border-[#c7d2fe] shadow-sm">
-                <p className="text-[13px] text-gray-600 mb-1">Color: <span className="font-semibold text-gray-900">{reqAttrs.color}</span></p>
-                <p className="text-[13px] text-gray-600 mb-1">Size: <span className="font-semibold text-gray-900">{reqAttrs.size}</span></p>
-                <p className="text-[13px] text-gray-600">Price: <span className="font-semibold text-gray-900">₹{selectedVariant.price}</span></p>
+            {/* New Requested Variant */}
+            <div className="space-y-3 p-4 bg-white rounded-xl border border-[#4648d4]/30 ring-2 ring-[#4648d4]/10 shadow-sm">
+              <span className="inline-block px-2.5 py-1 bg-emerald-50 text-emerald-700 text-[11px] font-bold rounded-md border border-emerald-100">
+                Requested Replacement
+              </span>
+              <div className="flex items-center gap-4 pt-1">
+                {(selectedVariant?.mainImage?.url || currentVariant?.mainImage?.url) ? (
+                  <img src={selectedVariant?.mainImage?.url || currentVariant?.mainImage?.url} alt="Replacement" className="w-16 h-20 object-cover rounded-lg border border-gray-100 shadow-2xs shrink-0" />
+                ) : (
+                  <div className="w-16 h-20 rounded-lg bg-gray-100 border border-gray-200 shrink-0" />
+                )}
+                <div className="space-y-1">
+                  <div className="text-xs text-gray-700 font-medium space-y-0.5">
+                    {reqAttrs.color && <div>Color: <strong className="text-indigo-600 font-bold">{reqAttrs.color}</strong></div>}
+                    {reqAttrs.size && <div>Size: <strong className="text-indigo-600 font-bold">{reqAttrs.size}</strong></div>}
+                  </div>
+                  <div className="text-sm font-bold text-[#4648d4] font-mono pt-1">
+                    ₹{Number(selectedVariant.price).toLocaleString("en-IN")}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Price Calculation */}
-          <div className="border-t border-gray-200 pt-5">
-            <p className="text-[12px] uppercase font-bold text-gray-500 tracking-wider mb-3">Price Difference</p>
-            <div className="inline-flex items-center gap-2 bg-white px-3 py-1.5 rounded-md border border-gray-200 text-[14px] font-mono text-gray-700 mb-4 shadow-sm">
-              <span>₹{selectedVariant.price}</span>
-              <span className="text-gray-400">-</span>
-              <span>₹{currentPrice}</span>
-              <span className="text-gray-400">=</span>
-              <span className={`font-bold ${priceDifference > 0 ? 'text-red-600' : priceDifference < 0 ? 'text-green-600' : 'text-gray-900'}`}>
-                {priceDifference > 0 ? '+' : ''}₹{priceDifference}
-              </span>
-            </div>
-
-            <div className="flex items-center justify-between mt-1">
-              <p className="text-[15px] font-bold text-gray-900">
-                {priceDifference > 0 
-                  ? 'Additional Amount to Pay' 
-                  : priceDifference < 0 
-                    ? 'Refund Amount' 
-                    : 'No Price Difference'}
-              </p>
-              <p className={`text-[20px] font-bold ${priceDifference > 0 ? 'text-[#4F46E5]' : priceDifference < 0 ? 'text-green-600' : 'text-gray-900'}`}>
-                {priceDifference !== 0 ? `₹${Math.abs(priceDifference)}` : '-'}
-              </p>
-            </div>
+          {/* Price difference banner across bottom */}
+          <div className="pt-3 border-t border-gray-200/80 flex flex-wrap items-center justify-between gap-2 text-xs font-bold text-slate-700">
+            <span className="flex items-center gap-1.5 text-slate-600">
+              Exchange Type: <strong className="text-slate-700 capitalize">{priceDifference === 0 ? "No Difference" : priceDifference > 0 ? "Additional Payment" : "Refund Difference"}</strong>
+            </span>
+            <span className={`px-3 py-1 rounded-lg font-mono font-bold text-sm ${
+              priceDifference === 0 ? "bg-gray-100 text-gray-600" : priceDifference > 0 ? "bg-amber-50 text-amber-700" : "bg-emerald-50 text-emerald-700"
+            }`}>
+              {priceDifference === 0 ? "No Price Difference (₹0)" : priceDifference > 0 ? `Additional Amount to Pay: +₹${priceDifference}` : `Refund Difference: -₹${Math.abs(priceDifference)}`}
+            </span>
           </div>
         </div>
       )}

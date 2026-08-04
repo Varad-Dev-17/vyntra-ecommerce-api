@@ -10,7 +10,7 @@ const Reviews = () => {
           Customer Reviews
         </h3>
         <p className="text-gray-500 max-w-md">
-          Product reviews and ratings management is coming soon in a future update.
+          Product reviews.
         </p>
       </div>
     </PageCard>

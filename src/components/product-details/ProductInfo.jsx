@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ShoppingBag, Heart } from 'lucide-react';
 import { useWishlist } from '../../context/WishlistContext';
 import { useAuth } from '../../context/AuthContext';
@@ -6,6 +6,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import api from '../../api/axiosConfig';
 import { useCart } from '../../context/CartContext';
+import SizeChartModal from './SizeChartModal';
 
 const ProductInfo = ({ product, activeVariant, onVariantChange }) => {
   const { toggleWishlist, isInWishlist } = useWishlist();
@@ -13,6 +14,7 @@ const ProductInfo = ({ product, activeVariant, onVariantChange }) => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const [isSizeChartOpen, setIsSizeChartOpen] = useState(false);
 
   if (!product || !activeVariant) return null;
 
@@ -35,7 +37,7 @@ const ProductInfo = ({ product, activeVariant, onVariantChange }) => {
       });
       if (res.data.success) {
         updateCartCount(res.data.data.itemCount);
-        refreshCart(); // Fetch full cart to update isVariantInCart state
+        refreshCart();
         toast.success("Added to bag!");
       }
     } catch (err) {
@@ -52,7 +54,7 @@ const ProductInfo = ({ product, activeVariant, onVariantChange }) => {
     }).format(amount);
   };
 
-  // 1. Pricing
+  // Pricing
   const price = activeVariant.price || 0;
   const mrp = activeVariant.mrp || 0;
   let discount = 0;
@@ -60,7 +62,7 @@ const ProductInfo = ({ product, activeVariant, onVariantChange }) => {
     discount = Math.round(((mrp - price) / mrp) * 100);
   }
 
-  // 2. Color Variants Mapping
+  // Color Variants Mapping
   const colorVariantsMap = new Map();
   product.variants?.forEach(v => {
     const colorAttr = v.attributes?.find(a => a.attribute?.name?.toLowerCase() === 'color');
@@ -74,7 +76,7 @@ const ProductInfo = ({ product, activeVariant, onVariantChange }) => {
   const activeColorAttr = activeVariant.attributes?.find(a => a.attribute?.name?.toLowerCase() === 'color');
   const activeColorName = activeColorAttr?.option?.displayName || 'default';
 
-  // 3. Size Variants Mapping for the Active Color
+  // Size Variants Mapping for the Active Color
   const variantsOfActiveColor = product.variants?.filter(v => {
     const cAttr = v.attributes?.find(a => a.attribute?.name?.toLowerCase() === 'color');
     const cName = cAttr?.option?.displayName || 'default';
@@ -143,8 +145,16 @@ const ProductInfo = ({ product, activeVariant, onVariantChange }) => {
       {/* Select Size */}
       {availableSizes.length > 0 && (
         <div className="mb-8">
-          <div className="mb-4">
+          <div className="mb-4 flex items-center justify-between">
             <h4 className="text-[14px] font-bold text-[#282c3f] uppercase tracking-wide">Select Size</h4>
+            <button
+              type="button"
+              onClick={() => setIsSizeChartOpen(true)}
+              className="text-[13px] font-bold text-[#4F46E5] hover:underline transition-all cursor-pointer flex items-center gap-1 uppercase tracking-wide"
+            >
+              <span>Size Chart</span>
+              <span className="text-[15px] font-extrabold leading-none">&gt;</span>
+            </button>
           </div>
           <div className="flex flex-wrap gap-3">
             {availableSizes.map((size) => {
@@ -253,6 +263,16 @@ const ProductInfo = ({ product, activeVariant, onVariantChange }) => {
           </div>
         </div>
       )}
+
+      {/* Size Chart Modal */}
+      <SizeChartModal
+        isOpen={isSizeChartOpen}
+        onClose={() => setIsSizeChartOpen(false)}
+        product={product}
+        availableSizes={availableSizes}
+        activeVariantId={activeVariant._id}
+        onSelectSize={onVariantChange}
+      />
     </div>
   );
 };

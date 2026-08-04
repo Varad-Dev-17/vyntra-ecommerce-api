@@ -28,9 +28,6 @@ const ReturnExchangeRequest = () => {
   const [images, setImages] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Dummy available sizes for UI purposes
-  const availableSizes = ['S', 'M', 'L', 'XL'];
-
   useEffect(() => {
     const fetchOrderDetails = async () => {
       try {

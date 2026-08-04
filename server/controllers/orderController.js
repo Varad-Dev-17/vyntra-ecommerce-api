@@ -1,13 +1,13 @@
 import Order from "../models/order.js";
 import Cart from "../models/cart.js";
-import User from "../models/user.js";
-import Variant from "../models/variant.js";
 import Address from "../models/address.js";
 import Coupon from "../models/coupon.js";
 import transport from "../middlewares/sendMail.js";
 import { orderEmailTemplate } from "../utils/orderEmailTemplate.js";
 import { cancelEmailTemplate } from "../utils/cancelEmailTemplate.js";
 import { getNextSequence } from "../utils/counterHelper.js";
+import { addTimelineEvent, appendAdminNote, mergeAdminNotesSafe } from "../utils/timelineHelper.js";
+import { ORDER_POPULATE_CONFIG, formatAndFilterNotes } from "../utils/populateHelper.js";
 
 // GET ALL ORDERS (Admin)
 export const getAllOrders = async (req, res) => {
@@ -41,7 +41,6 @@ export const getAllOrders = async (req, res) => {
     if (startDate || endDate) {
       query.createdAt = {};
       if (startDate) query.createdAt.$gte = new Date(startDate);
-      // To include the entire end date, we can set it to the end of the day or just use as is if it's an ISO string with time
       if (endDate) query.createdAt.$lte = new Date(endDate);
     }
 
@@ -54,16 +53,7 @@ export const getAllOrders = async (req, res) => {
 
     const [orders, total] = await Promise.all([
       Order.find(query)
-        .populate("user", "username email")
-        .populate("items.product", "title images price")
-        .populate({
-          path: "items.variant",
-          select: "mainImage attributes",
-          populate: [
-            { path: "attributes.attribute" },
-            { path: "attributes.option" }
-          ]
-        })
+        .populate(ORDER_POPULATE_CONFIG)
         .sort(sort)
         .skip(skip)
         .limit(limitNum)
@@ -75,7 +65,7 @@ export const getAllOrders = async (req, res) => {
       success: true,
       message: "Orders fetched successfully",
       data: {
-        orders,
+        orders: formatAndFilterNotes(orders, false), // False = Admin sees all confidential notes
         pagination: {
           page: pageNum,
           limit: limitNum,
@@ -100,13 +90,7 @@ export const getAdminOrderById = async (req, res) => {
     const { id } = req.params;
 
     const order = await Order.findById(id)
-      .populate("user", "username email mobileNo gender")
-      .populate({
-        path: "items.product",
-        select: "title brand slug images price",
-        populate: { path: "brand", select: "name" }
-      })
-      .populate("items.variant", "mainImage attributes sku price")
+      .populate(ORDER_POPULATE_CONFIG)
       .lean();
 
     if (!order) {
@@ -119,7 +103,7 @@ export const getAdminOrderById = async (req, res) => {
 
     // Fallback for older orders that missed pincode in schema
     if (order.shippingAddress && !order.shippingAddress.pincode) {
-      const userAddress = await Address.findOne({ userId: order.user._id, isDefault: true }) || await Address.findOne({ userId: order.user._id });
+      const userAddress = await Address.findOne({ userId: order.user?._id, isDefault: true }) || await Address.findOne({ userId: order.user?._id });
       if (userAddress) {
         order.shippingAddress.pincode = userAddress.pincode;
         if (!order.shippingAddress.state) order.shippingAddress.state = userAddress.state;
@@ -130,17 +114,28 @@ export const getAdminOrderById = async (req, res) => {
     // Also fetch any return requests associated with this order
     const ReturnRequest = (await import("../models/returnRequest.js")).default;
     const returnRequests = await ReturnRequest.find({ order: id })
-      .populate("product", "title")
-      .populate("originalVariant", "attributes")
+      .populate("product", "title images brand price")
+      .populate({
+        path: "originalVariant",
+        select: "mainImage attributes sku price",
+        populate: [{ path: "attributes.attribute" }, { path: "attributes.option" }],
+      })
+      .populate({
+        path: "requestedExchangeVariant",
+        select: "mainImage attributes sku price",
+        populate: [{ path: "attributes.attribute" }, { path: "attributes.option" }],
+      })
       .lean();
+
+    const fullPayload = {
+      ...order,
+      returnRequests,
+    };
 
     return res.status(200).json({
       success: true,
       message: "Order fetched successfully",
-      data: {
-        ...order,
-        returnRequests,
-      },
+      data: formatAndFilterNotes(fullPayload, false), // False = Admin sees all confidential notes
     });
   } catch (error) {
     console.error(error);
@@ -202,7 +197,7 @@ export const getUserOrders = async (req, res) => {
       success: true,
       message: "Orders fetched successfully",
       data: {
-        orders,
+        orders: formatAndFilterNotes(orders, true), // True = Strip internal operational notes
         pagination: {
           page: pageNum,
           limit: limitNum,
@@ -229,13 +224,7 @@ export const getOrderById = async (req, res) => {
     const isAdmin = req.user.isAdmin;
 
     const order = await Order.findById(id)
-      .populate("user", "username email mobileNo gender")
-      .populate({
-        path: "items.product",
-        select: "title brand slug images",
-        populate: { path: "brand", select: "name" }
-      })
-      .populate("items.variant", "mainImage attributes sku price")
+      .populate(ORDER_POPULATE_CONFIG)
       .lean();
 
     if (!order) {
@@ -255,10 +244,30 @@ export const getOrderById = async (req, res) => {
       });
     }
 
+    const ReturnRequest = (await import("../models/returnRequest.js")).default;
+    const returnRequests = await ReturnRequest.find({ order: id })
+      .populate("product", "title images brand price returnPolicy")
+      .populate({
+        path: "originalVariant",
+        select: "mainImage attributes sku price",
+        populate: [{ path: "attributes.attribute" }, { path: "attributes.option" }],
+      })
+      .populate({
+        path: "requestedExchangeVariant",
+        select: "mainImage attributes sku price",
+        populate: [{ path: "attributes.attribute" }, { path: "attributes.option" }],
+      })
+      .lean();
+
+    const fullPayload = {
+      ...order,
+      returnRequests,
+    };
+
     return res.status(200).json({
       success: true,
       message: "Order fetched successfully",
-      data: order,
+      data: formatAndFilterNotes(fullPayload, !isAdmin), // Protect confidential notes if not admin
     });
   } catch (error) {
     console.error(error);
@@ -290,7 +299,6 @@ export const createOrder = async (req, res) => {
       });
     }
 
-    // Get user's cart
     const cart = await Cart.findOne({ userId }).populate("products.productId");
     if (!cart || cart.products.length === 0) {
       return res.status(400).json({
@@ -300,11 +308,11 @@ export const createOrder = async (req, res) => {
       });
     }
 
-    // Validate stock and calculate totals
     let subtotal = 0;
     let totalMRP = 0;
     let taxAmount = 0;
     const orderItems = [];
+    const Variant = (await import("../models/variant.js")).default;
 
     for (const item of cart.products) {
       const product = item.productId;
@@ -312,16 +320,12 @@ export const createOrder = async (req, res) => {
       if (!product || product.status !== "Active") {
         return res.status(400).json({
           success: false,
-          message: `Product ${
-            product?.title || "Unknown"
-          } is no longer available`,
+          message: `Product ${product?.title || "Unknown"} is no longer available`,
           data: null,
         });
       }
 
-      const Variant = (await import("../models/variant.js")).default;
       const variant = await Variant.findById(item.variantId);
-      
       if (!variant || variant.stock < item.quantity) {
         return res.status(400).json({
           success: false,
@@ -334,7 +338,6 @@ export const createOrder = async (req, res) => {
       const itemSellingPrice = variant.price * item.quantity;
       const gstRate = variant.gstRate || 0;
       
-      // basePrice = sellingPrice / (1 + gstRate/100)
       const itemBasePrice = itemSellingPrice / (1 + (gstRate / 100));
       const itemGSTAmount = itemSellingPrice - itemBasePrice;
 
@@ -354,7 +357,6 @@ export const createOrder = async (req, res) => {
       });
     }
 
-    // Apply coupon if provided
     let couponDiscount = 0;
     let couponApplied = null;
 
@@ -370,8 +372,7 @@ export const createOrder = async (req, res) => {
         const isValid =
           (!coupon.startDate || now >= coupon.startDate) &&
           (!coupon.endDate || now <= coupon.endDate) &&
-          (coupon.usageLimit === null ||
-            coupon.usageCount < coupon.usageLimit) &&
+          (coupon.usageLimit === null || coupon.usageCount < coupon.usageLimit) &&
           subtotal >= coupon.minOrderAmount;
 
         if (isValid) {
@@ -381,10 +382,7 @@ export const createOrder = async (req, res) => {
             couponDiscount = coupon.value;
           }
 
-          if (
-            coupon.maxDiscountAmount &&
-            couponDiscount > coupon.maxDiscountAmount
-          ) {
+          if (coupon.maxDiscountAmount && couponDiscount > coupon.maxDiscountAmount) {
             couponDiscount = coupon.maxDiscountAmount;
           }
 
@@ -394,7 +392,6 @@ export const createOrder = async (req, res) => {
             value: coupon.value,
           };
 
-          // Increment coupon usage
           coupon.usageCount += 1;
           await coupon.save();
         }
@@ -403,7 +400,6 @@ export const createOrder = async (req, res) => {
 
     const finalSubtotal = Math.max(0, subtotal - couponDiscount);
     
-    // 3-tier delivery rule
     let shippingAmount = 0;
     if (finalSubtotal < 500) shippingAmount = 99;
     else if (finalSubtotal < 1000) shippingAmount = 49;
@@ -418,12 +414,10 @@ export const createOrder = async (req, res) => {
       orderId = `ORD-${seq}`;
     } catch (err) {
       console.error("Failed to generate orderId sequence", err);
-      // Fallback if counter fails
       orderId = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
     }
 
-    // Create order
-    const order = await Order.create({
+    const order = new Order({
       orderId,
       user: userId,
       items: orderItems,
@@ -436,19 +430,27 @@ export const createOrder = async (req, res) => {
       totalAmount: Math.round(totalAmount * 100) / 100,
       coupon: couponApplied,
       paymentMethod,
-      paymentStatus: paymentMethod === "cod" ? "pending" : "pending",
+      paymentStatus: "pending",
       status: "pending",
     });
 
-    // Reduce stock
-    const Variant = (await import("../models/variant.js")).default;
+    // Automatically generate initial order audit timeline event
+    addTimelineEvent(
+      order,
+      "Order Created",
+      `Order ${orderId} confirmed via ${paymentMethod.toUpperCase()}. Total amount: ₹${totalAmount}`,
+      "Customer",
+      { orderId, totalAmount, paymentMethod, couponCode: couponApplied ? couponApplied.code : null }
+    );
+
+    await order.save();
+
     for (const item of cart.products) {
       await Variant.findByIdAndUpdate(item.variantId, {
         $inc: { stock: -item.quantity },
       });
     }
 
-    // Clear cart
     cart.products = [];
     await cart.save();
 
@@ -464,7 +466,6 @@ export const createOrder = async (req, res) => {
       .populate("user", "username email")
       .lean();
 
-    // Send Order Confirmation Email
     try {
       if (populatedOrder.user && populatedOrder.user.email) {
         transport.sendMail({
@@ -478,13 +479,12 @@ export const createOrder = async (req, res) => {
       }
     } catch (emailError) {
       console.error("Failed to send order confirmation email:", emailError);
-      // We don't fail the order if the email fails
     }
 
     return res.status(201).json({
       success: true,
       message: "Order placed successfully",
-      data: populatedOrder,
+      data: formatAndFilterNotes(populatedOrder, true),
     });
   } catch (error) {
     console.error(error);
@@ -500,15 +500,9 @@ export const createOrder = async (req, res) => {
 export const updateOrderStatus = async (req, res) => {
   try {
     const { id } = req.params;
-    const { status, paymentStatus, trackingNumber } = req.body;
+    const { status, paymentStatus, trackingNumber, note, adminNotes, category, visibleToCustomer } = req.body;
 
-    const validStatuses = [
-      "pending",
-      "processing",
-      "shipped",
-      "delivered",
-      "cancelled",
-    ];
+    const validStatuses = ["pending", "processing", "shipped", "delivered", "cancelled"];
     const validPaymentStatuses = ["pending", "paid", "failed", "refunded"];
 
     const order = await Order.findById(id);
@@ -520,7 +514,26 @@ export const updateOrderStatus = async (req, res) => {
       });
     }
 
-    if (status) {
+    // Handle Admin Notes using strict APPEND-ONLY utilities
+    if (note && typeof note === "string" && note.trim() !== "") {
+      let adminName = "Admin";
+      if (req.user && req.user.userId) {
+        const User = (await import("../models/user.js")).default;
+        const adminUser = await User.findById(req.user.userId).select("username email").lean();
+        if (adminUser) adminName = adminUser.username || adminUser.email || "Admin";
+      }
+      appendAdminNote(
+        order,
+        note,
+        adminName,
+        category || "admin",
+        visibleToCustomer !== false && visibleToCustomer !== "false"
+      );
+    } else if (adminNotes && Array.isArray(adminNotes)) {
+      mergeAdminNotesSafe(order, adminNotes, "Admin");
+    }
+
+    if (status && status !== order.status) {
       if (!validStatuses.includes(status)) {
         return res.status(400).json({ success: false, message: "Invalid status", data: null });
       }
@@ -534,14 +547,12 @@ export const updateOrderStatus = async (req, res) => {
         cancelled: [],
       };
 
-      if (status !== currentStatus) {
-        if (!transitionRules[currentStatus].includes(status)) {
-          return res.status(400).json({
-            success: false,
-            message: `Invalid status transition from ${currentStatus} to ${status}`,
-            data: null,
-          });
-        }
+      if (!transitionRules[currentStatus].includes(status)) {
+        return res.status(400).json({
+          success: false,
+          message: `Invalid status transition from ${currentStatus} to ${status}`,
+          data: null,
+        });
       }
 
       // Handle cancellation - restore stock
@@ -558,25 +569,58 @@ export const updateOrderStatus = async (req, res) => {
 
       if (status === "delivered" && currentStatus !== "delivered") {
         order.deliveredAt = new Date();
+        if (!paymentStatus && order.paymentStatus === "pending") {
+          order.paymentStatus = "paid";
+        }
       } else if (status !== "delivered" && currentStatus === "delivered") {
         order.deliveredAt = null;
       }
       order.status = status;
+
+      const eventMap = {
+        processing: ["Processing Started", "Order items inspected and packaging started.", "Warehouse"],
+        shipped: ["Shipped", `Order handed over to delivery partner.${trackingNumber || order.trackingNumber ? ` AWB/Tracking: ${trackingNumber || order.trackingNumber}` : ""}`, "Warehouse"],
+        delivered: ["Delivered", "Order package successfully delivered to customer.", "Warehouse"],
+        cancelled: ["Cancelled", "Order cancelled by admin and item stock restored.", "Admin"]
+      };
+
+      const [evType, evDesc, perfBy] = eventMap[status] || [`Status Updated to ${status}`, `Status advanced to ${status}.`, "Admin"];
+      addTimelineEvent(order, evType, evDesc, perfBy, { oldStatus: currentStatus, newStatus: status, trackingNumber: trackingNumber || order.trackingNumber });
     }
+
     if (paymentStatus) order.paymentStatus = paymentStatus;
     if (trackingNumber !== undefined) order.trackingNumber = trackingNumber;
 
     await order.save();
 
     const populatedOrder = await Order.findById(id)
-      .populate("items.product", "title images price")
-      .populate("user", "username email")
+      .populate(ORDER_POPULATE_CONFIG)
       .lean();
+
+    const ReturnRequest = (await import("../models/returnRequest.js")).default;
+    const returnRequests = await ReturnRequest.find({ order: id })
+      .populate("product", "title images brand price")
+      .populate({
+        path: "originalVariant",
+        select: "mainImage attributes sku price",
+        populate: [{ path: "attributes.attribute" }, { path: "attributes.option" }],
+      })
+      .populate({
+        path: "requestedExchangeVariant",
+        select: "mainImage attributes sku price",
+        populate: [{ path: "attributes.attribute" }, { path: "attributes.option" }],
+      })
+      .lean();
+
+    const fullPayload = {
+      ...populatedOrder,
+      returnRequests,
+    };
 
     return res.status(200).json({
       success: true,
       message: "Order updated successfully",
-      data: populatedOrder,
+      data: formatAndFilterNotes(fullPayload, false),
     });
   } catch (error) {
     console.error(error);
@@ -611,7 +655,6 @@ export const cancelOrder = async (req, res) => {
       });
     }
 
-    // Restore stock to Variants instead of Products
     const Variant = (await import("../models/variant.js")).default;
     for (const item of order.items) {
       if (item.variant) {
@@ -622,21 +665,22 @@ export const cancelOrder = async (req, res) => {
     }
 
     order.status = "cancelled";
+
+    // Append timeline audit event
+    addTimelineEvent(
+      order,
+      "Order Cancelled",
+      "Order was cancelled directly by customer before dispatch.",
+      "Customer",
+      { status: "cancelled" }
+    );
+
     await order.save();
 
     const populatedOrder = await Order.findById(id)
-      .populate("items.product", "title images price")
-      .populate({
-        path: "items.variant",
-        populate: [
-          { path: "attributes.attribute" },
-          { path: "attributes.option" }
-        ]
-      })
-      .populate("user", "username email")
+      .populate(ORDER_POPULATE_CONFIG)
       .lean();
 
-    // Send Cancellation Email
     try {
       if (populatedOrder.user && populatedOrder.user.email) {
         transport.sendMail({
@@ -655,7 +699,7 @@ export const cancelOrder = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: "Order cancelled successfully",
-      data: populatedOrder,
+      data: formatAndFilterNotes(populatedOrder, true),
     });
   } catch (error) {
     console.error(error);
@@ -682,7 +726,6 @@ export const getOrderStats = async (req, res) => {
 
     const totalOrders = await Order.countDocuments();
     
-    // Format response
     const formattedStats = {
       total: totalOrders,
       pending: 0,
@@ -693,7 +736,7 @@ export const getOrderStats = async (req, res) => {
     };
 
     stats.forEach(stat => {
-      if (formattedStats.hasOwnProperty(stat._id)) {
+      if (Object.prototype.hasOwnProperty.call(formattedStats, stat._id)) {
         formattedStats[stat._id] = stat.count;
       }
     });
@@ -712,4 +755,3 @@ export const getOrderStats = async (req, res) => {
     });
   }
 };
-

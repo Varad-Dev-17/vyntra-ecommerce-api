@@ -3,14 +3,16 @@ import Order from "../models/order.js";
 import Product from "../models/product.js";
 import Variant from "../models/variant.js";
 import Address from "../models/address.js";
-
+import { addTimelineEvent, appendAdminNote, mergeAdminNotesSafe } from "../utils/timelineHelper.js";
+import { RETURN_REQUEST_POPULATE_CONFIG, formatAndFilterNotes } from "../utils/populateHelper.js";
+import { validateQcTransition, validateRefundTransition, validateReturnStatusTransition } from "../utils/returnValidationHelper.js";
 
 // CREATE RETURN/EXCHANGE REQUEST
 export const createReturnRequest = async (req, res) => {
   try {
     const userId = req.user.userId;
     const {
-      orderId, // This is the Order _id, not the orderId string
+      orderId, // Order _id
       productId,
       variantId,
       type,
@@ -134,8 +136,8 @@ export const createReturnRequest = async (req, res) => {
         });
       }
 
-      originalPrice = orderItem.price; 
-      exchangePrice = reqVariant.price;
+      originalPrice = orderItem.price || orderItem.sellingPrice || 0;
+      exchangePrice = reqVariant.price || 0;
       priceDifference = exchangePrice - originalPrice;
 
       if (priceDifference > 0) settlementType = "additional_payment";
@@ -143,8 +145,8 @@ export const createReturnRequest = async (req, res) => {
       else settlementType = "no_difference";
     }
 
-    // Create request
-    const returnRequest = await ReturnRequest.create({
+    // Create request with initial QC and Refund states
+    const returnRequest = new ReturnRequest({
       order: orderId,
       product: productId,
       originalVariant: variantId,
@@ -158,12 +160,25 @@ export const createReturnRequest = async (req, res) => {
       exchangePrice,
       priceDifference,
       settlementType,
+      qcStatus: "pending",
+      refundStatus: "not_required",
     });
+
+    // Automatically generate audit timeline event
+    addTimelineEvent(
+      returnRequest,
+      type === "exchange" ? "Exchange Requested" : "Return Requested",
+      `Customer submitted request. Reason: ${reason}`,
+      "Customer",
+      { reason, type, settlementType }
+    );
+
+    await returnRequest.save();
 
     return res.status(201).json({
       success: true,
       message: "Request submitted successfully",
-      data: returnRequest,
+      data: formatAndFilterNotes(returnRequest.toObject(), true),
     });
   } catch (error) {
     console.error("Create Return Request Error:", error);
@@ -187,10 +202,13 @@ export const getMyReturnRequests = async (req, res) => {
       .sort({ createdAt: -1 })
       .lean();
 
+    // Ensure customer-facing filtering (strip internal operational admin notes)
+    const sanitizedRequests = formatAndFilterNotes(requests, true);
+
     return res.status(200).json({
       success: true,
       message: "Requests fetched successfully",
-      data: requests,
+      data: sanitizedRequests,
     });
   } catch (error) {
     console.error("Get My Return Requests Error:", error);
@@ -208,8 +226,9 @@ export const getAllReturnRequestsAdmin = async (req, res) => {
     const {
       page = 1,
       limit = 10,
-      search = "",
       status,
+      qcStatus,
+      refundStatus,
       type,
       settlementType,
       startDate,
@@ -217,12 +236,9 @@ export const getAllReturnRequestsAdmin = async (req, res) => {
     } = req.query;
 
     const query = {};
-
-    // For search, we might need to populate and filter or just search request ID.
-    // Assuming request ID is just the _id for now, or we can add a custom ID field.
-    // If we want to search by Order ID or User, we need to populate.
-
     if (status) query.status = status;
+    if (qcStatus) query.qcStatus = qcStatus;
+    if (refundStatus) query.refundStatus = refundStatus;
     if (type) query.type = type;
     if (settlementType) query.settlementType = settlementType;
     if (startDate || endDate) {
@@ -238,7 +254,7 @@ export const getAllReturnRequestsAdmin = async (req, res) => {
     const [requests, total] = await Promise.all([
       ReturnRequest.find(query)
         .populate("user", "username email mobileNo gender")
-        .populate("order", "orderId createdAt paymentMethod paymentStatus")
+        .populate("order", "orderId createdAt paymentMethod paymentStatus status")
         .populate("product", "title brand")
         .populate({
           path: "originalVariant",
@@ -268,13 +284,15 @@ export const getAllReturnRequestsAdmin = async (req, res) => {
       pending: 0,
       approved: 0,
       rejected: 0,
+      pickup_scheduled: 0,
+      picked_up: 0,
       received: 0,
       refunded: 0,
       exchanged: 0,
       total: total
     };
     statsAggr.forEach(s => {
-      if (stats.hasOwnProperty(s._id)) {
+      if (Object.prototype.hasOwnProperty.call(stats, s._id)) {
         stats[s._id] = s.count;
       }
     });
@@ -283,7 +301,7 @@ export const getAllReturnRequestsAdmin = async (req, res) => {
       success: true,
       message: "Requests fetched successfully",
       data: {
-        requests,
+        requests: formatAndFilterNotes(requests, false), // False = Admin sees all confidential notes
         stats,
         pagination: {
           page: pageNum,
@@ -309,35 +327,7 @@ export const getReturnRequestByIdAdmin = async (req, res) => {
     const { id } = req.params;
 
     const request = await ReturnRequest.findById(id)
-      .populate("user", "username email mobileNo gender")
-      .populate({
-        path: "order",
-        select: "orderId createdAt paymentMethod paymentStatus items shippingAddress",
-        populate: {
-          path: "items.product items.variant"
-        }
-      })
-      .populate({
-        path: "product",
-        select: "title brand slug images price",
-        populate: { path: "brand", select: "name" }
-      })
-      .populate({
-        path: "originalVariant",
-        select: "mainImage attributes sku price",
-        populate: [
-          { path: "attributes.attribute" },
-          { path: "attributes.option" }
-        ]
-      })
-      .populate({
-        path: "requestedExchangeVariant",
-        select: "mainImage attributes sku price",
-        populate: [
-          { path: "attributes.attribute" },
-          { path: "attributes.option" }
-        ]
-      })
+      .populate(RETURN_REQUEST_POPULATE_CONFIG)
       .lean();
 
     if (!request) {
@@ -350,7 +340,7 @@ export const getReturnRequestByIdAdmin = async (req, res) => {
 
     // Fallback for older orders that missed pincode in schema
     if (request.order && request.order.shippingAddress && !request.order.shippingAddress.pincode) {
-      const userAddress = await Address.findOne({ userId: request.user._id, isDefault: true }) || await Address.findOne({ userId: request.user._id });
+      const userAddress = await Address.findOne({ userId: request.user?._id, isDefault: true }) || await Address.findOne({ userId: request.user?._id });
       if (userAddress) {
         request.order.shippingAddress.pincode = userAddress.pincode;
         if (!request.order.shippingAddress.state) request.order.shippingAddress.state = userAddress.state;
@@ -361,7 +351,7 @@ export const getReturnRequestByIdAdmin = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: "Return request fetched successfully",
-      data: request,
+      data: formatAndFilterNotes(request, false),
     });
   } catch (error) {
     console.error("Get Return Request Admin Error:", error);
@@ -377,7 +367,20 @@ export const getReturnRequestByIdAdmin = async (req, res) => {
 export const updateReturnRequestStatusAdmin = async (req, res) => {
   try {
     const { id } = req.params;
-    const { status, adminNotes } = req.body;
+    const {
+      status,
+      qcStatus,
+      qcReason,
+      refundStatus,
+      refundAmount,
+      refundMethod,
+      refundTransactionId,
+      refundFailureReason,
+      note,
+      adminNotes,
+      category,
+      visibleToCustomer
+    } = req.body;
 
     const request = await ReturnRequest.findById(id);
     if (!request) {
@@ -388,41 +391,140 @@ export const updateReturnRequestStatusAdmin = async (req, res) => {
       });
     }
 
-    if (adminNotes !== undefined) {
-      request.adminNotes = adminNotes;
+    // Evaluate proposed targets against current document state
+    const targetStatus = status !== undefined ? status : request.status;
+    const targetQcStatus = qcStatus !== undefined ? qcStatus : request.qcStatus;
+    const targetRefundStatus = refundStatus !== undefined ? refundStatus : request.refundStatus;
+
+    // 1. Validate QC transition rules
+    const qcValidation = validateQcTransition(request.status, targetStatus, targetQcStatus);
+    if (!qcValidation.isValid) {
+      return res.status(400).json({ success: false, message: qcValidation.message, data: null });
     }
 
-    if (status && status !== request.status) {
-      const validStatuses = ["pending", "approved", "rejected", "received", "refunded", "exchanged"];
-      if (!validStatuses.includes(status)) {
-        return res.status(400).json({
-          success: false,
-          message: "Invalid status",
-          data: null,
-        });
+    // 2. Validate Refund transition rules
+    const refundValidation = validateRefundTransition(request.refundStatus, targetRefundStatus, targetQcStatus, request.type);
+    if (!refundValidation.isValid) {
+      return res.status(400).json({ success: false, message: refundValidation.message, data: null });
+    }
+
+    // 3. Validate overall Return Request status transition rules
+    const statusValidation = validateReturnStatusTransition(request.status, targetStatus, targetQcStatus, request.type);
+    if (!statusValidation.isValid) {
+      return res.status(400).json({ success: false, message: statusValidation.message, data: null });
+    }
+
+    // Handle Admin Notes using strict APPEND-ONLY utilities
+    if (note && typeof note === "string" && note.trim() !== "") {
+      let adminName = "Admin";
+      if (req.user && req.user.userId) {
+        const User = (await import("../models/user.js")).default;
+        const adminUser = await User.findById(req.user.userId).select("username email").lean();
+        if (adminUser) adminName = adminUser.username || adminUser.email || "Admin";
+      }
+      appendAdminNote(
+        request,
+        note,
+        adminName,
+        category || "admin",
+        visibleToCustomer !== false && visibleToCustomer !== "false"
+      );
+    } else if (adminNotes && Array.isArray(adminNotes)) {
+      mergeAdminNotesSafe(request, adminNotes, "Admin");
+    }
+
+    // Handle Quality Check (QC) mutations & timeline generation
+    if (qcStatus && qcStatus !== request.qcStatus) {
+      request.qcStatus = qcStatus;
+      if (qcReason !== undefined) request.qcReason = qcReason;
+
+      const eventType = qcStatus === "passed" ? "QC Passed" : qcStatus === "failed" ? "QC Failed" : "QC Status Updated";
+      const desc = qcStatus === "failed"
+        ? `Quality inspection failed. Reason: ${qcReason || "Not specified"}`
+        : `Quality inspection completed successfully: ${qcStatus.toUpperCase()}`;
+
+      addTimelineEvent(request, eventType, desc, "Warehouse", { qcStatus, qcReason: qcReason || request.qcReason });
+    } else if (qcReason !== undefined && qcReason !== request.qcReason) {
+      request.qcReason = qcReason;
+    }
+
+    // Handle Refund status mutations & timeline generation
+    if (refundStatus && refundStatus !== request.refundStatus) {
+      request.refundStatus = refundStatus;
+      if (refundStatus === "completed" && !request.refundProcessedAt) {
+        request.refundProcessedAt = new Date();
       }
 
-      // Stock updates if exchanged
+      let eventType = "Refund Updated";
+      if (refundStatus === "initiated") eventType = "Refund Initiated";
+      else if (refundStatus === "processing") eventType = "Refund Processing";
+      else if (refundStatus === "completed") eventType = "Refund Completed";
+      else if (refundStatus === "failed") eventType = "Refund Failed";
+
+      let desc = `Refund status advanced to ${refundStatus.toUpperCase()}.`;
+      if (refundStatus === "failed" && (refundFailureReason || request.refundFailureReason)) {
+        desc += ` Failure Reason: ${refundFailureReason || request.refundFailureReason}`;
+      } else if (refundStatus === "completed") {
+        desc += ` Settled via ${refundMethod || request.refundMethod || "original mode"}.`;
+      }
+
+      addTimelineEvent(request, eventType, desc, "Finance", {
+        refundStatus,
+        refundAmount: refundAmount || request.refundAmount,
+        refundMethod: refundMethod || request.refundMethod,
+        refundTransactionId: refundTransactionId || request.refundTransactionId
+      });
+    }
+
+    if (refundAmount !== undefined) request.refundAmount = refundAmount;
+    if (refundMethod !== undefined) request.refundMethod = refundMethod;
+    if (refundTransactionId !== undefined) request.refundTransactionId = refundTransactionId;
+    if (refundFailureReason !== undefined) request.refundFailureReason = refundFailureReason;
+
+    // Handle Return Status mutations & timeline generation
+    if (status && status !== request.status) {
+      // Stock update rules if exchanged
       if (status === "exchanged" && request.status !== "exchanged" && request.type === "exchange") {
         const Variant = (await import("../models/variant.js")).default;
-        // Reduce stock of requested exchange variant
         if (request.requestedExchangeVariant) {
           await Variant.findByIdAndUpdate(request.requestedExchangeVariant, {
-            $inc: { stock: -1 }, // Assuming qty is 1 for now (schema doesn't have qty for returns currently)
+            $inc: { stock: -1 },
           });
         }
-        // Restock original variant? This depends on business logic if returned item is sellable. Let's not assume it's sellable.
       }
+
+      const eventMap = {
+        approved: ["Return Approved", "Request reviewed and approved by admin.", "Admin"],
+        rejected: ["Return Rejected", "Request reviewed and declined by admin.", "Admin"],
+        pickup_scheduled: ["Pickup Scheduled", "Logistics courier scheduled for collection.", "Warehouse"],
+        picked_up: ["Picked Up", "Item picked up by courier from customer location.", "Warehouse"],
+        received: ["Received", "Returned product received and logged at warehouse.", "Warehouse"],
+        refunded: ["Refund Completed", "Return closed and refund finalized.", "Finance"],
+        exchanged: ["Exchange Completed", "Replacement product dispatched and exchange fulfilled.", "Warehouse"]
+      };
+
+      const [evType, evDesc, perfBy] = eventMap[status] || [`Status Changed to ${status}`, `Status updated to ${status}.`, "Admin"];
+      addTimelineEvent(request, evType, evDesc, perfBy, { oldStatus: request.status, newStatus: status });
 
       request.status = status;
     }
 
     await request.save();
 
+    // Automatically synchronize Order's paymentStatus when refund is finalized
+    if ((request.refundStatus === "completed" || request.status === "refunded") && request.order) {
+      await Order.findByIdAndUpdate(request.order, { paymentStatus: "refunded" });
+    }
+
+    // Reload fully populated data
+    const populatedRequest = await ReturnRequest.findById(id)
+      .populate(RETURN_REQUEST_POPULATE_CONFIG)
+      .lean();
+
     return res.status(200).json({
       success: true,
       message: "Request updated successfully",
-      data: request,
+      data: formatAndFilterNotes(populatedRequest, false),
     });
   } catch (error) {
     console.error("Update Return Request Error:", error);
@@ -433,4 +535,3 @@ export const updateReturnRequestStatusAdmin = async (req, res) => {
     });
   }
 };
-
