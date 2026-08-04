@@ -30,8 +30,9 @@ const CustomerTrackingCard = ({ order = null }) => {
   };
 
   // Order Tracking Tracker
-  const orderSteps = ["pending", "processing", "shipped", "delivered"];
-  const currentOrderIdx = orderSteps.indexOf(status);
+  const orderSteps = ["pending", "packed", "shipped", "on_the_way", "delivered"];
+  const normalizedStatus = status === "processing" ? "packed" : status;
+  const currentOrderIdx = orderSteps.indexOf(normalizedStatus);
 
   const renderOrderTracker = () => (
     <div className="bg-white rounded-2xl border border-gray-200/80 p-6 shadow-xs space-y-6">
@@ -47,17 +48,18 @@ const CustomerTrackingCard = ({ order = null }) => {
         </div>
         <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${status === "delivered" ? "bg-green-50 text-green-700 border border-green-200" : isCancelled ? "bg-red-50 text-red-700 border border-red-200" : "bg-indigo-50 text-[#4F46E5] border border-indigo-200"
           }`}>
-          {status}
+          {status === "pending" ? "Order Placed" : status === "processing" ? "Packed" : status === "on_the_way" ? "On The Way" : status.replace(/_/g, " ")}
         </span>
       </div>
 
       {!isCancelled ? (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-2">
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 pt-2">
           {[
-            { label: "Ordered", desc: "OrderConfirmed", icon: Clock, idx: 0 },
-            { label: "Processing", desc: "Packed & Verified", icon: Package, idx: 1 },
-            { label: "Shipped", desc: order.trackingNumber ? `AWB: ${order.trackingNumber}` : "On the way", icon: Truck, idx: 2 },
-            { label: "Delivered", desc: "Package Received", icon: CheckCircle2, idx: 3 }
+            { label: "Order Placed", desc: "Confirmed", icon: Clock, idx: 0 },
+            { label: "Packed", desc: "Packed & Verified", icon: Package, idx: 1 },
+            { label: "Shipped", desc: order.trackingNumber ? `AWB: ${order.trackingNumber}` : "Dispatched", icon: Truck, idx: 2 },
+            { label: "On The Way", desc: "Out for Delivery", icon: Truck, idx: 3 },
+            { label: "Delivered", desc: "Package Received", icon: CheckCircle2, idx: 4 }
           ].map((s, i) => {
             const Icon = s.icon;
             const isCompleted = currentOrderIdx >= s.idx || status === "delivered";

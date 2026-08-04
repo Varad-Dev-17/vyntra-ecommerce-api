@@ -16,7 +16,9 @@ const OrdersSection = () => {
     total: 0,
     pending: 0,
     processing: 0,
+    packed: 0,
     shipped: 0,
+    on_the_way: 0,
     delivered: 0,
     cancelled: 0
   });
@@ -114,19 +116,34 @@ const OrdersSection = () => {
     const styles = {
       pending: "bg-orange-50 text-orange-600 border-orange-100 hover:bg-orange-100 cursor-pointer",
       processing: "bg-blue-50 text-blue-600 border-blue-100 hover:bg-blue-100 cursor-pointer",
-      shipped: "bg-green-50 text-green-600 border-green-100 hover:bg-green-100 cursor-pointer",
+      packed: "bg-blue-50 text-blue-600 border-blue-100 hover:bg-blue-100 cursor-pointer",
+      shipped: "bg-indigo-50 text-indigo-600 border-indigo-100 hover:bg-indigo-100 cursor-pointer",
+      on_the_way: "bg-purple-50 text-purple-600 border-purple-100 hover:bg-purple-100 cursor-pointer",
       delivered: "bg-emerald-50 text-emerald-600 border-emerald-100 cursor-default",
       cancelled: "bg-red-50 text-red-600 border-red-100 cursor-default",
     };
     
     const nextStatusMap = {
-      pending: 'processing',
+      pending: 'packed',
       processing: 'shipped',
-      shipped: 'delivered'
+      packed: 'shipped',
+      shipped: 'on_the_way',
+      on_the_way: 'delivered'
+    };
+
+    const displayLabelMap = {
+      pending: "Order Placed",
+      processing: "Packed",
+      packed: "Packed",
+      shipped: "Shipped",
+      on_the_way: "On The Way",
+      delivered: "Delivered",
+      cancelled: "Cancelled"
     };
     
     const style = styles[status] || "bg-gray-50 text-gray-500 border-gray-100 cursor-default";
     const nextStatus = nextStatusMap[status];
+    const displayLabel = displayLabelMap[status] || status;
     
     return (
       <div 
@@ -134,7 +151,7 @@ const OrdersSection = () => {
         title={nextStatus ? `Click to mark as ${nextStatus}` : ""}
         className={`inline-flex items-center justify-center px-3 py-1.5 rounded-md text-xs font-semibold border ${style} capitalize transition-colors shadow-sm`}
       >
-        {status}
+        {displayLabel}
       </div>
     );
   };
@@ -276,34 +293,34 @@ const OrdersSection = () => {
           </div>
         </div>
         
-        {/* Pending */}
+        {/* Pending / Order Placed */}
         <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm flex flex-col gap-2">
           <div className="flex items-center gap-3">
              <div className="w-10 h-10 rounded-full bg-orange-50 flex items-center justify-center text-orange-500 shrink-0 border border-orange-100">
                <Clock size={20} />
              </div>
              <div className="flex flex-col">
-               <p className="text-[11px] text-gray-500 font-semibold uppercase tracking-wide">Pending</p>
+               <p className="text-[11px] text-gray-500 font-semibold uppercase tracking-wide">Order Placed</p>
              </div>
           </div>
           <div className="flex items-end justify-between mt-1">
-             <h3 className="text-2xl font-bold text-gray-900 leading-none">{stats.pending}</h3>
+             <h3 className="text-2xl font-bold text-gray-900 leading-none">{stats.pending || 0}</h3>
              <p className="text-[10px] text-gray-400 font-medium">Orders</p>
           </div>
         </div>
 
-        {/* Processing */}
+        {/* Packed */}
         <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm flex flex-col gap-2">
           <div className="flex items-center gap-3">
              <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-500 shrink-0 border border-blue-100">
-               <Settings size={20} />
+               <Package size={20} />
              </div>
              <div className="flex flex-col">
-               <p className="text-[11px] text-gray-500 font-semibold uppercase tracking-wide">Processing</p>
+               <p className="text-[11px] text-gray-500 font-semibold uppercase tracking-wide">Packed</p>
              </div>
           </div>
           <div className="flex items-end justify-between mt-1">
-             <h3 className="text-2xl font-bold text-gray-900 leading-none">{stats.processing}</h3>
+             <h3 className="text-2xl font-bold text-gray-900 leading-none">{(stats.packed || 0) + (stats.processing || 0)}</h3>
              <p className="text-[10px] text-gray-400 font-medium">Orders</p>
           </div>
         </div>
@@ -319,7 +336,23 @@ const OrdersSection = () => {
              </div>
           </div>
           <div className="flex items-end justify-between mt-1">
-             <h3 className="text-2xl font-bold text-gray-900 leading-none">{stats.shipped}</h3>
+             <h3 className="text-2xl font-bold text-gray-900 leading-none">{stats.shipped || 0}</h3>
+             <p className="text-[10px] text-gray-400 font-medium">Orders</p>
+          </div>
+        </div>
+
+        {/* On The Way */}
+        <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm flex flex-col gap-2">
+          <div className="flex items-center gap-3">
+             <div className="w-10 h-10 rounded-full bg-purple-50 flex items-center justify-center text-purple-500 shrink-0 border border-purple-100">
+               <Box size={20} />
+             </div>
+             <div className="flex flex-col">
+               <p className="text-[11px] text-gray-500 font-semibold uppercase tracking-wide">On The Way</p>
+             </div>
+          </div>
+          <div className="flex items-end justify-between mt-1">
+             <h3 className="text-2xl font-bold text-gray-900 leading-none">{stats.on_the_way || 0}</h3>
              <p className="text-[10px] text-gray-400 font-medium">Orders</p>
           </div>
         </div>
@@ -383,9 +416,10 @@ const OrdersSection = () => {
                   className="px-3 py-2 bg-white border border-gray-200 rounded-lg outline-none focus:ring-1 focus:ring-[#4648d4] text-[13px] text-gray-700 cursor-pointer w-[140px]"
                 >
                   <option value="">All Status</option>
-                  <option value="pending">Pending</option>
-                  <option value="processing">Processing</option>
+                  <option value="pending">Order Placed</option>
+                  <option value="packed">Packed</option>
                   <option value="shipped">Shipped</option>
+                  <option value="on_the_way">On The Way</option>
                   <option value="delivered">Delivered</option>
                   <option value="cancelled">Cancelled</option>
                 </select>

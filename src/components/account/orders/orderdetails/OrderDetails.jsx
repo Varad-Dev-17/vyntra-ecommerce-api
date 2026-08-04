@@ -55,12 +55,16 @@ const OrderDetails = () => {
     switch (status?.toLowerCase()) {
       case "delivered":
         return "bg-green-600";
+      case "on_the_way":
       case "shipped":
         return "bg-purple-600";
+      case "packed":
+      case "processing":
+        return "bg-blue-600";
       case "cancelled":
         return "bg-red-600";
       default:
-        return "bg-yellow-600";
+        return "bg-amber-600";
     }
   };
 
@@ -74,7 +78,16 @@ const OrderDetails = () => {
 
   if (!order) return null;
 
-  const statusDisplay = order.status.charAt(0).toUpperCase() + order.status.slice(1);
+  const statusDisplayMap = {
+    pending: "Order Placed",
+    processing: "Packed",
+    packed: "Packed",
+    shipped: "Shipped",
+    on_the_way: "On The Way",
+    delivered: "Delivered",
+    cancelled: "Cancelled"
+  };
+  const statusDisplay = statusDisplayMap[order.status?.toLowerCase()] || (order.status.charAt(0).toUpperCase() + order.status.slice(1).replace(/_/g, " "));
 
   return (
     <div className="max-w-3xl mx-auto py-6 px-4 sm:px-6">
@@ -156,7 +169,7 @@ const OrderDetails = () => {
                     <Package className="w-5 h-5" />
                   </div>
                   <div className="text-white">
-                    <h4 className="font-bold text-[14px]">Item {statusDisplay}</h4>
+                    <h4 className="font-bold text-[14px]">Status: {statusDisplay}</h4>
                     <p className="text-[12px] opacity-90 mt-0.5">
                       On {new Date(order.createdAt).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
                     </p>

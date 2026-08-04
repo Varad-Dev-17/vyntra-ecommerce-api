@@ -186,25 +186,26 @@ const AdminCaseDetailsPage = () => {
   const activeStatus = activeEntity?.status || "pending";
 
   const orderStatusOptions = [
-    { value: "pending", label: "1. Order Placed (Pending)" },
-    { value: "processing", label: "2. Processing & Packed" },
-    { value: "shipped", label: "3. Shipped & In Transit" },
-    { value: "delivered", label: "4. Delivered Successfully" },
-    { value: "cancelled", label: "Cancelled / Aborted" },
+    { value: "pending", label: "1. Order Placed" },
+    { value: "packed", label: "2. Packed" },
+    { value: "shipped", label: "3. Shipped" },
+    { value: "on_the_way", label: "4. On The Way" },
+    { value: "delivered", label: "5. Delivered" },
+    { value: "cancelled", label: "Cancel" },
   ];
 
   const isExchangeCase = returnData?.type === "exchange";
   const returnStatusOptions = [
-    { value: "pending", label: "0. Pending Admin Review" },
+    { value: "pending", label: "0. Pending" },
     { value: "approved", label: "1. Request Approved" },
     { value: "pickup_scheduled", label: "2. Pickup Scheduled" },
-    { value: "picked_up", label: "3. Picked Up by Courier" },
-    { value: "received", label: "4. Received at Warehouse" },
+    { value: "picked_up", label: "3. Picked Up" },
+    { value: "received", label: "4. Received" },
     ...(isExchangeCase 
-      ? [{ value: "exchanged", label: "5. Replacement Dispatched (Exchanged)" }] 
-      : [{ value: "refunded", label: "5. Refund Completed (Refunded)" }]
+      ? [{ value: "exchanged", label: "5.Exchanged" }] 
+      : [{ value: "refunded", label: "5. Refund Completed" }]
     ),
-    { value: "rejected", label: "Rejected / Declined" },
+    { value: "rejected", label: "Rejected" },
   ];
 
   const headerTitle = isReturnView

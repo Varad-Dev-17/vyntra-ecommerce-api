@@ -27,7 +27,7 @@ const OrdersSection = () => {
     setIsLoading(true);
     try {
       let endpoint = `/orders/my-orders?`;
-      if (status && status !== 'all') endpoint += `status=${status}&`;
+      if (status && status !== 'all' && status !== 'return_exchange') endpoint += `status=${status}&`;
       if (time && time !== 'anytime') endpoint += `time=${time}&`;
 
       const [ordersRes, requestsRes] = await Promise.all([
@@ -94,6 +94,16 @@ const OrdersSection = () => {
   const orderItems = [];
   orders.forEach(order => {
     order.items.forEach(item => {
+      const returnRequest = returnRequests.find(req => 
+        (req.order?._id || req.order) === order._id && 
+        (req.product?._id || req.product) === (item.product?._id || item.product) &&
+        (req.originalVariant?._id || req.originalVariant) === (item.variant?._id || item.variant)
+      );
+
+      if (activeFilterStatus === 'return_exchange' && !returnRequest) {
+        return;
+      }
+
       orderItems.push({ order, item });
     });
   });
@@ -102,8 +112,12 @@ const OrdersSection = () => {
     switch (status.toLowerCase()) {
       case 'delivered':
         return <CheckCircle2 className="w-5 h-5 text-green-600" />;
+      case 'on_the_way':
       case 'shipped':
         return <Truck className="w-5 h-5 text-purple-600" />;
+      case 'packed':
+      case 'processing':
+        return <Package className="w-5 h-5 text-blue-600" />;
       case 'cancelled':
         return <X className="w-5 h-5 text-red-600" />;
       default:
@@ -115,12 +129,16 @@ const OrdersSection = () => {
     switch (status.toLowerCase()) {
       case 'delivered':
         return 'text-green-600';
+      case 'on_the_way':
       case 'shipped':
         return 'text-purple-600';
+      case 'packed':
+      case 'processing':
+        return 'text-blue-600';
       case 'cancelled':
         return 'text-red-600';
       default:
-        return 'text-[#d97706]'; // orange for processing/pending
+        return 'text-[#d97706]';
     }
   };
 
@@ -131,10 +149,9 @@ const OrdersSection = () => {
         <div className="flex items-center gap-4 sm:gap-8 overflow-x-auto no-scrollbar -mb-px">
           {[
             { id: 'all', label: 'All Orders' },
-            { id: 'processing', label: 'Processing' },
-            { id: 'shipped', label: 'Shipped' },
             { id: 'delivered', label: 'Delivered' },
-            { id: 'cancelled', label: 'Cancelled' }
+            { id: 'cancelled', label: 'Cancelled' },
+            { id: 'return_exchange', label: 'Return / Exchange' }
           ].map((tab) => {
             const isActive = activeFilterStatus === tab.id;
             return (
@@ -206,10 +223,17 @@ const OrdersSection = () => {
             const statusDisplay = order.status.charAt(0).toUpperCase() + order.status.slice(1);
             
             const activeRequest = returnRequests.find(req => 
-              req.order === order._id && 
+              (req.order?._id || req.order) === order._id && 
               (req.product?._id || req.product) === (item.product?._id || item.product) &&
               (req.originalVariant?._id || req.originalVariant) === (item.variant?._id || item.variant) &&
               !['rejected', 'refunded', 'exchanged'].includes(req.status)
+            );
+            
+            const completedRequest = returnRequests.find(req => 
+              (req.order?._id || req.order) === order._id && 
+              (req.product?._id || req.product) === (item.product?._id || item.product) &&
+              (req.originalVariant?._id || req.originalVariant) === (item.variant?._id || item.variant) &&
+              ['refunded', 'exchanged'].includes(req.status)
             );
             
             const eligibility = getReturnEligibility(order, item, activeRequest);
@@ -240,9 +264,14 @@ const OrdersSection = () => {
                         <span>Delivered on: {new Date(deliveryDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
                         <CheckCircle2 className="w-4 h-4 text-green-600 shrink-0" />
                       </div>
-                    ) : order.status === 'shipped' ? (
+                    ) : order.status === 'on_the_way' ? (
                       <div className="flex items-center gap-1.5 text-purple-600">
-                        <span>Shipped (On the way)</span>
+                        <span>On The Way (Out for Delivery)</span>
+                        <Truck className="w-4 h-4 shrink-0" />
+                      </div>
+                    ) : order.status === 'shipped' ? (
+                      <div className="flex items-center gap-1.5 text-indigo-600">
+                        <span>Shipped</span>
                         <Truck className="w-4 h-4 shrink-0" />
                       </div>
                     ) : order.status === 'cancelled' ? (
@@ -250,9 +279,14 @@ const OrdersSection = () => {
                         <span>Cancelled on: {new Date(order.updatedAt || order.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
                         <X className="w-4 h-4 shrink-0" />
                       </div>
+                    ) : order.status === 'packed' || order.status === 'processing' ? (
+                      <div className="flex items-center gap-1.5 text-blue-600">
+                        <span>Packed</span>
+                        <Package className="w-4 h-4 shrink-0" />
+                      </div>
                     ) : (
                       <div className="flex items-center gap-1.5 text-amber-600">
-                        <span className="capitalize">{order.status || 'Processing'} Order</span>
+                        <span>Order Placed</span>
                         <Clock className="w-4 h-4 shrink-0 animate-pulse" />
                       </div>
                     )}
@@ -279,13 +313,33 @@ const OrdersSection = () => {
                             <RefreshCw className="w-3 h-3 animate-spin-slow text-[#4F46E5]" />
                             {activeRequest.type === 'exchange' ? 'Exchange' : 'Return'} Requested
                           </span>
+                        ) : completedRequest ? (
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${
+                            completedRequest.status === 'exchanged' 
+                              ? 'bg-purple-50 text-purple-700 border-purple-200' 
+                              : 'bg-green-50 text-green-700 border-green-200'
+                          }`}>
+                            {completedRequest.status === 'exchanged' ? 'Exchanged' : 'Returned & Refunded'}
+                          </span>
                         ) : order.status === 'delivered' ? (
                           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-200">
                             Delivered
                           </span>
+                        ) : order.status === 'on_the_way' ? (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-200">
+                            On The Way
+                          </span>
                         ) : order.status === 'shipped' ? (
                           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-50 text-purple-700 border border-purple-200">
                             Shipped
+                          </span>
+                        ) : order.status === 'packed' || order.status === 'processing' ? (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200">
+                            Packed
+                          </span>
+                        ) : order.status === 'pending' ? (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200">
+                            Order Placed
                           </span>
                         ) : null}
                       </div>
@@ -332,7 +386,7 @@ const OrdersSection = () => {
 
                   {/* Right Actions Column - Button Stack without Rate & Review */}
                   <div className="w-full sm:w-52 shrink-0 flex flex-col gap-2.5 justify-center border-t sm:border-t-0 pt-4 sm:pt-0 border-gray-100">
-                    {(order.status === 'pending' || order.status === 'processing') && (
+                    {(order.status === 'pending' || order.status === 'processing' || order.status === 'packed') && (
                       <button
                         onClick={(e) => handleCancelOrder(e, order._id)}
                         className="w-full py-1.5 px-4 text-sm font-medium text-red-600 border border-red-200 rounded-md hover:bg-red-50 transition-colors"
@@ -341,7 +395,7 @@ const OrdersSection = () => {
                       </button>
                     )}
 
-                    {order.status === 'delivered' && (
+                    {order.status === 'delivered' && !completedRequest && (
                       <ReturnExchangeButton 
                         orderId={order._id} 
                         productId={item.product?._id || item.product} 
@@ -391,11 +445,9 @@ const OrdersSection = () => {
                 <div className="space-y-3">
                   {[
                     { id: 'all', label: 'All' },
-                    { id: 'pending', label: 'Pending' },
-                    { id: 'processing', label: 'Processing' },
-                    { id: 'shipped', label: 'Shipped (On the way)' },
                     { id: 'delivered', label: 'Delivered' },
-                    { id: 'cancelled', label: 'Cancelled' }
+                    { id: 'cancelled', label: 'Cancelled' },
+                    { id: 'return_exchange', label: 'Return / Exchange' }
                   ].map((option) => (
                     <label key={option.id} className="flex items-center gap-3 cursor-pointer group">
                       <div className={`w-5 h-5 rounded-full border flex items-center justify-center transition-colors ${tempStatus === option.id ? 'border-[#4F46E5] bg-[#4F46E5]' : 'border-gray-300 group-hover:border-gray-400'}`}>

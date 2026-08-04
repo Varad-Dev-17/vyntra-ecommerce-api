@@ -26,13 +26,14 @@ const OrderTimelineSection = ({ order = {}, returnRequest = null, onUpdateStatus
     }
   };
 
-  const stepsOrder = ["pending", "processing", "shipped", "delivered"];
-  const currentIndex = stepsOrder.indexOf(status);
+  const stepsOrder = ["pending", "packed", "shipped", "on_the_way", "delivered"];
+  const normalizedStatus = status === "processing" ? "packed" : status;
+  const currentIndex = stepsOrder.indexOf(normalizedStatus);
 
-  // 1. Existing Milestone Tracker Steps (UNCHANGED)
+  // 1. Milestone Tracker Steps
   const milestoneSteps = [
     {
-      title: "Ordered",
+      title: "Order Placed",
       date: formatDate(order.createdAt),
       subtitle: "Order placed by customer & confirmed.",
       isCompleted: !isCancelled && (currentIndex >= 0 || status === "delivered"),
@@ -44,8 +45,8 @@ const OrderTimelineSection = ({ order = {}, returnRequest = null, onUpdateStatus
       date: currentIndex >= 1 ? formatDate(order.updatedAt) : "",
       subtitle: "Items inspected & securely packaged.",
       isCompleted: !isCancelled && currentIndex >= 1,
-      isCurrent: status === "processing",
-      actionValue: "processing",
+      isCurrent: status === "packed" || status === "processing",
+      actionValue: "packed",
     },
     {
       title: "Shipped",
@@ -54,6 +55,14 @@ const OrderTimelineSection = ({ order = {}, returnRequest = null, onUpdateStatus
       isCompleted: !isCancelled && currentIndex >= 2,
       isCurrent: status === "shipped",
       actionValue: "shipped",
+    },
+    {
+      title: "On The Way",
+      date: currentIndex >= 3 ? formatDate(order.updatedAt) : "",
+      subtitle: "Package out for delivery and arriving soon.",
+      isCompleted: !isCancelled && currentIndex >= 3,
+      isCurrent: status === "on_the_way",
+      actionValue: "on_the_way",
     },
     {
       title: "Delivered",

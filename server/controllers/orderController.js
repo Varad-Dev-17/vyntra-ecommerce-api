@@ -502,7 +502,7 @@ export const updateOrderStatus = async (req, res) => {
     const { id } = req.params;
     const { status, paymentStatus, trackingNumber, note, adminNotes, category, visibleToCustomer } = req.body;
 
-    const validStatuses = ["pending", "processing", "shipped", "delivered", "cancelled"];
+    const validStatuses = ["pending", "processing", "packed", "shipped", "on_the_way", "delivered", "cancelled"];
     const validPaymentStatuses = ["pending", "paid", "failed", "refunded"];
 
     const order = await Order.findById(id);
@@ -540,9 +540,11 @@ export const updateOrderStatus = async (req, res) => {
 
       const currentStatus = order.status;
       const transitionRules = {
-        pending: ["processing", "cancelled"],
-        processing: ["shipped", "cancelled"],
-        shipped: ["delivered", "cancelled"],
+        pending: ["processing", "packed", "shipped", "on_the_way", "delivered", "cancelled"],
+        processing: ["packed", "shipped", "on_the_way", "delivered", "cancelled"],
+        packed: ["shipped", "on_the_way", "delivered", "cancelled"],
+        shipped: ["on_the_way", "delivered", "cancelled"],
+        on_the_way: ["delivered", "cancelled"],
         delivered: [],
         cancelled: [],
       };
@@ -579,7 +581,9 @@ export const updateOrderStatus = async (req, res) => {
 
       const eventMap = {
         processing: ["Processing Started", "Order items inspected and packaging started.", "Warehouse"],
+        packed: ["Order Packed", "Order items have been inspected, verified, and securely packed.", "Warehouse"],
         shipped: ["Shipped", `Order handed over to delivery partner.${trackingNumber || order.trackingNumber ? ` AWB/Tracking: ${trackingNumber || order.trackingNumber}` : ""}`, "Warehouse"],
+        on_the_way: ["On The Way", "Order is out for delivery and arriving soon.", "Courier"],
         delivered: ["Delivered", "Order package successfully delivered to customer.", "Warehouse"],
         cancelled: ["Cancelled", "Order cancelled by admin and item stock restored.", "Admin"]
       };
@@ -730,13 +734,17 @@ export const getOrderStats = async (req, res) => {
       total: totalOrders,
       pending: 0,
       processing: 0,
+      packed: 0,
       shipped: 0,
+      on_the_way: 0,
       delivered: 0,
       cancelled: 0
     };
 
     stats.forEach(stat => {
-      if (Object.prototype.hasOwnProperty.call(formattedStats, stat._id)) {
+      if (stat._id === 'processing') {
+        formattedStats.packed = (formattedStats.packed || 0) + stat.count;
+      } else if (Object.prototype.hasOwnProperty.call(formattedStats, stat._id)) {
         formattedStats[stat._id] = stat.count;
       }
     });
