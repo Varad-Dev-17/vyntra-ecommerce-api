@@ -57,7 +57,7 @@ const ShopProductCard = ({ product }) => {
       className="group flex flex-col h-full cursor-pointer relative bg-white"
       {...handlers}
     >
-      <Link to={`/product/${product.slug}${product.variantId ? `?variant=${product.variantId}` : (product.colorName && product.colorName !== 'default' ? `?color=${encodeURIComponent(product.colorName)}` : '')}`} className="block relative w-full aspect-[4/5] overflow-hidden rounded-[10px] bg-gray-100 shadow-sm transition-shadow duration-[300ms] group-hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)]">
+      <Link to={`/product/${product.slug}${product.variantId ? `?variant=${product.variantId}` : (product.colorName && product.colorName !== 'default' ? `?color=${encodeURIComponent(product.colorName)}` : '')}`} className="block relative w-full aspect-[4/5] overflow-hidden rounded-none bg-gray-100 shadow-sm transition-shadow duration-[300ms] group-hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)]">
 
         {/* Images Carousel */}
         {product.images && product.images.length > 0 ? (

@@ -223,7 +223,7 @@ const ProductsPage = () => {
   return (
     <ShopLayout
       sidebar={
-        <div className="bg-[#FFFFFF] border border-[#E5E7EB] rounded-[14px] shadow-[0_2px_10px_rgba(0,0,0,0.02)] p-5 sm:p-6 transition-all duration-300 max-h-[calc(100vh-96px)] overflow-y-auto">
+        <div className="bg-[#FFFFFF] border border-[#E5E7EB] rounded-none shadow-[0_2px_10px_rgba(0,0,0,0.02)] p-5 sm:p-6 transition-all duration-300 max-h-[calc(100vh-96px)] overflow-y-auto">
           <FilterSidebar 
             departments={departmentsList}
             activeDepartment={activeDepartment}
@@ -249,7 +249,7 @@ const ProductsPage = () => {
         </div>
       }
     >
-      <div className="bg-[#FFFFFF] border border-[#E5E7EB] rounded-[16px] shadow-[0_2px_10px_rgba(0,0,0,0.02)] min-h-[300px] lg:min-h-[600px] p-6 lg:p-8 transition-all duration-300 flex flex-col">
+      <div className="bg-[#FFFFFF] border border-[#E5E7EB] rounded-none shadow-[0_2px_10px_rgba(0,0,0,0.02)] min-h-[300px] lg:min-h-[600px] p-6 lg:p-8 transition-all duration-300 flex flex-col">
         {!loading && !error && products.length > 0 && (
           <ShopToolbar 
             totalProducts={totalProducts} 
