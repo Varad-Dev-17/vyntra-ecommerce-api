@@ -24,24 +24,20 @@ api.interceptors.request.use((config) => {
 });
 
 const ProductsPage = () => {
-  // Main Data States
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Pagination & Count States
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalProducts, setTotalProducts] = useState(0);
   const [limit, setLimit] = useState(12);
 
-  // Available Filter Options
   const [departmentsList, setDepartmentsList] = useState([]);
   const [categoriesList, setCategoriesList] = useState([]); 
   const [brandsList, setBrandsList] = useState([]);
   const [colorsList, setColorsList] = useState([]);
 
-  // Active Filter States
   const [activeDepartment, setActiveDepartment] = useState("all");
   const [activeCategory, setActiveCategory] = useState("all");
   const [activeBrands, setActiveBrands] = useState([]);
@@ -52,20 +48,17 @@ const ProductsPage = () => {
   
   const { updateCartCount } = useCart();
 
-  // Initial Data Fetching
   useEffect(() => {
     fetchDepartments();
     fetchColors();
     fetchCartCount();
   }, []);
 
-  // Fetch Categories & Brands when Department changes
   useEffect(() => {
     fetchCategories();
     fetchBrands();
   }, [activeDepartment, departmentsList]);
 
-  // Fetch Products when filters change
   useEffect(() => {
     fetchProducts();
   }, [activeDepartment, activeCategory, activeBrands, activeColors, priceRange, currentPage, limit, sort]);
@@ -129,7 +122,6 @@ const ProductsPage = () => {
       const res = await api.get("/attribute-options");
       if (res.data.success) {
         const allOptions = res.data.options || [];
-        // Filter options that belong to a "color" attribute
         const colorOpts = allOptions.filter(opt => 
           opt.attribute?.name?.toLowerCase() === "color" || 
           opt.hex !== undefined
@@ -192,10 +184,8 @@ const ProductsPage = () => {
     }
   };
 
-  // Handlers
   const handleDepartmentChange = (deptName) => {
     setActiveDepartment(deptName);
-    // Reset dependent filters
     setActiveCategory("all");
     setActiveBrands([]);
     setCurrentPage(1);
@@ -233,7 +223,7 @@ const ProductsPage = () => {
   return (
     <ShopLayout
       sidebar={
-        <div className="bg-[#FFFFFF] border border-[#E5E7EB] rounded-[14px] shadow-[0_2px_10px_rgba(0,0,0,0.02)] p-3.5 sm:p-4 transition-all duration-300 max-h-[calc(100vh-96px)] overflow-y-auto">
+        <div className="bg-[#FFFFFF] border border-[#E5E7EB] rounded-[14px] shadow-[0_2px_10px_rgba(0,0,0,0.02)] p-5 sm:p-6 transition-all duration-300 max-h-[calc(100vh-96px)] overflow-y-auto">
           <FilterSidebar 
             departments={departmentsList}
             activeDepartment={activeDepartment}
