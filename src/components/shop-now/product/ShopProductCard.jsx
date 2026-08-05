@@ -85,10 +85,12 @@ const ShopProductCard = ({ product }) => {
             <div className="bg-red-500/90 backdrop-blur-sm px-2 py-1 rounded-full shadow-sm text-[11px] font-bold text-white uppercase tracking-wide">
               Out of Stock
             </div>
-          ) : product.rating ? (
-            <div className="flex items-center gap-1 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full shadow-sm text-[11px] font-bold text-[#111827]">
-              <Star size={12} className="fill-[#111827] text-[#111827]" />
-              {product.rating}
+          ) : (product.rating || product.ratingAverage > 0) ? (
+            <div className="flex items-center gap-1.5 bg-white/95 backdrop-blur-sm px-2 py-1 rounded shadow-sm text-[11px] font-extrabold text-[#111827]">
+              <span>{Math.round((product.rating || product.ratingAverage) * 10) / 10}</span>
+              <Star size={11} className="fill-[#FFB800] text-[#FFB800] -ml-0.5" />
+              <span className="text-gray-300 font-normal">|</span>
+              <span className="text-[#111827] font-bold">{product.ratingCount || product.reviewCount || product.numReviews || 1}</span>
             </div>
           ) : (
             <div className="bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full shadow-sm text-[11px] font-bold text-[#111827] uppercase tracking-wide">

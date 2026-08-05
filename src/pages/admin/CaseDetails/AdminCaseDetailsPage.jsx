@@ -92,6 +92,24 @@ const AdminCaseDetailsPage = () => {
     }
   };
 
+  // Item status update handler for split shipments / item-level control
+  const handleUpdateItemStatus = async (itemId, newStatus) => {
+    if (!newStatus || !orderData) return;
+    setIsUpdatingStatus(true);
+    try {
+      const res = await api.patch(`/admin/orders/${orderData._id || id}/item-status`, { itemId, status: newStatus });
+      if (res.data.success) {
+        toast.success(`Item status updated to ${newStatus.toUpperCase()}`);
+        setOrderData(res.data.data || { ...orderData });
+      }
+    } catch (err) {
+      console.error("Failed to update item status:", err);
+      toast.error(err.response?.data?.message || "Failed to update item status");
+    } finally {
+      setIsUpdatingStatus(false);
+    }
+  };
+
   // Dedicated return request quick status transition
   const handleUpdateReturnStatus = async (newReturnStatus) => {
     if (!returnData) return;
@@ -190,6 +208,7 @@ const AdminCaseDetailsPage = () => {
     { value: "shipped", label: "3. Shipped" },
     { value: "on_the_way", label: "4. On The Way" },
     { value: "delivered", label: "5. Delivered" },
+    { value: "delayed", label: "⚠️ Delayed" },
     { value: "cancelled", label: "Cancel" },
   ];
 
@@ -251,12 +270,14 @@ const AdminCaseDetailsPage = () => {
             returnItem={returnData ? {
               product: returnData.product,
               title: returnData.product?.title,
-              price: returnData.product?.price || returnData.originalVariant?.price,
+              price: returnData.originalPrice ?? returnData.product?.sellingPrice ?? returnData.product?.price ?? returnData.originalVariant?.price ?? 0,
               variant: returnData.originalVariant,
               quantity: 1
             } : null}
             returnRequest={returnData}
+            isReturnView={isReturnView}
             onUpdateStatus={handleUpdateStatus}
+            onUpdateItemStatus={handleUpdateItemStatus}
           />
 
           {returnData && (

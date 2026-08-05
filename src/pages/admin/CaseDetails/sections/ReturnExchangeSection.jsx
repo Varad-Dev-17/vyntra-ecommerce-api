@@ -34,7 +34,9 @@ const ReturnExchangeSection = ({ returnRequest = null, onUpdateRequestStatus = n
 
   const isPending = status === "pending";
   const isRejected = status === "rejected";
-  const isApprovedOrLater = ["approved", "pickup_scheduled", "picked_up", "received", "refunded", "exchanged"].includes(status);
+  const isApprovedOrLater = ["approved", "packed", "shipped", "pickup_scheduled", "picked_up", "received", "refunded", "exchanged"].includes(status);
+  const isPackedOrLater = ["packed", "shipped", "pickup_scheduled", "picked_up", "received", "refunded", "exchanged"].includes(status);
+  const isShippedOrLater = ["shipped", "pickup_scheduled", "picked_up", "received", "refunded", "exchanged"].includes(status);
   const isPickupScheduledOrLater = ["pickup_scheduled", "picked_up", "received", "refunded", "exchanged"].includes(status);
   const isPickedUpOrLater = ["picked_up", "received", "refunded", "exchanged"].includes(status);
   const isReceivedOrLater = ["received", "refunded", "exchanged"].includes(status);
@@ -55,10 +57,60 @@ const ReturnExchangeSection = ({ returnRequest = null, onUpdateRequestStatus = n
     }
   };
 
-  // Build granular Phase 1 Request processing timeline
-  const steps = [
+  // Build granular Request processing timeline
+  const steps = type === "exchange" ? [
     {
-      title: `${type === "exchange" ? "Exchange" : "Return"} Requested`,
+      title: "Exchange Requested",
+      date: formatDate(returnRequest.createdAt),
+      subtitle: `Reason: ${reason}`,
+      isCompleted: true,
+    },
+    {
+      title: "Approved",
+      date: formatDate(returnRequest.updatedAt || returnRequest.createdAt),
+      subtitle: isRejected ? "Request reviewed and declined." : isApprovedOrLater ? "Verified and replacement item reserved." : "Pending inspection of customer photos.",
+      isCompleted: isApprovedOrLater,
+      isCurrent: isPending,
+      isError: isRejected,
+    },
+    {
+      title: "Packed",
+      date: isPackedOrLater ? formatDate(returnRequest.updatedAt) : "",
+      subtitle: "Replacement product packed and verified at facility.",
+      isCompleted: isPackedOrLater,
+      isCurrent: status === "approved",
+    },
+    {
+      title: "Shipped",
+      date: isShippedOrLater ? formatDate(returnRequest.updatedAt) : "",
+      subtitle: "Replacement product dispatched via logistics carrier.",
+      isCompleted: isShippedOrLater,
+      isCurrent: status === "packed",
+    },
+    {
+      title: "Out for Exchange",
+      date: isPickupScheduledOrLater ? formatDate(returnRequest.updatedAt) : "",
+      subtitle: "Courier en route with replacement product for swap.",
+      isCompleted: isPickupScheduledOrLater,
+      isCurrent: status === "shipped" || status === "approved",
+    },
+    {
+      title: "Quality Check",
+      date: isPickedUpOrLater ? formatDate(returnRequest.updatedAt) : "",
+      subtitle: "Courier verifying product condition and brand tags at doorstep.",
+      isCompleted: isPickedUpOrLater,
+      isCurrent: status === "pickup_scheduled",
+    },
+    {
+      title: "Exchanged",
+      date: isCompleted ? formatDate(returnRequest.updatedAt) : "",
+      subtitle: "Doorstep Quality Check passed and replacement item handed over.",
+      isCompleted: isCompleted,
+      isCurrent: status === "picked_up" || status === "received",
+    }
+  ] : [
+    {
+      title: "Return Requested",
       date: formatDate(returnRequest.createdAt),
       subtitle: `Reason: ${reason}`,
       isCompleted: true,
@@ -93,9 +145,9 @@ const ReturnExchangeSection = ({ returnRequest = null, onUpdateRequestStatus = n
       isCurrent: status === "picked_up",
     },
     {
-      title: type === "exchange" ? "Exchange Completed" : "Refund Completed",
+      title: "Refund Completed",
       date: isCompleted ? formatDate(returnRequest.updatedAt) : "",
-      subtitle: type === "exchange" ? "Replacement item dispatched." : "Refund settled to customer account.",
+      subtitle: "Refund settled to customer account.",
       isCompleted: isCompleted,
       isCurrent: status === "received",
     },

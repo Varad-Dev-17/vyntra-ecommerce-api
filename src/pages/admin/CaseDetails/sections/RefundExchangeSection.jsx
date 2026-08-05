@@ -48,7 +48,7 @@ const RefundExchangeSection = ({ returnRequest = null, order = {}, onUpdateRefun
     return {
       sku: v.sku || null,
       image: img,
-      price: v.price || returnRequest.product?.price || 0,
+      price: Number(v.price ?? v.sellingPrice ?? v.mrp ?? returnRequest.product?.price ?? returnRequest.product?.sellingPrice ?? returnRequest.product?.mrp ?? 0) || 0,
       size: size || null,
       color: color || null,
     };
@@ -88,27 +88,7 @@ const RefundExchangeSection = ({ returnRequest = null, order = {}, onUpdateRefun
     });
   }
 
-  // Exchange Timeline
-  const exchangeSteps = [
-    {
-      title: "Exchange Verified",
-      subtitle: "Replacement item reserved in inventory.",
-      isCompleted: ["approved", "received", "exchanged"].includes(status),
-      isCurrent: status === "approved",
-    },
-    {
-      title: "Replacement Dispatched",
-      subtitle: "New variant item packaged for delivery.",
-      isCompleted: isExchanged,
-      isCurrent: status === "received",
-    },
-    {
-      title: "Exchange Completed",
-      subtitle: "New item delivered to customer.",
-      isCompleted: isExchanged,
-      isCurrent: isExchanged,
-    },
-  ];
+  // (Exchange fulfillment timeline is tracked natively in ReturnExchangeSection)
 
   const formatDate = (dateVal) => {
     if (!dateVal) return "Pending Settlement";
@@ -223,10 +203,10 @@ const RefundExchangeSection = ({ returnRequest = null, order = {}, onUpdateRefun
 
       {/* EXCHANGE COMPARISON */}
       {type === "exchange" ? (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start pt-2">
+        <div className="w-full pt-2">
           
-          {/* 2 Columns for Variant Side-by-Side Comparison */}
-          <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-6 bg-gradient-to-r from-gray-50 via-white to-indigo-50/30 p-6 rounded-2xl border border-gray-200/80 shadow-2xs relative">
+          {/* Side-by-Side Variant Comparison */}
+          <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-6 bg-gradient-to-r from-gray-50 via-white to-indigo-50/30 p-6 rounded-2xl border border-gray-200/80 shadow-2xs relative">
             
             {/* Old Variant */}
             <div className="space-y-3 p-4 bg-white rounded-xl border border-gray-200 shadow-2xs relative">
@@ -293,15 +273,6 @@ const RefundExchangeSection = ({ returnRequest = null, order = {}, onUpdateRefun
             </div>
 
           </div>
-
-          {/* 1 Column for Exchange Timeline */}
-          <div className="space-y-3 lg:col-span-1 px-2">
-            <span className="text-xs font-bold uppercase tracking-wider text-gray-400 block mb-4">
-              Fulfillment Status
-            </span>
-            <TimelineItem steps={exchangeSteps} currentStatus={status} />
-          </div>
-
         </div>
       ) : null}
     </SectionCard>

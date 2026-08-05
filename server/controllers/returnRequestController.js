@@ -283,6 +283,8 @@ export const getAllReturnRequestsAdmin = async (req, res) => {
     const stats = {
       pending: 0,
       approved: 0,
+      packed: 0,
+      shipped: 0,
       rejected: 0,
       pickup_scheduled: 0,
       picked_up: 0,
@@ -493,7 +495,17 @@ export const updateReturnRequestStatusAdmin = async (req, res) => {
         }
       }
 
-      const eventMap = {
+      const isExchangeRequest = request.type === "exchange";
+      const eventMap = isExchangeRequest ? {
+        approved: ["Approved", "Exchange request verified and replacement product reserved.", "Admin"],
+        packed: ["Packed", "Replacement product packed and verified at facility.", "Warehouse"],
+        shipped: ["Shipped", "Replacement product dispatched via logistics carrier.", "Warehouse"],
+        rejected: ["Rejected", "Exchange request reviewed and declined by admin.", "Admin"],
+        pickup_scheduled: ["Out for Exchange", "Courier en route with replacement product for simultaneous doorstep exchange.", "Logistics"],
+        picked_up: ["Quality Check", "Doorstep quality and tag check performed by courier partner.", "Courier"],
+        received: ["Received at Facility", "Returned item logged at facility.", "Warehouse"],
+        exchanged: ["Exchanged", "Doorstep Quality Check passed and replacement product successfully handed over.", "Courier"]
+      } : {
         approved: ["Return Approved", "Request reviewed and approved by admin.", "Admin"],
         rejected: ["Return Rejected", "Request reviewed and declined by admin.", "Admin"],
         pickup_scheduled: ["Pickup Scheduled", "Logistics courier scheduled for collection.", "Warehouse"],

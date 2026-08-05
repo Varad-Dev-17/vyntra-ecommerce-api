@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 
-const ExchangeSection = ({ requestedVariantId, setRequestedVariantId, productVariants, currentVariantId, currentPrice }) => {
+const ExchangeSection = ({ requestedVariantId, setRequestedVariantId, productVariants, currentVariantId, currentPrice, selectedQty = 1 }) => {
   const [selectedColor, setSelectedColor] = useState('');
   
   // Extract all unique colors
@@ -44,9 +44,14 @@ const ExchangeSection = ({ requestedVariantId, setRequestedVariantId, productVar
     );
   }, [productVariants, selectedColor]);
 
+  const qty = Number(selectedQty) || 1;
   const selectedVariant = productVariants?.find(v => v._id === requestedVariantId);
   const currentVariant = productVariants?.find(v => v._id === currentVariantId);
-  const priceDifference = selectedVariant ? selectedVariant.price - currentPrice : 0;
+  const safeCurrentPrice = Number(currentPrice ?? currentVariant?.price ?? 0) || 0;
+  const safeSelectedPrice = Number(selectedVariant?.price ?? 0) || 0;
+  const totalCurrentPrice = safeCurrentPrice * qty;
+  const totalSelectedPrice = safeSelectedPrice * qty;
+  const priceDifference = selectedVariant ? totalSelectedPrice - totalCurrentPrice : 0;
 
   const getAttributes = (variant) => {
     let color = '';
@@ -159,7 +164,8 @@ const ExchangeSection = ({ requestedVariantId, setRequestedVariantId, productVar
                     {currAttrs.size && <div>Size: <strong className="text-slate-700 font-bold">{currAttrs.size}</strong></div>}
                   </div>
                   <div className="text-sm font-bold text-[#4648d4] font-mono pt-1">
-                    ₹{Number(currentPrice).toLocaleString("en-IN")}
+                    ₹{totalCurrentPrice.toLocaleString("en-IN")}
+                    {qty > 1 && <span className="text-[11px] font-normal text-slate-500 ml-1">({qty} × ₹{safeCurrentPrice.toLocaleString("en-IN")})</span>}
                   </div>
                 </div>
               </div>
@@ -189,7 +195,8 @@ const ExchangeSection = ({ requestedVariantId, setRequestedVariantId, productVar
                     {reqAttrs.size && <div>Size: <strong className="text-indigo-600 font-bold">{reqAttrs.size}</strong></div>}
                   </div>
                   <div className="text-sm font-bold text-[#4648d4] font-mono pt-1">
-                    ₹{Number(selectedVariant.price).toLocaleString("en-IN")}
+                    ₹{totalSelectedPrice.toLocaleString("en-IN")}
+                    {qty > 1 && <span className="text-[11px] font-normal text-slate-500 ml-1">({qty} × ₹{safeSelectedPrice.toLocaleString("en-IN")})</span>}
                   </div>
                 </div>
               </div>

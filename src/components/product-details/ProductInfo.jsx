@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ShoppingBag, Heart } from 'lucide-react';
+import { ShoppingBag, Heart, CreditCard, RotateCcw, Banknote, Truck, Award, ShieldCheck, Star } from 'lucide-react';
 import { useWishlist } from '../../context/WishlistContext';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -7,6 +7,7 @@ import toast from 'react-hot-toast';
 import api from '../../api/axiosConfig';
 import { useCart } from '../../context/CartContext';
 import SizeChartModal from './SizeChartModal';
+import ProductReviewsSection from './ProductReviewsSection';
 
 const ProductInfo = ({ product, activeVariant, onVariantChange }) => {
   const { toggleWishlist, isInWishlist } = useWishlist();
@@ -45,6 +46,31 @@ const ProductInfo = ({ product, activeVariant, onVariantChange }) => {
     }
   };
 
+  const handleBuyNow = async () => {
+    if (!user) {
+      navigate("/signin", { state: { from: location } });
+      return;
+    }
+    if (inBag) {
+      navigate("/checkout/address");
+      return;
+    }
+    try {
+      const res = await api.post("/cart", {
+        productId: product._id,
+        variantId: activeVariant._id,
+        quantity: 1,
+      });
+      if (res.data.success) {
+        updateCartCount(res.data.data.itemCount);
+        refreshCart();
+        navigate("/checkout/address");
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to proceed to checkout");
+    }
+  };
+
   // Formatter for INR
   const formatPrice = (amount) => {
     return new Intl.NumberFormat("en-IN", {
@@ -73,6 +99,25 @@ const ProductInfo = ({ product, activeVariant, onVariantChange }) => {
   });
   const uniqueColorVariants = Array.from(colorVariantsMap.values());
 
+  // Helper to construct return policy display text from DB
+  const getReturnPolicyText = () => {
+    const policy = product?.returnPolicy;
+    if (!policy) return "7 Days Return & Exchange";
+    const days = policy.returnDays || 7;
+    if (policy.returnable && policy.exchangeable) return `${days} Days Return & Exchange`;
+    if (policy.returnable) return `${days} Days Return`;
+    if (policy.exchangeable) return `${days} Days Exchange`;
+    return "No Return or Exchange";
+  };
+
+  const trustBadges = [
+    { icon: RotateCcw, title: getReturnPolicyText() },
+    { icon: Banknote, title: "Cash on Delivery" },
+    { icon: Truck, title: "Free Delivery Above ₹1000" },
+    { icon: Award, title: "Top Brand" },
+    { icon: ShieldCheck, title: "Secure Transaction" },
+  ];
+
   const activeColorAttr = activeVariant.attributes?.find(a => a.attribute?.name?.toLowerCase() === 'color');
   const activeColorName = activeColorAttr?.option?.displayName || 'default';
 
@@ -95,33 +140,80 @@ const ProductInfo = ({ product, activeVariant, onVariantChange }) => {
 
   return (
     <div className="flex flex-col">
-      {/* Brand & Title */}
-      <div className="mb-4">
-        <h1 className="text-2xl font-bold text-[#282c3f] mb-1">{product.brand?.name || product.brand || 'Vyntra'}</h1>
-        <h2 className="text-xl text-[#535766] font-normal leading-relaxed">{product.title}</h2>
+      {/* Brand, Title & Wishlist Icon */}
+      <div className="flex items-start justify-between gap-4 mb-4">
+        <div>
+          <h1 className="text-[22px] font-bold text-[#282c3f] mb-1">{product.brand?.name || product.brand || 'Vyntra'}</h1>
+          <h2 className="text-[18px] text-[#535766] font-normal leading-relaxed">{product.title}</h2>
+          <div 
+            onClick={() => {
+              const el = document.getElementById("product-reviews-section");
+              if (el) el.scrollIntoView({ behavior: "smooth" });
+            }}
+            className="inline-flex items-center gap-2 px-3 py-1.5 mt-2.5 bg-white hover:bg-gray-50 border border-gray-200 rounded-md text-[13px] font-bold text-[#282c3f] cursor-pointer shadow-2xs transition-all group"
+          >
+            <span className="flex items-center gap-1 text-[#282c3f] font-extrabold">
+              {product.ratingAverage ? Number(product.ratingAverage).toFixed(1).replace(/\.0$/, '') : "New"} 
+              <Star size={14} className="fill-[#FFB800] text-[#FFB800]" />
+            </span>
+            <span className="text-gray-300">|</span>
+            <span className="text-[#535766] font-medium group-hover:text-[#4F46E5] transition-colors">
+              {product.ratingCount ? `${product.ratingCount} ${product.ratingCount === 1 ? 'Review' : 'Reviews'}` : "Write the first review"}
+            </span>
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={async () => {
+            if (!user) {
+              navigate("/signin", { state: { from: location } });
+              return;
+            }
+            const wasWishlisted = isInWishlist(product._id, activeVariant._id);
+            const res = await toggleWishlist(product._id, activeVariant._id);
+            if (!res?.success && res?.message) {
+               toast.error(res.message);
+            } else if (res?.success) {
+               toast.success(wasWishlisted ? "Removed from wishlist" : "Added to wishlist");
+            }
+          }}
+          className={`w-8 h-8 rounded-full border flex items-center justify-center transition-all duration-300 shadow-sm flex-shrink-0 cursor-pointer hover:scale-105 mt-[30px] ${
+            isInWishlist(product._id, activeVariant._id)
+              ? "border-[#f23661] bg-[#fff0f4] text-[#f23661]"
+              : "border-[#d4d5d9] bg-white text-[#535766] hover:border-[#f23661] hover:text-[#f23661]"
+          }`}
+          title={isInWishlist(product._id, activeVariant._id) ? "Remove from wishlist" : "Add to wishlist"}
+        >
+          <Heart 
+            size={16} 
+            className="transition-colors"
+            fill={isInWishlist(product._id, activeVariant._id) ? "currentColor" : "none"} 
+            strokeWidth={2} 
+          />
+        </button>
       </div>
 
       <div className="border-b border-[#eaeaec] mb-4" />
 
       {/* Pricing */}
       <div className="mb-4">
-        <div className="flex items-baseline gap-3 mb-1">
-          <span className="text-[22px] font-bold text-[#282c3f]">{formatPrice(price)}</span>
+        <div className="flex items-baseline gap-2.5 mb-1">
+          <span className="text-[20px] font-bold text-[#282c3f]">{formatPrice(price)}</span>
           {mrp > price && (
             <>
-              <span className="text-[20px] text-[#7e818c] font-normal">
+              <span className="text-[18px] text-[#7e818c] font-normal">
                 MRP <span className="line-through">{formatPrice(mrp)}</span>
               </span>
-              <span className="text-[20px] font-bold text-[#ff905a]">({discount}% OFF)</span>
+              <span className="text-[18px] font-bold text-[#ff905a]">({discount}% OFF)</span>
             </>
           )}
         </div>
       </div>
 
-      {/* More Colors */}
+      {/* Select Color */}
       {uniqueColorVariants.length > 1 && (
         <div className="mb-6">
-          <h4 className="text-[14px] font-bold text-[#282c3f] uppercase tracking-wide mb-3">More Colors</h4>
+          <h4 className="text-[13px] font-bold text-[#282c3f] uppercase tracking-wide mb-2.5">Select Color</h4>
           <div className="flex flex-wrap gap-2">
             {uniqueColorVariants.map((v) => {
               const cAttr = v.attributes?.find(a => a.attribute?.name?.toLowerCase() === 'color');
@@ -131,7 +223,7 @@ const ProductInfo = ({ product, activeVariant, onVariantChange }) => {
                 <button
                   key={v._id}
                   onClick={() => onVariantChange(v._id)}
-                  className={`relative w-16 h-20 rounded overflow-hidden border-2 transition-all ${isSelected ? 'border-[#4F46E5]' : 'border-transparent hover:border-[#d4d5d9]'}`}
+                  className={`relative w-14 h-18 rounded overflow-hidden border-2 transition-all ${isSelected ? 'border-[#4F46E5]' : 'border-transparent hover:border-[#d4d5d9]'}`}
                   title={cName}
                 >
                   <img src={v.mainImage?.url} alt={cName} className="w-full h-full object-cover" />
@@ -144,19 +236,18 @@ const ProductInfo = ({ product, activeVariant, onVariantChange }) => {
 
       {/* Select Size */}
       {availableSizes.length > 0 && (
-        <div className="mb-8">
-          <div className="mb-4 flex items-center justify-between">
-            <h4 className="text-[14px] font-bold text-[#282c3f] uppercase tracking-wide">Select Size</h4>
+        <div className="mb-7">
+          <div className="mb-3.5 flex items-center gap-14">
+            <h4 className="text-[13px] font-bold text-[#282c3f] uppercase tracking-wide">Select Size</h4>
             <button
               type="button"
               onClick={() => setIsSizeChartOpen(true)}
-              className="text-[13px] font-bold text-[#4F46E5] hover:underline transition-all cursor-pointer flex items-center gap-1 uppercase tracking-wide"
+              className="text-[12px] font-bold text-[#4F46E5] hover:underline transition-all cursor-pointer uppercase tracking-wide"
             >
-              <span>Size Chart</span>
-              <span className="text-[15px] font-extrabold leading-none">&gt;</span>
+              View Size Chart
             </button>
           </div>
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap gap-2.5">
             {availableSizes.map((size) => {
               const isOutOfStock = size.stock <= 0;
               return (
@@ -164,7 +255,7 @@ const ProductInfo = ({ product, activeVariant, onVariantChange }) => {
                   key={size.variantId}
                   onClick={() => !isOutOfStock && onVariantChange(size.variantId)}
                   disabled={isOutOfStock}
-                  className={`relative overflow-hidden w-12 h-12 rounded-full border flex items-center justify-center text-[14px] font-bold transition-all
+                  className={`relative overflow-hidden w-11 h-11 rounded-full border flex items-center justify-center text-[13px] font-bold transition-all
                     ${
                       isOutOfStock 
                         ? 'border-red-500 text-[#282c3f] cursor-not-allowed bg-white' 
@@ -187,53 +278,49 @@ const ProductInfo = ({ product, activeVariant, onVariantChange }) => {
         </div>
       )}
 
-      <div className="flex flex-col sm:flex-row gap-4 mb-8">
+      <div className="flex flex-col sm:flex-row gap-3.5 mb-7">
         <button 
           onClick={handleAddToBag}
-          className="flex-1 cursor-pointer bg-[#4F46E5] text-white border border-[#4F46E5] py-4 rounded font-bold text-[15px] flex items-center justify-center gap-2 hover:bg-white hover:text-[#4F46E5] transition-colors"
+          className="flex-1 cursor-pointer bg-white text-[#111827] border border-[#111827] py-[13px] rounded font-bold text-[12px] tracking-wide flex items-center justify-center gap-2 hover:bg-[#111827] hover:text-white transition-all duration-200 shadow-sm"
         >
-          <ShoppingBag size={20} />
+          <ShoppingBag size={15} />
           {inBag ? "GO TO BAG" : "ADD TO BAG"}
         </button>
         <button 
-          onClick={async () => {
-            if (!user) {
-              navigate("/signin", { state: { from: location } });
-              return;
-            }
-            const wasWishlisted = isInWishlist(product._id, activeVariant._id);
-            const res = await toggleWishlist(product._id, activeVariant._id);
-            if (!res?.success && res?.message) {
-               toast.error(res.message);
-            } else if (res?.success) {
-               toast.success(wasWishlisted ? "Removed from wishlist" : "Added to wishlist");
-            }
-          }}
-          className={`group flex-1 bg-white border py-4 rounded font-bold text-[15px] flex items-center justify-center gap-2 transition-colors ${
-            isInWishlist(product._id, activeVariant._id)
-              ? "border-[#f23661] text-[#f23661]"
-              : "border-[#d4d5d9] text-[#282c3f] hover:border-[#f23661] hover:text-[#f23661]"
-          }`}
+          onClick={handleBuyNow}
+          className="flex-1 cursor-pointer bg-[#6366F1] text-white border border-[#6366F1] py-[13px] rounded font-bold text-[12px] tracking-wide flex items-center justify-center gap-2 hover:bg-white hover:text-[#6366F1] transition-colors shadow-sm"
         >
-          <Heart 
-            size={20} 
-            className={!isInWishlist(product._id, activeVariant._id) ? "group-hover:text-[#f23661] group-hover:fill-[#f23661]" : ""}
-            fill={isInWishlist(product._id, activeVariant._id) ? "currentColor" : "none"} 
-            strokeWidth={isInWishlist(product._id, activeVariant._id) ? 0 : 2} 
-          />
-          {isInWishlist(product._id, activeVariant._id) ? "WISHLISTED" : "WISHLIST"}
+          <CreditCard size={15} />
+          BUY NOW
         </button>
       </div>
 
-      <div className="border-b border-[#eaeaec] mb-6" />
+      {/* E-Commerce Trust Badges */}
+      <div className="mt-4 pt-7 mb-7 border-t border-[#eaeaec]">
+        <div className="grid grid-cols-3 sm:grid-cols-5 gap-4">
+          {trustBadges.map((badge, idx) => {
+            const IconComponent = badge.icon;
+            return (
+              <div key={idx} className="flex flex-col items-center text-center group cursor-default">
+                <div className="w-12 h-12 rounded-full bg-[#f8f9fa] border border-[#eaeaec] flex items-center justify-center text-[#282c3f] shadow-sm mb-2 group-hover:scale-105 group-hover:border-[#4F46E5] group-hover:text-[#4F46E5] transition-all duration-300">
+                  <IconComponent size={22} strokeWidth={1.8} />
+                </div>
+                <span className="text-[12px] font-medium text-[#282c3f] leading-snug max-w-[100px] group-hover:text-[#4F46E5] transition-colors">
+                  {badge.title}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
 
       {/* Product Details */}
       {(product.longDescription || product.shortDescription) && (
-        <div className="mb-8">
-          <h4 className="text-[14px] font-bold text-[#282c3f] uppercase tracking-wide mb-3 flex items-center gap-2">
+        <div className="mb-7">
+          <h4 className="text-[18px] font-extrabold text-[#282c3f] tracking-wide mb-2.5 flex items-center gap-2">
             Product Details
           </h4>
-          <div className="text-[14px] leading-relaxed text-[#282c3f] whitespace-pre-wrap">
+          <div className="text-[13.5px] leading-relaxed text-[#282c3f] whitespace-pre-wrap">
             {product.longDescription || product.shortDescription}
           </div>
         </div>
@@ -242,27 +329,36 @@ const ProductInfo = ({ product, activeVariant, onVariantChange }) => {
       {/* Specifications */}
       {product.attributes && product.attributes.length > 0 && (
         <div>
-          <h4 className="text-[14px] font-bold text-[#282c3f] uppercase tracking-wide mb-4">
+          <h4 className="text-[18px] font-extrabold text-[#282c3f] tracking-wide mb-3.5">
             Specifications
           </h4>
-          <div className="grid grid-cols-2 gap-x-8 gap-y-5">
+          <div className="grid grid-cols-2 gap-x-8 gap-y-4">
             {product.attributes.map((attr, idx) => {
               if (!attr.attribute?.name) return null;
               
-              const formattedValues = attr.values?.map(val => 
-                val ? val.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) : ''
-              ).join(", ");
+              const formattedValues = attr.values?.map(val => {
+                if (!val) return '';
+                let clean = val;
+                const attrName = attr.attribute?.name?.toLowerCase() || '';
+                if (attrName.includes('material') || attrName.includes('fabric')) {
+                  clean = clean.replace(/(\d+)-/g, '$1% ');
+                }
+                return clean.replace(/[-_]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+              }).join(", ");
 
               return (
-                <div key={idx} className="border-b border-[#eaeaec] pb-3">
+                <div key={idx} className="border-b border-[#eaeaec] pb-2.5">
                   <div className="text-[12px] text-[#7e818c] mb-1">{attr.attribute.name}</div>
-                  <div className="text-[14px] text-[#282c3f]">{formattedValues}</div>
+                  <div className="text-[13px] text-[#282c3f]">{formattedValues}</div>
                 </div>
               );
             })}
           </div>
         </div>
       )}
+
+      {/* Customer Reviews & Ratings Section */}
+      <ProductReviewsSection product={product} />
 
       {/* Size Chart Modal */}
       <SizeChartModal

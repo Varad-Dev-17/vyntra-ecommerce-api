@@ -405,7 +405,7 @@ export const createOrder = async (req, res) => {
     else if (finalSubtotal < 1000) shippingAmount = 49;
     else shippingAmount = 0;
 
-    const totalAmount = finalSubtotal + shippingAmount;
+    const totalAmount = finalSubtotal + taxAmount + shippingAmount;
     const totalDiscountAmount = (totalMRP - subtotal) + couponDiscount;
     
     let orderId = "";
@@ -502,7 +502,7 @@ export const updateOrderStatus = async (req, res) => {
     const { id } = req.params;
     const { status, paymentStatus, trackingNumber, note, adminNotes, category, visibleToCustomer } = req.body;
 
-    const validStatuses = ["pending", "processing", "packed", "shipped", "on_the_way", "delivered", "cancelled"];
+    const validStatuses = ["pending", "processing", "packed", "shipped", "on_the_way", "delivered", "cancelled", "delayed"];
     const validPaymentStatuses = ["pending", "paid", "failed", "refunded"];
 
     const order = await Order.findById(id);
@@ -540,11 +540,12 @@ export const updateOrderStatus = async (req, res) => {
 
       const currentStatus = order.status;
       const transitionRules = {
-        pending: ["processing", "packed", "shipped", "on_the_way", "delivered", "cancelled"],
-        processing: ["packed", "shipped", "on_the_way", "delivered", "cancelled"],
-        packed: ["shipped", "on_the_way", "delivered", "cancelled"],
-        shipped: ["on_the_way", "delivered", "cancelled"],
-        on_the_way: ["delivered", "cancelled"],
+        pending: ["processing", "packed", "shipped", "on_the_way", "delivered", "cancelled", "delayed"],
+        processing: ["packed", "shipped", "on_the_way", "delivered", "cancelled", "delayed"],
+        packed: ["shipped", "on_the_way", "delivered", "cancelled", "delayed"],
+        shipped: ["on_the_way", "delivered", "cancelled", "delayed"],
+        on_the_way: ["delivered", "cancelled", "delayed"],
+        delayed: ["processing", "packed", "shipped", "on_the_way", "delivered", "cancelled"],
         delivered: [],
         cancelled: [],
       };
@@ -578,6 +579,13 @@ export const updateOrderStatus = async (req, res) => {
         order.deliveredAt = null;
       }
       order.status = status;
+      if (Array.isArray(order.items)) {
+        order.items.forEach((item) => {
+          if (item.status !== "cancelled") {
+            item.status = status;
+          }
+        });
+      }
 
       const eventMap = {
         processing: ["Processing Started", "Order items inspected and packaging started.", "Warehouse"],
@@ -585,7 +593,8 @@ export const updateOrderStatus = async (req, res) => {
         shipped: ["Shipped", `Order handed over to delivery partner.${trackingNumber || order.trackingNumber ? ` AWB/Tracking: ${trackingNumber || order.trackingNumber}` : ""}`, "Warehouse"],
         on_the_way: ["On The Way", "Order is out for delivery and arriving soon.", "Courier"],
         delivered: ["Delivered", "Order package successfully delivered to customer.", "Warehouse"],
-        cancelled: ["Cancelled", "Order cancelled by admin and item stock restored.", "Admin"]
+        cancelled: ["Cancelled", "Order cancelled by admin and item stock restored.", "Admin"],
+        delayed: ["Delayed", "Order processing or transit has encountered a slight delay.", "Admin"]
       };
 
       const [evType, evDesc, perfBy] = eventMap[status] || [`Status Updated to ${status}`, `Status advanced to ${status}.`, "Admin"];
@@ -631,6 +640,102 @@ export const updateOrderStatus = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to update order",
+      data: null,
+    });
+  }
+};
+
+// UPDATE INDIVIDUAL ORDER ITEM STATUS (Admin)
+export const updateOrderItemStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { itemId, productId, status, trackingNumber, courier } = req.body;
+
+    const validStatuses = ["pending", "processing", "packed", "shipped", "on_the_way", "delivered", "cancelled", "delayed"];
+    if (!status || !validStatuses.includes(status)) {
+      return res.status(400).json({ success: false, message: "Invalid status provided", data: null });
+    }
+
+    const order = await Order.findById(id);
+    if (!order) {
+      return res.status(404).json({ success: false, message: "Order not found", data: null });
+    }
+
+    let targetItem = null;
+    if (itemId) {
+      targetItem = order.items.find((item) => String(item._id) === String(itemId) || (item._id && String(item._id.toString()) === String(itemId)));
+    }
+    if (!targetItem && productId) {
+      targetItem = order.items.find((item) => String(item.product) === String(productId) || (item.product && String(item.product.toString()) === String(productId)));
+    }
+    if (!targetItem && typeof itemId === "number" && order.items[itemId]) {
+      targetItem = order.items[itemId];
+    }
+
+    if (!targetItem) {
+      return res.status(404).json({ success: false, message: "Order item not found in order", data: null });
+    }
+
+    const oldStatus = targetItem.status || order.status;
+    targetItem.status = status;
+    if (trackingNumber !== undefined) targetItem.trackingNumber = trackingNumber;
+    if (courier !== undefined) targetItem.courier = courier;
+
+    // Add timeline event
+    const Product = (await import("../models/product.js")).default;
+    const prodDoc = await Product.findById(targetItem.product).select("title").lean();
+    const prodTitle = prodDoc ? prodDoc.title : "Product Item";
+
+    addTimelineEvent(
+      order,
+      `Item Status: ${status.toUpperCase()}`,
+      `[${prodTitle}] status updated from ${oldStatus} to ${status} by Admin.`,
+      "Admin",
+      { itemId: targetItem._id, productId: targetItem.product, oldStatus, newStatus: status, trackingNumber, courier }
+    );
+
+    // If all active items now share the same status, sync master order status
+    const activeItems = order.items.filter((item) => item.status !== "cancelled");
+    if (activeItems.length > 0 && activeItems.every((item) => item.status === status)) {
+      order.status = status;
+    }
+
+    await order.save();
+
+    const populatedOrder = await Order.findById(id)
+      .populate(ORDER_POPULATE_CONFIG)
+      .lean();
+
+    const ReturnRequest = (await import("../models/returnRequest.js")).default;
+    const returnRequests = await ReturnRequest.find({ order: id })
+      .populate("product", "title images brand price")
+      .populate({
+        path: "originalVariant",
+        select: "mainImage attributes sku price",
+        populate: [{ path: "attributes.attribute" }, { path: "attributes.option" }],
+      })
+      .populate({
+        path: "requestedExchangeVariant",
+        select: "mainImage attributes sku price",
+        populate: [{ path: "attributes.attribute" }, { path: "attributes.option" }],
+      })
+      .lean();
+
+    const fullPayload = {
+      ...populatedOrder,
+      returnRequests,
+    };
+
+    return res.status(200).json({
+      success: true,
+      message: "Order item status updated successfully",
+      data: formatAndFilterNotes(fullPayload, false),
+    });
+  } catch (error) {
+    console.error("Error updating order item status:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to update item status",
       data: null,
     });
   }

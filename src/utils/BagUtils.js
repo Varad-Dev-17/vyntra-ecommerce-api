@@ -50,6 +50,6 @@ export const calculateBagTotals = (items, couponDiscount = 0) => {
     totalCGST: totalTax / 2,
     totalSGST: totalTax / 2,
     shipping: shippingAmount, 
-    grandTotal: finalSubtotal + shippingAmount, 
+    grandTotal: finalSubtotal + totalTax + shippingAmount, 
   };
 };

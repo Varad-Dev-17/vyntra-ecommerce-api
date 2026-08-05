@@ -72,6 +72,8 @@ const ReturnRequestSchema = new mongoose.Schema(
       enum: [
         "pending",
         "approved",
+        "packed",
+        "shipped",
         "rejected",
         "pickup_scheduled",
         "picked_up",

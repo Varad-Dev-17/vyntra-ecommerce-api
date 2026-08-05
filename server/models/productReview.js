@@ -26,6 +26,18 @@ const ProductReviewSchema = new mongoose.Schema(
       default: "",
       trim: true,
     },
+
+    images: [
+      {
+        url: { type: String, required: true },
+        publicId: { type: String },
+      },
+    ],
+
+    verifiedBuyer: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true }
 );

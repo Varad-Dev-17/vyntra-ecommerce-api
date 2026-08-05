@@ -32,6 +32,7 @@ import adminReturnRoutes from "./routers/adminReturnRoutes.js";
 
 // Single-purpose routes
 import reviewRoutes from "./routers/reviewRoutes.js";
+import reviewAdminRoutes from "./routers/reviewAdminRoutes.js";
 import wishlistRoutes from "./routers/wishlistRoutes.js";
 import couponRoutes from "./routers/couponRoutes.js";
 import returnRequestRoutes from "./routers/returnRequestRoutes.js";
@@ -76,6 +77,7 @@ app.use("/admin/attribute-mapping", attributeMappingAdminRoutes);
 app.use("/admin/orders", orderAdminRoutes);
 app.use("/admin/returns", adminReturnRoutes);
 app.use("/admin/coupons", couponRoutes);
+app.use("/admin/reviews", reviewAdminRoutes);
 app.use("/admin/dashboard", dashboardRoutes);
 app.use("/admin/upload", uploadRoutes);
 

@@ -19,6 +19,7 @@ const ReturnExchangeRequest = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [order, setOrder] = useState(null);
   const [orderItem, setOrderItem] = useState(location.state?.orderItem || null);
+  const [selectedQty, setSelectedQty] = useState(location.state?.orderItem?.quantity || 1);
   
   const [action, setAction] = useState('return'); // 'return' or 'exchange'
   const [reason, setReason] = useState('');
@@ -62,6 +63,7 @@ const ReturnExchangeRequest = () => {
             }
             
             setOrderItem(item);
+            setSelectedQty(item.quantity || 1);
           } else {
               toast.error('Product not found in this order');
               navigate(-1);
@@ -97,6 +99,7 @@ const ReturnExchangeRequest = () => {
         orderId: order._id,
         productId: orderItem.product._id,
         variantId: orderItem.variant._id,
+        quantity: selectedQty || 1,
         type: action,
         reason,
         additionalDetails,
@@ -176,12 +179,16 @@ const ReturnExchangeRequest = () => {
               });
             }
 
+            const itemPrice = Number(orderItem.sellingPrice ?? orderItem.price ?? orderItem.mrp ?? orderItem.variant?.price ?? orderItem.product?.sellingPrice ?? orderItem.product?.price ?? 0) || 0;
+
             return (
               <ProductInfo 
                 product={orderItem.product} 
                 variant={orderItem.variant} 
                 quantity={orderItem.quantity} 
-                price={orderItem.price}
+                selectedQty={selectedQty}
+                onQtyChange={setSelectedQty}
+                price={itemPrice}
                 color={color}
                 size={size}
               />
@@ -199,7 +206,8 @@ const ReturnExchangeRequest = () => {
               setRequestedVariantId={setRequestedVariantId} 
               productVariants={productVariants}
               currentVariantId={orderItem.variant._id}
-              currentPrice={orderItem.price}
+              selectedQty={selectedQty || 1}
+              currentPrice={Number(orderItem.sellingPrice ?? orderItem.price ?? orderItem.mrp ?? orderItem.variant?.price ?? orderItem.product?.sellingPrice ?? orderItem.product?.price ?? 0) || 0}
             />
           )}
 

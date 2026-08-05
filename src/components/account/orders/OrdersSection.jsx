@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Package, Loader2, Filter, ChevronRight, X, CheckCircle2, Truck, Clock, ShoppingBag, ShieldCheck, RefreshCw } from 'lucide-react';
+import { Package, Loader2, Filter, ChevronRight, X, CheckCircle2, Truck, Clock, ShoppingBag, ShieldCheck, RefreshCw, Star } from 'lucide-react';
 import axios from 'axios';
 import { useAuth } from '../../../context/AuthContext';
 import ReturnExchangeButton from './returnexchange/ReturnExchangeButton';
+import WriteReviewModal from '../../product-details/WriteReviewModal';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import { getReturnEligibility } from '../../../utils/returnEligibility';
@@ -10,6 +11,8 @@ import { getReturnEligibility } from '../../../utils/returnEligibility';
 const OrdersSection = () => {
   const [orders, setOrders] = useState([]);
   const [returnRequests, setReturnRequests] = useState([]);
+  const [myReviews, setMyReviews] = useState({});
+  const [reviewModalState, setReviewModalState] = useState({ isOpen: false, product: null, existingReview: null });
   const [isLoading, setIsLoading] = useState(true);
 
   // Filter States
@@ -30,9 +33,10 @@ const OrdersSection = () => {
       if (status && status !== 'all' && status !== 'return_exchange') endpoint += `status=${status}&`;
       if (time && time !== 'anytime') endpoint += `time=${time}&`;
 
-      const [ordersRes, requestsRes] = await Promise.all([
+      const [ordersRes, requestsRes, reviewsRes] = await Promise.all([
         axios.get(endpoint, { headers: getAuthHeaders() }),
-        axios.get('/return-requests/my-requests', { headers: getAuthHeaders() })
+        axios.get('/return-requests/my-requests', { headers: getAuthHeaders() }),
+        axios.get('/reviews/my/all', { headers: getAuthHeaders() }).catch(() => ({ data: { success: false } }))
       ]);
 
       if (ordersRes.data.success) {
@@ -40,6 +44,14 @@ const OrdersSection = () => {
       }
       if (requestsRes.data?.success) {
         setReturnRequests(requestsRes.data.data);
+      }
+      if (reviewsRes.data?.success && Array.isArray(reviewsRes.data.data)) {
+        const revMap = {};
+        reviewsRes.data.data.forEach(rev => {
+          const pId = rev.product?._id || rev.product;
+          if (pId) revMap[String(pId)] = rev;
+        });
+        setMyReviews(revMap);
       }
     } catch (error) {
       toast.error('Failed to load orders or requests');
@@ -239,6 +251,20 @@ const OrdersSection = () => {
             const eligibility = getReturnEligibility(order, item, activeRequest);
             const deliveryDate = order.deliveredAt || order.updatedAt || order.createdAt;
 
+            const unitPrice = Number(item?.sellingPrice ?? item?.price ?? item?.mrp ?? item?.variant?.price ?? 0) || 0;
+            const itemQty = Number(item?.quantity || 1);
+            const grossTotal = unitPrice * itemQty;
+            const orderSubtotal = Number(order?.subtotal || 0) || (order?.totalAmount ? Number(order.totalAmount) : grossTotal);
+            const shipping = Number(order?.shippingAmount || 0);
+            const totalPaid = Number(order?.totalAmount || orderSubtotal);
+            const actualCouponDiscount = Math.max(0, Math.round((orderSubtotal + shipping) - totalPaid));
+            const proportionalDiscount = orderSubtotal > 0 && grossTotal > 0 && actualCouponDiscount > 0
+              ? Math.round((grossTotal / orderSubtotal) * actualCouponDiscount) 
+              : 0;
+            const itemNetPaid = Math.max(0, grossTotal - proportionalDiscount);
+            const itemGst = Number(item?.gstAmount || 0) * itemQty;
+            const effStatus = (item.status || order.status || 'pending').toLowerCase();
+
             return (
               <div
                 key={`${order._id}-${index}`}
@@ -259,27 +285,31 @@ const OrdersSection = () => {
 
                   {/* Far-right Status Indicator */}
                   <div className="flex items-center gap-2 font-medium text-xs sm:text-sm">
-                    {order.status === 'delivered' ? (
+                    {effStatus === 'delivered' ? (
                       <div className="flex items-center gap-1.5 text-green-600">
                         <span>Delivered on: {new Date(deliveryDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
                         <CheckCircle2 className="w-4 h-4 text-green-600 shrink-0" />
                       </div>
-                    ) : order.status === 'on_the_way' ? (
+                    ) : effStatus === 'on_the_way' ? (
                       <div className="flex items-center gap-1.5 text-purple-600">
                         <span>On The Way (Out for Delivery)</span>
                         <Truck className="w-4 h-4 shrink-0" />
                       </div>
-                    ) : order.status === 'shipped' ? (
+                    ) : effStatus === 'shipped' ? (
                       <div className="flex items-center gap-1.5 text-indigo-600">
                         <span>Shipped</span>
                         <Truck className="w-4 h-4 shrink-0" />
                       </div>
-                    ) : order.status === 'cancelled' ? (
+                    ) : effStatus === 'cancelled' ? (
                       <div className="flex items-center gap-1.5 text-red-600">
                         <span>Cancelled on: {new Date(order.updatedAt || order.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
                         <X className="w-4 h-4 shrink-0" />
                       </div>
-                    ) : order.status === 'packed' || order.status === 'processing' ? (
+                    ) : effStatus === 'delayed' ? (
+                      <div className="flex items-center gap-1.5 text-amber-700 font-extrabold">
+                        <span>⚠️ Delayed • Slight Shipping Delay</span>
+                      </div>
+                    ) : effStatus === 'packed' || effStatus === 'processing' ? (
                       <div className="flex items-center gap-1.5 text-blue-600">
                         <span>Packed</span>
                         <Package className="w-4 h-4 shrink-0" />
@@ -321,23 +351,27 @@ const OrdersSection = () => {
                           }`}>
                             {completedRequest.status === 'exchanged' ? 'Exchanged' : 'Returned & Refunded'}
                           </span>
-                        ) : order.status === 'delivered' ? (
+                        ) : effStatus === 'delivered' ? (
                           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-200">
                             Delivered
                           </span>
-                        ) : order.status === 'on_the_way' ? (
+                        ) : effStatus === 'on_the_way' ? (
                           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-200">
                             On The Way
                           </span>
-                        ) : order.status === 'shipped' ? (
+                        ) : effStatus === 'shipped' ? (
                           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-50 text-purple-700 border border-purple-200">
                             Shipped
                           </span>
-                        ) : order.status === 'packed' || order.status === 'processing' ? (
+                        ) : effStatus === 'delayed' ? (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-amber-50 text-amber-800 border border-amber-200">
+                            ⚠️ Delayed
+                          </span>
+                        ) : effStatus === 'packed' || effStatus === 'processing' ? (
                           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200">
                             Packed
                           </span>
-                        ) : order.status === 'pending' ? (
+                        ) : effStatus === 'pending' ? (
                           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200">
                             Order Confirmed
                           </span>
@@ -371,15 +405,10 @@ const OrdersSection = () => {
                       </div>
 
                       {/* Price Display */}
-                      <div className="flex items-baseline gap-2">
+                      <div className="mt-1.5">
                         <span className="text-[15px] font-bold text-gray-900">
-                          ₹{item.price ? (item.price * item.quantity).toLocaleString('en-IN') : order.totalAmount?.toLocaleString('en-IN')}
+                          Price: ₹{itemNetPaid.toLocaleString('en-IN')}
                         </span>
-                        {order.items?.length > 1 && (
-                          <span className="text-xs text-gray-400 font-medium">
-                            (Order Total: ₹{order.totalAmount?.toLocaleString('en-IN')})
-                          </span>
-                        )}
                       </div>
                     </div>
                   </div>
@@ -396,12 +425,36 @@ const OrdersSection = () => {
                     )}
 
                     {order.status === 'delivered' && !completedRequest && (
-                      <ReturnExchangeButton 
-                        orderId={order._id} 
-                        productId={item.product?._id || item.product} 
-                        item={item}
-                        eligibility={eligibility}
-                      />
+                      <>
+                        <ReturnExchangeButton 
+                          orderId={order._id} 
+                          productId={item.product?._id || item.product} 
+                          item={item}
+                          eligibility={eligibility}
+                        />
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const prodId = String(item.product?._id || item.product || "");
+                            const existingRev = myReviews[prodId] || null;
+                            setReviewModalState({
+                              isOpen: true,
+                              product: item.product,
+                              existingReview: existingRev
+                            });
+                          }}
+                          className={`w-full flex items-center justify-center gap-1.5 py-1.5 px-4 text-sm font-bold border rounded-md transition-all cursor-pointer shadow-xs ${
+                            myReviews[String(item.product?._id || item.product)]
+                              ? "bg-amber-50 text-amber-900 border-amber-300 hover:bg-amber-100"
+                              : "bg-[#eef2ff] text-[#4F46E5] border-[#4F46E5]/30 hover:bg-[#4F46E5] hover:text-white hover:border-[#4F46E5]"
+                          }`}
+                        >
+                          <Star className="w-3.5 h-3.5 fill-[#FFB800] text-[#FFB800] shrink-0" />
+                          <span>
+                            {myReviews[String(item.product?._id || item.product)] ? "Reviewed (Edit)" : "Rate & Review"}
+                          </span>
+                        </button>
+                      </>
                     )}
 
                     <button
@@ -515,6 +568,20 @@ const OrdersSection = () => {
           </div>
         </div>
       )}
+
+      {/* Write / Edit Review Modal */}
+      <WriteReviewModal
+        isOpen={reviewModalState.isOpen}
+        onClose={() => setReviewModalState({ isOpen: false, product: null, existingReview: null })}
+        product={reviewModalState.product}
+        existingReview={reviewModalState.existingReview}
+        onSuccess={(updatedRev) => {
+          const prodId = String(reviewModalState.product?._id || reviewModalState.product || "");
+          if (prodId) {
+            setMyReviews(prev => ({ ...prev, [prodId]: updatedRev }));
+          }
+        }}
+      />
     </div>
   );
 };

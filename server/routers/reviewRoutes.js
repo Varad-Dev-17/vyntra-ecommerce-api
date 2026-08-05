@@ -1,6 +1,7 @@
 import express from "express";
 import {
   getReviews,
+  getUserReviews,
   createReview,
   updateReview,
   deleteReview,
@@ -8,6 +9,9 @@ import {
 import { identifier } from "../middlewares/identification.js";
 
 const router = express.Router();
+
+// Protected user route (must come before /:productId to prevent route collision)
+router.get("/my/all", identifier, getUserReviews);
 
 // Public route
 router.get("/:productId", getReviews);

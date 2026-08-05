@@ -20,8 +20,8 @@ const CaseStatusSummary = ({ order = null, returnRequest = null }) => {
         </h3>
       </div>
 
-      {/* Simple 2-Column Field : Badge Layout without backgrounds or strict borders */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3 my-1 text-xs">
+      {/* 2-Column alignment for status badges */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3.5 my-1.5 text-xs w-full">
         {order && (
           <div className="flex items-center gap-2 whitespace-nowrap">
             <span className="font-semibold text-slate-600">Order Status :</span>
@@ -33,6 +33,24 @@ const CaseStatusSummary = ({ order = null, returnRequest = null }) => {
           <div className="flex items-center gap-2 whitespace-nowrap">
             <span className="font-semibold text-slate-600">Payment Status :</span>
             <StatusBadge status={(returnRequest && (returnRequest.refundStatus === "completed" || returnRequest.status === "refunded")) ? "refunded" : (order.status === "delivered" && (!order.paymentStatus || order.paymentStatus === "pending") ? "paid" : order.paymentStatus || order.paymentMethod || "pending")} />
+          </div>
+        )}
+
+        {returnRequest && (
+          <div className="flex items-center gap-2 whitespace-nowrap">
+            <span className="font-semibold text-slate-600">
+              {returnRequest.type === "exchange" ? "Exchange Status :" : "Return Status :"}
+            </span>
+            <StatusBadge 
+              status={returnRequest.status || "pending"} 
+              labelOverride={
+                returnRequest.type === "exchange" ? (
+                  returnRequest.status === "pickup_scheduled" ? "Out for Exchange" :
+                  returnRequest.status === "picked_up" ? "Quality Check" :
+                  returnRequest.status === "exchanged" ? "Exchanged" : null
+                ) : null
+              }
+            />
           </div>
         )}
 

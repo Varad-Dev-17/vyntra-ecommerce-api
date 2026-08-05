@@ -1,5 +1,6 @@
 import ProductReview from "../models/productReview.js";
 import Product from "../models/product.js";
+import Order from "../models/order.js";
 
 // GET REVIEWS BY PRODUCT
 export const getReviews = async (req, res) => {
@@ -7,7 +8,7 @@ export const getReviews = async (req, res) => {
     const { productId } = req.params;
     const {
       page = 1,
-      limit = 10,
+      limit = 20,
       sortBy = "createdAt",
       sortOrder = "desc",
     } = req.query;
@@ -43,10 +44,33 @@ export const getReviews = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error(error);
+    console.error("Error in getReviews:", error);
     return res.status(500).json({
       success: false,
       message: "Failed to fetch reviews",
+      data: null,
+    });
+  }
+};
+
+// GET CURRENT LOGGED IN USER'S REVIEWS
+export const getUserReviews = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const reviews = await ProductReview.find({ user: userId })
+      .populate("product", "title images slug")
+      .lean();
+
+    return res.status(200).json({
+      success: true,
+      message: "User reviews fetched successfully",
+      data: reviews,
+    });
+  } catch (error) {
+    console.error("Error in getUserReviews:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch user reviews",
       data: null,
     });
   }
@@ -56,7 +80,7 @@ export const getReviews = async (req, res) => {
 export const createReview = async (req, res) => {
   try {
     const { productId } = req.params;
-    const { rating, comment } = req.body;
+    const { rating, comment, review: reviewText, images = [] } = req.body;
     const userId = req.user.userId;
 
     // Validate rating
@@ -68,12 +92,12 @@ export const createReview = async (req, res) => {
       });
     }
 
-    // Check if product exists and is active
-    const product = await Product.findOne({ _id: productId, status: "active" });
-    if (!product) {
+    // Check if product exists (case-insensitive status check or simple existence check)
+    const product = await Product.findById(productId);
+    if (!product || product.status?.toLowerCase() === "inactive") {
       return res.status(404).json({
         success: false,
-        message: "Product not found",
+        message: "Product not found or currently inactive",
         data: null,
       });
     }
@@ -86,17 +110,28 @@ export const createReview = async (req, res) => {
     if (existingReview) {
       return res.status(409).json({
         success: false,
-        message: "You have already reviewed this product",
+        message: "You have already reviewed this product. Please update your existing review.",
         data: null,
       });
     }
+
+    // Check if user has an order for this product (Verified Buyer)
+    const existingOrder = await Order.findOne({
+      user: userId,
+      "items.product": productId,
+    });
+    const isVerified = !!existingOrder;
+
+    const finalReviewText = reviewText !== undefined ? reviewText : (comment || "");
 
     // Create review
     const review = await ProductReview.create({
       product: productId,
       user: userId,
       rating: Number(rating),
-      comment: comment?.trim() || "",
+      review: finalReviewText.trim(),
+      images: Array.isArray(images) ? images : [],
+      verifiedBuyer: isVerified,
     });
 
     // Recalculate product ratings
@@ -118,7 +153,7 @@ export const createReview = async (req, res) => {
       data: populatedReview,
     });
   } catch (error) {
-    console.error(error);
+    console.error("Error in createReview:", error);
     return res.status(500).json({
       success: false,
       message: "Failed to create review",
@@ -131,7 +166,7 @@ export const createReview = async (req, res) => {
 export const updateReview = async (req, res) => {
   try {
     const { reviewId } = req.params;
-    const { rating, comment } = req.body;
+    const { rating, comment, review: reviewText, images } = req.body;
     const userId = req.user.userId;
 
     const review = await ProductReview.findById(reviewId);
@@ -164,8 +199,12 @@ export const updateReview = async (req, res) => {
       review.rating = Number(rating);
     }
 
-    if (comment !== undefined) {
-      review.comment = comment.trim();
+    if (reviewText !== undefined || comment !== undefined) {
+      review.review = (reviewText !== undefined ? reviewText : comment).trim();
+    }
+
+    if (images !== undefined && Array.isArray(images)) {
+      review.images = images;
     }
 
     await review.save();
@@ -191,7 +230,7 @@ export const updateReview = async (req, res) => {
       data: populatedReview,
     });
   } catch (error) {
-    console.error(error);
+    console.error("Error in updateReview:", error);
     return res.status(500).json({
       success: false,
       message: "Failed to update review",
@@ -225,12 +264,10 @@ export const deleteReview = async (req, res) => {
     }
 
     const productId = review.product;
-
     await ProductReview.findByIdAndDelete(reviewId);
 
     // Recalculate product ratings
     const allReviews = await ProductReview.find({ product: productId });
-
     let ratingAverage = 0;
     let ratingCount = 0;
 
@@ -251,7 +288,101 @@ export const deleteReview = async (req, res) => {
       data: null,
     });
   } catch (error) {
-    console.error(error);
+    console.error("Error in deleteReview:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to delete review",
+      data: null,
+    });
+  }
+};
+
+// ADMIN: GET ALL REVIEWS
+export const getAllAdminReviews = async (req, res) => {
+  try {
+    const { page = 1, limit = 30, rating } = req.query;
+    const query = {};
+    if (rating && Number(rating) >= 1 && Number(rating) <= 5) {
+      query.rating = Number(rating);
+    }
+
+    const pageNum = Math.max(1, Number(page));
+    const limitNum = Math.max(1, Number(limit));
+    const skip = (pageNum - 1) * limitNum;
+
+    const [reviews, total] = await Promise.all([
+      ProductReview.find(query)
+        .populate("user", "username email")
+        .populate("product", "title images slug")
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limitNum)
+        .lean(),
+      ProductReview.countDocuments(query),
+    ]);
+
+    return res.status(200).json({
+      success: true,
+      message: "Admin reviews fetched successfully",
+      data: {
+        reviews,
+        pagination: {
+          page: pageNum,
+          limit: limitNum,
+          total,
+          pages: Math.ceil(total / limitNum),
+        },
+      },
+    });
+  } catch (error) {
+    console.error("Error in getAllAdminReviews:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch admin reviews",
+      data: null,
+    });
+  }
+};
+
+// ADMIN: DELETE REVIEW
+export const deleteAdminReview = async (req, res) => {
+  try {
+    const { reviewId } = req.params;
+    const review = await ProductReview.findById(reviewId);
+    if (!review) {
+      return res.status(404).json({
+        success: false,
+        message: "Review not found",
+        data: null,
+      });
+    }
+
+    const productId = review.product;
+    await ProductReview.findByIdAndDelete(reviewId);
+
+    // Recalculate product ratings
+    const allReviews = await ProductReview.find({ product: productId });
+    let ratingAverage = 0;
+    let ratingCount = 0;
+
+    if (allReviews.length > 0) {
+      const totalRating = allReviews.reduce((sum, r) => sum + r.rating, 0);
+      ratingAverage = Math.round((totalRating / allReviews.length) * 10) / 10;
+      ratingCount = allReviews.length;
+    }
+
+    await Product.findByIdAndUpdate(productId, {
+      ratingAverage,
+      ratingCount,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Review deleted by admin successfully",
+      data: null,
+    });
+  } catch (error) {
+    console.error("Error in deleteAdminReview:", error);
     return res.status(500).json({
       success: false,
       message: "Failed to delete review",

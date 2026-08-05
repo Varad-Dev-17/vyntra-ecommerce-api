@@ -68,8 +68,7 @@ const Navbar = () => {
   };
 
   const userNavLinks = [
-    { name: "SHOP NOW", path: "/products" },
-    { name: "NEW ARRIVALS", path: "/new-arrivals" }
+    { name: "SHOP NOW", path: "/products" }
   ];
 
   const adminNavLinks = [

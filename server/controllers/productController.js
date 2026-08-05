@@ -765,7 +765,24 @@ export const updateProductVariants = async (req, res) => {
     // Delete existing variants and insert new ones
     await Variant.deleteMany({ product: id });
 
-    const variantsToInsert = variants.map(v => ({ ...v, product: id }));
+    const variantsToInsert = variants.map(v => {
+      const copy = { ...v, product: id };
+      if (!copy._id || copy._id === '') {
+        delete copy._id;
+      }
+      copy.gstRate = [0, 5, 12, 18, 28].includes(Number(copy.gstRate)) ? Number(copy.gstRate) : 5;
+      if (copy.mainImage && !copy.mainImage.publicId) {
+        copy.mainImage.publicId = 'default_public_id';
+      }
+      if (Array.isArray(copy.galleryImages)) {
+        copy.galleryImages = copy.galleryImages.map(img => ({
+          ...img,
+          publicId: img.publicId || 'default_public_id'
+        }));
+      }
+      return copy;
+    });
+    
     await Variant.insertMany(variantsToInsert);
 
     return res.status(200).json({
@@ -775,9 +792,12 @@ export const updateProductVariants = async (req, res) => {
     });
   } catch (error) {
     console.error("[Update Variants Error]:", error);
-    return res.status(500).json({
+    const errMessage = error?.message?.includes('E11000') 
+      ? "Duplicate SKU error: Each variant row must have a unique SKU." 
+      : (error.message || "Failed to update variants");
+    return res.status(400).json({
       success: false,
-      message: "Failed to update variants",
+      message: errMessage,
     });
   }
 };

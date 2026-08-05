@@ -78,7 +78,7 @@ const QualityCheckSection = ({ returnRequest, onUpdateQcStatus, isProcessing = f
               Item Quality Check
             </h3>
             <p className="text-xs font-medium text-gray-500">
-              Check item condition before refunding or replacing
+              Check tags, product condition, and packaging during doorstep collection or facility intake
             </p>
           </div>
         </div>

@@ -85,9 +85,27 @@ const OrderDetails = () => {
     shipped: "Shipped",
     on_the_way: "On The Way",
     delivered: "Delivered",
-    cancelled: "Cancelled"
+    cancelled: "Cancelled",
+    delayed: "⚠️ Delayed • Slight Shipping Delay"
   };
   const statusDisplay = statusDisplayMap[order.status?.toLowerCase()] || (order.status.charAt(0).toUpperCase() + order.status.slice(1).replace(/_/g, " "));
+
+  const calculateItemPaid = (item, orderData) => {
+    const unitPrice = Number(item?.sellingPrice ?? item?.price ?? item?.mrp ?? item?.variant?.price ?? 0) || 0;
+    const qty = Number(item?.quantity || 1);
+    const grossTotal = unitPrice * qty;
+    
+    const orderSubtotal = Number(orderData?.subtotal || 0) || (orderData?.totalAmount ? Number(orderData.totalAmount) : grossTotal);
+    const shipping = Number(orderData?.shippingAmount || 0);
+    const totalPaid = Number(orderData?.totalAmount || orderSubtotal);
+    const actualCouponDiscount = Math.max(0, Math.round((orderSubtotal + shipping) - totalPaid));
+    const proportionalDiscount = orderSubtotal > 0 && grossTotal > 0 && actualCouponDiscount > 0
+      ? Math.round((grossTotal / orderSubtotal) * actualCouponDiscount) 
+      : 0;
+    const netPaid = Math.max(0, grossTotal - proportionalDiscount);
+    const gst = Number(item?.gstAmount || 0) * qty;
+    return { unitPrice, qty, grossTotal, proportionalDiscount, netPaid, gst };
+  };
 
   return (
     <div className="max-w-3xl mx-auto py-6 px-4 sm:px-6">
@@ -100,117 +118,132 @@ const OrderDetails = () => {
       </button>
 
       <div className="space-y-6">
-        {/* Render each item in the order */}
-        {order.items.map((item, index) => {
-          let color = "";
-          let size = "";
-          
-          if (item.variant && item.variant.attributes) {
-            item.variant.attributes.forEach(attr => {
-              if (attr.attribute?.name?.toLowerCase() === "color") {
-                color = attr.option?.displayName || color;
+        {/* Compact Items Table Container */}
+        <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-xs">
+          <div className="bg-gray-50 px-5 py-3.5 border-b border-gray-200 flex items-center justify-between">
+            <h3 className="font-bold text-sm text-gray-900 flex items-center gap-2">
+              <Package className="w-4 h-4 text-indigo-600" />
+              Items in this Order ({order.items?.length || 0})
+            </h3>
+            <span className="text-xs font-semibold text-gray-500 font-mono">
+              Order #{order.orderId || order._id}
+            </span>
+          </div>
+
+          <div className="divide-y divide-gray-100">
+            {order.items.map((item, index) => {
+              let color = "";
+              let size = "";
+              
+              if (item.variant && item.variant.attributes) {
+                item.variant.attributes.forEach(attr => {
+                  if (attr.attribute?.name?.toLowerCase() === "color") {
+                    color = attr.option?.displayName || color;
+                  }
+                  if (attr.attribute?.name?.toLowerCase() === "size") {
+                    size = attr.option?.displayName || size;
+                  }
+                });
               }
-              if (attr.attribute?.name?.toLowerCase() === "size") {
-                size = attr.option?.displayName || size;
-              }
-            });
-          }
 
-          const brandName = item.product?.brand?.name;
+              const brandName = item.product?.brand?.name;
 
-          // Compute Return/Exchange eligibility
-          const activeRequest = Array.isArray(order.returnRequests) ? order.returnRequests.find(req => 
-            (req.product?._id || req.product) === (item.product?._id || item.product) &&
-            !["rejected", "refunded", "exchanged"].includes(req.status)
-          ) : null;
-          const eligibility = getReturnEligibility(order, item, activeRequest);
+              // Compute Return/Exchange eligibility & active item requests
+              const activeRequest = Array.isArray(order.returnRequests) ? order.returnRequests.find(req => 
+                (req.product?._id || req.product) === (item.product?._id || item.product) &&
+                !["rejected", "refunded", "exchanged"].includes(req.status)
+              ) : null;
+              const itemRequest = Array.isArray(order.returnRequests) ? order.returnRequests.find(req => 
+                (req.product?._id || req.product) === (item.product?._id || item.product)
+              ) : null;
+              const eligibility = getReturnEligibility(order, item, activeRequest);
+              const itemFin = calculateItemPaid(item, order);
 
-          return (
-            <div key={index} className="flex flex-col mb-4">
-              {/* Product Header (Transparent container) */}
-              <div className="flex flex-col items-center text-center pb-6">
-                <div className="w-28 h-36 bg-gray-100 rounded-2xl overflow-hidden shadow-sm mb-4 border border-gray-200/60">
-                  <img 
-                    src={item.variant?.mainImage?.url || item.product?.images?.[0]?.url || "https://via.placeholder.com/150"} 
-                    alt={item.product?.title || "Product"} 
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                {brandName && <h2 className="text-[14px] font-bold text-gray-900 uppercase tracking-widest">{brandName}</h2>}
-                <p className="text-[14px] font-semibold text-gray-700 mt-1">{item.product?.title}</p>
-                <div className="text-[12px] text-gray-500 mt-1 flex items-center justify-center gap-2 font-medium">
-                  {size && <span>Size: {size}</span>}
-                  {size && <span className="text-gray-300">•</span>}
-                  <span>Quantity: {item.quantity}</span>
-                </div>
-                <div className="text-[12px] text-gray-400 mt-1 font-medium font-mono">
-                  Order ID: #{order.orderId || order._id}
-                </div>
+              const currentItemStatus = (item.status || order.status || "pending").toLowerCase();
+              const itemStatusDisplay = statusDisplayMap[currentItemStatus] || (currentItemStatus.charAt(0).toUpperCase() + currentItemStatus.slice(1).replace(/_/g, " "));
+              const statusDotColor = currentItemStatus === "delayed" ? "bg-amber-500" : currentItemStatus === "cancelled" ? "bg-rose-500" : "bg-emerald-500";
+              const statusTextColor = currentItemStatus === "delayed" ? "text-amber-800 font-extrabold" : currentItemStatus === "cancelled" ? "text-rose-700 font-extrabold" : "text-gray-800";
 
-                {/* Intelligent Return / Exchange Action Trigger */}
-                <div className="mt-4">
-                  <ReturnExchangeButton 
-                    orderId={order._id || orderId} 
-                    productId={item.product?._id || item.product} 
-                    item={item}
-                    eligibility={eligibility}
-                    onClick={activeRequest ? () => {
-                      const elem = document.getElementById("customer-order-tracking");
-                      if (elem) elem.scrollIntoView({ behavior: "smooth" });
-                    } : null}
-                  />
-                </div>
-              </div>
+              return (
+                <div key={index} className="p-4 sm:p-5 hover:bg-gray-50/50 transition-colors">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    {/* Item Thumbnail & Specifications */}
+                    <div className="flex items-start sm:items-center gap-4 flex-1 min-w-0">
+                      <div className="w-14 h-16 sm:w-16 sm:h-20 bg-gray-100 rounded-lg overflow-hidden border border-gray-200 shrink-0 shadow-2xs">
+                        <img 
+                          src={item.variant?.mainImage?.url || item.product?.images?.[0]?.url || "https://via.placeholder.com/150"} 
+                          alt={item.product?.title || "Product"} 
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        {brandName && <p className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">{brandName}</p>}
+                        <h4 className="text-sm font-bold text-gray-900 truncate">{item.product?.title || "Product"}</h4>
+                        <div className="text-xs text-gray-600 flex flex-wrap items-center gap-x-2 mt-1">
+                          {color && <span>Color: <strong className="text-gray-800">{color}</strong></span>}
+                          {color && size && <span className="text-gray-300">•</span>}
+                          {size && <span>Size: <strong className="text-gray-800">{size}</strong></span>}
+                          <span className="text-gray-300">•</span>
+                          <span>Qty: <strong className="text-gray-800">{item.quantity}</strong></span>
+                        </div>
+                        {/* Status / Claim Subtext */}
+                        <div className="mt-1.5 flex items-center gap-2 text-xs">
+                          {itemRequest ? (
+                            <span className="inline-flex items-center gap-1 font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                              {itemRequest.type === "exchange" ? "⇄ Exchange Claim:" : "↩ Return Claim:"} {String(itemRequest.status).replace(/_/g, " ").toUpperCase()}
+                            </span>
+                          ) : (
+                            <span className="text-gray-600 font-medium flex items-center gap-1.5">
+                              <span className={`w-2 h-2 rounded-full ${statusDotColor}`}></span>
+                              Status: <strong className={statusTextColor}>{itemStatusDisplay}</strong>
+                            </span>
+                          )}
+                        </div>
+                        {(order.status === "delivered" || currentItemStatus === "delivered") && !itemRequest && (
+                          <div className="mt-2 flex items-center gap-1.5 text-xs text-gray-600 font-medium">
+                            <span>Rate product:</span>
+                            <div className="flex gap-0.5 text-amber-400 text-sm">
+                              {[1, 2, 3, 4, 5].map((star) => (
+                                <button key={star} className="hover:scale-125 transition-transform cursor-pointer">
+                                  ★
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
 
-              {/* Status Banner */}
-              <div className={`${getStatusBannerColor(order.status)} rounded-xl px-5 py-4 flex items-center justify-between mb-2 shadow-sm relative overflow-hidden`}>
-                <div className="flex items-center gap-3 relative z-10">
-                  <div className="bg-white/20 p-2 rounded-lg text-white">
-                    <Package className="w-5 h-5" />
-                  </div>
-                  <div className="text-white">
-                    <h4 className="font-bold text-[14px]">Status: {statusDisplay}</h4>
-                    <p className="text-[12px] opacity-90 mt-0.5">
-                      On {new Date(order.createdAt).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
-                    </p>
-                  </div>
-                </div>
-                {order.status === "delivered" && (
-                  <div className="hidden sm:flex absolute right-4 items-center justify-center w-16 h-16 rounded-full border-2 border-white/30 text-white/50 transform rotate-12 z-0">
-                    <div className="w-14 h-14 rounded-full border border-white/20 flex items-center justify-center">
-                      <span className="text-[8px] font-bold tracking-widest uppercase text-center leading-tight">Delivered<br/>Delivered</span>
+                    {/* Price & Actions Right Column */}
+                    <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-3 border-t sm:border-t-0 pt-3 sm:pt-0 border-gray-100 shrink-0">
+                      <div className="text-left sm:text-right">
+                        <div className="text-sm font-extrabold text-gray-900">
+                          Paid: ₹{itemFin.netPaid.toLocaleString("en-IN")}
+                        </div>
+                        <div className="text-[11px] text-gray-500 font-medium">
+                          Includes ₹{Math.round(itemFin.gst)} GST
+                        </div>
+                      </div>
+
+                      <div className="shrink-0">
+                        <ReturnExchangeButton 
+                          orderId={order._id || orderId} 
+                          productId={item.product?._id || item.product} 
+                          item={item}
+                          eligibility={eligibility}
+                          onClick={activeRequest ? () => {
+                            const elem = document.getElementById("customer-order-tracking");
+                            if (elem) elem.scrollIntoView({ behavior: "smooth" });
+                          } : null}
+                        />
+                      </div>
                     </div>
                   </div>
-                )}
-              </div>
-
-              {/* Rate Product Section */}
-              {order.status === "delivered" && (
-                <div className="bg-white rounded-xl shadow-sm border border-gray-100 px-5 py-4 flex items-center gap-4 mt-2">
-                  <div className="w-12 h-14 bg-gray-50 rounded-lg overflow-hidden flex-shrink-0">
-                    <img 
-                      src={item.variant?.mainImage?.url || item.product?.images?.[0]?.url || "https://via.placeholder.com/100"} 
-                      alt="Thumbnail"
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <div>
-                    <p className="font-medium text-[13px] text-gray-900">Rate this product</p>
-                    <div className="flex gap-1 mt-1 text-gray-200">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <button key={star} className="hover:text-yellow-400 transition-colors cursor-pointer">
-                          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-                          </svg>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
                 </div>
-              )}
-            </div>
-          );
-        })}
+              );
+            })}
+          </div>
+        </div>
 
         {/* Dedicated Customer Lifecycle Tracking Dashboard (Phase 3 Enhancement) */}
         <CustomerTrackingCard order={order} />
@@ -254,47 +287,68 @@ const OrderDetails = () => {
 
         {/* Payment Block */}
         <div className="bg-white border border-gray-100 rounded-xl p-5 shadow-xs">
-          <h3 className="font-bold text-[14px] text-gray-900 mb-4">Order Summary</h3>
+          <h3 className="font-bold text-[14px] text-gray-900 mb-3">Order Bill Details</h3>
           
-          <div className="space-y-3 text-[13px] text-gray-600 mb-4 border-b border-gray-100 pb-4 font-medium">
-            {order.totalMRP !== undefined && order.totalMRP > 0 && (
-              <div className="flex justify-between">
-                <span>Total MRP</span>
-                <span>₹ {order.totalMRP}</span>
+          {(() => {
+            const shipping = Number(order.shippingAmount || 0);
+            const totalPaid = Number(order.totalAmount || 0);
+            const subtotal = Number(order.subtotal ?? (totalPaid - shipping)) || 0;
+            const actualCoupon = Math.max(0, Math.round((subtotal + shipping) - totalPaid));
+            const computedMRP = Number(order.totalMRP || (subtotal + Math.max(0, Number(order.discountAmount || 0) - actualCoupon))) || subtotal;
+            const mrpSavings = Math.max(0, Math.round(computedMRP - subtotal));
+            const totalSavings = mrpSavings + actualCoupon;
+            const gst = Math.round(order.taxAmount || (order.items || []).reduce((acc, i) => acc + (Number(i.gstAmount || 0) * (i.quantity || 1)), 0));
+            const itemCount = order.items?.length || 0;
+
+            return (
+              <div className="space-y-3 mb-4">
+                <div className="space-y-2 text-[13px] text-gray-600 font-medium pb-3 border-b border-gray-100">
+                  {computedMRP > subtotal && (
+                    <div className="flex justify-between text-gray-500">
+                      <span>Total MRP (Gross Item Value)</span>
+                      <span className="font-mono">₹{computedMRP.toLocaleString('en-IN')}</span>
+                    </div>
+                  )}
+                  {mrpSavings > 0 && (
+                    <div className="flex justify-between text-emerald-600 font-bold">
+                      <span>Discount on MRP</span>
+                      <span className="font-mono">-₹{mrpSavings.toLocaleString('en-IN')}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between font-bold text-gray-800">
+                    <span>Items Selling Price ({itemCount} {itemCount === 1 ? 'item' : 'items'})</span>
+                    <span className="font-mono">₹{subtotal.toLocaleString('en-IN')}</span>
+                  </div>
+                  {gst > 0 && (
+                    <div className="flex justify-between text-[11px] text-gray-400 font-normal pl-2 border-l-2 border-gray-200 ml-1 py-0.5">
+                      <span>└ Includes GST (Folded in Selling Price)</span>
+                      <span className="font-mono">₹{gst.toLocaleString('en-IN')}</span>
+                    </div>
+                  )}
+                  {actualCoupon > 0 && (
+                    <div className="flex justify-between text-emerald-600 font-bold">
+                      <span>Coupon Discount</span>
+                      <span className="font-mono">-₹{actualCoupon.toLocaleString('en-IN')}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between items-center">
+                    <span>Delivery & Shipping</span>
+                    <span>{shipping === 0 ? <span className="text-emerald-600 font-bold">FREE (₹0)</span> : <span className="font-bold text-gray-800">₹{shipping.toLocaleString('en-IN')}</span>}</span>
+                  </div>
+                </div>
+                
+                <div className="flex justify-between items-center pt-0.5">
+                  <h3 className="font-extrabold text-[15px] text-gray-900">Total Amount Paid</h3>
+                  <p className="font-black text-[18px] text-[#4F46E5] font-mono">₹{totalPaid.toLocaleString('en-IN')}</p>
+                </div>
+                {totalSavings > 0 && (
+                  <div className="bg-emerald-50 border border-emerald-200/80 text-emerald-800 text-xs font-bold px-3 py-2 rounded-lg text-center shadow-2xs mt-2">
+                    🎉 You saved ₹{totalSavings.toLocaleString('en-IN')} on this order!
+                  </div>
+                )}
               </div>
-            )}
-            
-            {order.discountAmount !== undefined && order.discountAmount > 0 && (
-              <div className="flex justify-between text-green-600 font-bold">
-                <span>Total Savings</span>
-                <span>- ₹ {order.discountAmount}</span>
-              </div>
-            )}
-            
-            <div className="flex justify-between">
-              <span>Subtotal</span>
-              <span>₹ {order.subtotal}</span>
-            </div>
-            
-            {order.shippingAmount !== undefined && (
-              <div className="flex justify-between">
-                <span>Shipping</span>
-                <span>{order.shippingAmount === 0 ? <span className="text-green-600 font-bold">FREE</span> : `₹ ${order.shippingAmount}`}</span>
-              </div>
-            )}
-            
-            {order.taxAmount !== undefined && (
-              <div className="flex justify-between">
-                <span>Tax (GST Inclusive)</span>
-                <span>₹ {order.taxAmount}</span>
-              </div>
-            )}
-          </div>
-          
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="font-bold text-[14px] text-gray-900">Grand Total</h3>
-            <p className="font-extrabold text-[17px] text-gray-900">₹ {order.totalAmount}</p>
-          </div>
+            );
+          })()}
           
           <div className="bg-gray-50 rounded-lg p-3 flex items-center gap-3 text-[13px] text-gray-700 border border-gray-100 font-medium">
             <div className="bg-white px-2 py-1 rounded text-[10px] font-extrabold text-gray-500 border border-gray-200 uppercase tracking-wider">

@@ -5,7 +5,6 @@ const BagSummary = ({ totals }) => {
   const [isTermsAccepted, setIsTermsAccepted] = useState(true);
   const navigate = useNavigate();
 
-  // Format price helper
   const formatPrice = (amount) => {
     return new Intl.NumberFormat("en-IN", {
       style: "currency",
@@ -18,9 +17,7 @@ const BagSummary = ({ totals }) => {
 
   return (
     <div className="bg-white rounded-[12px] shadow-[0_2px_20px_-4px_rgba(0,0,0,0.05)] sticky top-32 overflow-hidden">
-      {/* Gradient Header */}
-      <div className="bg-gradient-to-r from-[#4F46E5] to-[#6D4AFF] p-4 lg:p-5 flex justify-between items-center relative overflow-hidden">
-        {/* Decorative elements */}
+      <div className="bg-gradient-to-r from-[#4F46E5] to-[#6D4AFF] p-4 lg:p-5 flex justify-between items-center relative overflow-hidden"> 
         <div className="absolute right-8 top-4 text-white/20 text-4xl">✨</div>
         <div className="absolute right-24 bottom-4 text-white/10 text-6xl">✦</div>
         
@@ -28,7 +25,6 @@ const BagSummary = ({ totals }) => {
           Order Summary
         </h2>
         
-        {/* Shopping bag illustration mockup */}
         <div className="w-12 h-14 bg-white/10 backdrop-blur-sm rounded-t-md border-t-2 border-x-2 border-white/30 relative z-10 flex items-center justify-center">
           <div className="w-6 h-3 border-2 border-white/50 rounded-t-full absolute -top-3"></div>
           <span className="text-white font-bold text-lg">V</span>
@@ -69,13 +65,11 @@ const BagSummary = ({ totals }) => {
           </div>
         </div>
 
-        {/* Total Amount highlighted block */}
         <div className="bg-[#4F46E5]/5 rounded-lg p-4 flex justify-between items-center mb-4">
           <span className="text-[16px] font-bold text-[#111827]">Total Amount</span>
           <span className="text-[18px] font-bold text-[#4F46E5]">{formatPrice(totals.grandTotal)}</span>
         </div>
 
-        {/* Savings Banner */}
         {totals.discountOnMRP > 0 && (
           <div className="bg-[#E6F6F1] text-[#03a685] text-[13px] font-medium px-4 py-3 rounded-lg flex items-center gap-2 mb-6">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -86,7 +80,6 @@ const BagSummary = ({ totals }) => {
           </div>
         )}
 
-        {/* Terms Checkbox */}
         <label 
           className="flex items-start gap-3 mb-6 cursor-pointer group"
           onClick={() => setIsTermsAccepted(!isTermsAccepted)}
@@ -106,7 +99,6 @@ const BagSummary = ({ totals }) => {
           </p>
         </label>
 
-        {/* Buttons */}
         <div className="space-y-3 mb-8">
           <button 
             onClick={() => navigate("/checkout/address")}
@@ -135,7 +127,6 @@ const BagSummary = ({ totals }) => {
           </button>
         </div>
 
-        {/* Payment Methods */}
         <div>
           <p className="text-[11px] text-[#7e818c] mb-3">We Accept</p>
           <div className="flex items-center gap-2 flex-wrap">

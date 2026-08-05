@@ -1,6 +1,6 @@
 import React from "react";
 
-const StatusBadge = ({ status = "" }) => {
+const StatusBadge = ({ status = "", labelOverride = null }) => {
   const s = String(status).toLowerCase().trim();
 
   const styles = {
@@ -19,7 +19,7 @@ const StatusBadge = ({ status = "" }) => {
     picked_up: "bg-indigo-50 text-indigo-700 border-indigo-200",
     received: "bg-blue-50 text-blue-700 border-blue-200",
     refunded: "bg-purple-50 text-purple-700 border-purple-200",
-    exchanged: "bg-purple-50 text-purple-700 border-purple-200",
+    exchanged: "bg-emerald-50 text-emerald-700 border-emerald-200 font-bold",
     return: "bg-amber-50 text-amber-700 border-amber-200",
     exchange: "bg-purple-50 text-purple-700 border-purple-200",
     passed: "bg-emerald-50 text-emerald-700 border-emerald-200 font-bold",
@@ -46,8 +46,8 @@ const StatusBadge = ({ status = "" }) => {
     cod: "COD",
   };
 
-  let label = customLabels[s] || status || "Unknown";
-  if (!customLabels[s] && typeof label === "string") {
+  let label = labelOverride || customLabels[s] || status || "Unknown";
+  if (!labelOverride && !customLabels[s] && typeof label === "string") {
     label = label.replace(/_/g, " ").replace(/\b\w/g, (char) => char.toUpperCase());
   }
 

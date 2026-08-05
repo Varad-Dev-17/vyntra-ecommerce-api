@@ -8,7 +8,7 @@ const ProductImageSchema = new mongoose.Schema(
     },
     publicId: {
       type: String,
-      required: true,
+      required: false,
     },
   },
   { _id: false }
@@ -55,6 +55,7 @@ const VariantSchema = new mongoose.Schema(
       type: Number,
       required: true,
       enum: [0, 5, 12, 18, 28],
+      default: 5,
     },
     stock: {
       type: Number,

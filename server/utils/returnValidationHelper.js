@@ -87,7 +87,7 @@ export const validateReturnStatusTransition = (currentStatus, targetStatus, effe
     return { isValid: true };
   }
 
-  const validStatuses = ["pending", "approved", "rejected", "pickup_scheduled", "picked_up", "received", "refunded", "exchanged"];
+  const validStatuses = ["pending", "approved", "packed", "shipped", "rejected", "pickup_scheduled", "picked_up", "received", "refunded", "exchanged"];
   if (!validStatuses.includes(targetStatus)) {
     return { isValid: false, message: `Invalid return request status: ${targetStatus}` };
   }

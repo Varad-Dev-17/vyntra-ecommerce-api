@@ -1,9 +1,12 @@
 import React from 'react';
 
-const ProductInfo = ({ product, variant, quantity, price, color, size }) => {
+const ProductInfo = ({ product, variant, quantity, selectedQty, onQtyChange, price, color, size }) => {
+  const maxQty = Number(quantity || 1);
+  const currentQty = Number(selectedQty || maxQty);
+
   return (
     <div className="flex gap-6 items-start">
-      <div className="w-24 h-32 bg-gray-50 rounded-lg overflow-hidden shrink-0 border border-gray-200">
+      <div className="w-24 h-32 bg-gray-50 rounded-lg overflow-hidden shrink-0 border border-gray-200 shadow-2xs">
         {(variant?.mainImage?.url || product?.images?.[0]?.url) ? (
           <img 
             src={variant?.mainImage?.url || product?.images?.[0]?.url} 
@@ -16,13 +19,36 @@ const ProductInfo = ({ product, variant, quantity, price, color, size }) => {
       </div>
       <div className="flex-1 pt-1">
         {product?.brand?.name && <h3 className="font-bold text-gray-900 text-[14px] uppercase tracking-wider">{product.brand.name}</h3>}
-        {product?.title && <p className="text-gray-600 text-[15px] mt-1">{product.title}</p>}
-        <div className="text-gray-500 text-[14px] mt-3 flex flex-col sm:flex-row sm:flex-wrap gap-x-6 gap-y-2">
+        {product?.title && <p className="text-gray-600 text-[15px] mt-1 font-semibold">{product.title}</p>}
+        <div className="text-gray-500 text-[14px] mt-3 flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center gap-x-6 gap-y-2">
           {color && <span>Color: <span className="font-medium text-gray-900">{color}</span></span>}
           {size && <span>Size: <span className="font-medium text-gray-900">{size}</span></span>}
-          <span>Qty: <span className="font-medium text-gray-900">{quantity || 1}</span></span>
+          {maxQty <= 1 ? (
+            <span>Qty: <span className="font-medium text-gray-900">1</span></span>
+          ) : (
+            <div className="flex items-center gap-2 bg-indigo-50/70 p-1.5 px-3 rounded-lg border border-indigo-100">
+              <span className="text-xs font-bold text-indigo-950">Claim Quantity:</span>
+              <select
+                value={currentQty}
+                onChange={(e) => onQtyChange?.(Number(e.target.value))}
+                className="border border-indigo-200 rounded px-2 py-0.5 bg-white text-xs font-extrabold text-[#4648d4] focus:outline-none focus:ring-1 focus:ring-[#4648d4] cursor-pointer shadow-2xs"
+              >
+                {Array.from({ length: maxQty }, (_, i) => i + 1).map((q) => (
+                  <option key={q} value={q}>
+                    {q} {q === 1 ? "unit" : "units"}
+                  </option>
+                ))}
+              </select>
+              <span className="text-[11px] font-medium text-indigo-700">(of {maxQty} purchased)</span>
+            </div>
+          )}
         </div>
-        {price && <p className="text-[16px] font-bold text-gray-900 mt-4">₹{price}</p>}
+        {price && (
+          <div className="mt-4 flex items-baseline gap-2">
+            <p className="text-[16px] font-bold font-mono text-gray-900">₹{(price * currentQty).toLocaleString("en-IN")}</p>
+            {currentQty > 1 && <span className="text-xs text-gray-500 font-medium font-mono">({currentQty} × ₹{price.toLocaleString("en-IN")})</span>}
+          </div>
+        )}
       </div>
     </div>
   );

@@ -1,5 +1,5 @@
 import React from "react";
-import { CheckCircle2, Clock, AlertCircle, XCircle, Package, Truck, RefreshCw, ClipboardCheck, DollarSign, ShieldAlert, User, ShieldCheck } from "lucide-react";
+import { CheckCircle2, Clock, AlertCircle, XCircle, Package, Truck, RefreshCw, ClipboardCheck, DollarSign, ShieldAlert, User, ShieldCheck, Check } from "lucide-react";
 
 const TimelineItem = ({ steps = [], currentStatus = "", onStepClick = null, isCancelled = false, isRejected = false, isAuditLog = false }) => {
   if (!Array.isArray(steps) || steps.length === 0) {
@@ -36,33 +36,38 @@ const TimelineItem = ({ steps = [], currentStatus = "", onStepClick = null, isCa
   // Render Compact Horizontal Stepper for operational order, return, and refund step lists
   if (!isAuditLog) {
     return (
-      <div className="w-full py-4 px-1 select-none">
+      <div className="w-full py-1.5 px-1 select-none">
         <div className="flex items-start justify-between relative w-full">
           {steps.map((step, idx) => {
             const isCompleted = step.isCompleted;
             const isCurrent = step.isCurrent;
             const isError = step.isError || (isCancelled && isCurrent) || (isRejected && isCurrent);
 
-            let Icon = Clock;
-            let iconBg = "bg-white border-2 border-gray-300 text-gray-400";
-            let textColor = "text-gray-500";
-            let dateColor = "text-gray-400";
-            let lineBg = "bg-gray-200";
+            let nodeContent = null;
+            let nodeStyle = "w-2.5 h-2.5 bg-slate-300 rounded-full";
+            let textColor = "text-slate-400 font-medium";
+            let dateColor = "text-slate-400";
+            let lineBg = "bg-slate-200";
 
             if (isError) {
-              Icon = XCircle;
-              iconBg = "bg-rose-500 border-2 border-rose-600 text-white shadow-2xs ring-2 ring-rose-200";
+              nodeStyle = "w-4 h-4 bg-rose-500 rounded-full flex items-center justify-center text-white ring-2 ring-rose-200";
+              nodeContent = <XCircle size={10} className="stroke-[2.5]" />;
               textColor = "text-rose-700 font-bold";
               dateColor = "text-rose-500 font-semibold";
-            } else if (isCompleted) {
-              Icon = CheckCircle2;
-              iconBg = "bg-emerald-500 border-2 border-emerald-600 text-white shadow-2xs";
-              textColor = "text-slate-700 font-bold";
+            } else if (isCompleted && isCurrent) {
+              nodeStyle = "w-4 h-4 bg-emerald-600 rounded-full flex items-center justify-center text-white shadow-2xs ring-2 ring-emerald-200";
+              nodeContent = <Check size={10} className="stroke-[3]" />;
+              textColor = "text-slate-800 font-extrabold";
               dateColor = "text-emerald-600 font-semibold";
               lineBg = "bg-emerald-500";
+            } else if (isCompleted) {
+              nodeStyle = "w-3.5 h-3.5 bg-emerald-500 rounded-full flex items-center justify-center text-white shadow-2xs";
+              nodeContent = <Check size={9} className="stroke-[3]" />;
+              textColor = "text-slate-700 font-bold";
+              dateColor = "text-emerald-600 font-medium";
+              lineBg = "bg-emerald-500";
             } else if (isCurrent) {
-              Icon = Clock;
-              iconBg = "bg-[#4F46E5] border-2 border-indigo-700 text-white shadow-2xs ring-4 ring-[#4F46E5]/20 animate-pulse";
+              nodeStyle = "w-3.5 h-3.5 bg-[#4F46E5] rounded-full ring-2 ring-[#4F46E5]/30 animate-pulse";
               textColor = "text-[#4F46E5] font-bold";
               dateColor = "text-[#4F46E5] font-semibold";
             }
@@ -83,7 +88,7 @@ const TimelineItem = ({ steps = [], currentStatus = "", onStepClick = null, isCa
             return (
               <div
                 key={step.eventId || idx}
-                className={`flex-1 flex flex-col items-center text-center relative group min-w-[70px] ${
+                className={`flex-1 flex flex-col items-center text-center relative group min-w-[60px] ${
                   onStepClick && step.actionValue ? "cursor-pointer" : ""
                 }`}
                 onClick={() => onStepClick && step.actionValue && onStepClick(step.actionValue)}
@@ -91,28 +96,28 @@ const TimelineItem = ({ steps = [], currentStatus = "", onStepClick = null, isCa
                 {/* Horizontal progress connecting line to next step */}
                 {idx < steps.length - 1 && (
                   <div
-                    className={`absolute top-3 left-1/2 w-full h-0.5 -z-0 transition-colors duration-300 ${
-                      isCompleted ? "bg-emerald-500" : "bg-gray-200"
+                    className={`absolute top-2 left-1/2 w-full h-[2px] -z-0 transition-colors duration-300 ${
+                      isCompleted ? "bg-emerald-500" : "bg-slate-200"
                     }`}
                   />
                 )}
 
-                {/* Compact Step Circle Icon */}
-                <div
-                  className={`w-6 h-6 rounded-full flex items-center justify-center transition-transform duration-200 z-10 shrink-0 ${iconBg} ${
+                {/* Compact Step Circle Node */}
+                <div className="h-4 flex items-center justify-center z-10 shrink-0">
+                  <div className={`transition-transform duration-200 ${nodeStyle} ${
                     onStepClick && step.actionValue ? "group-hover:scale-110" : ""
-                  }`}
-                >
-                  <Icon size={13} className="stroke-[2.5]" />
+                  }`}>
+                    {nodeContent}
+                  </div>
                 </div>
 
                 {/* Compact Title & Date underneath */}
-                <div className="flex flex-col items-center mt-2 w-full px-1 z-10">
-                  <span className={`text-[11px] font-bold tracking-tight leading-tight line-clamp-2 ${textColor}`}>
+                <div className="flex flex-col items-center mt-1.5 w-full px-0.5 z-10">
+                  <span className={`text-[10.5px] tracking-tight leading-tight line-clamp-2 ${textColor}`}>
                     {step.title}
                   </span>
                   {step.date && (
-                    <span className={`text-[9.5px] tracking-tight block mt-0.5 ${dateColor}`}>
+                    <span className={`text-[9px] tracking-tight block mt-0.5 ${dateColor}`}>
                       {step.date}
                     </span>
                   )}

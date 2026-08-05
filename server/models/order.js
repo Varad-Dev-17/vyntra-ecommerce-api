@@ -25,6 +25,13 @@ const OrderSchema = new mongoose.Schema(
         basePrice: { type: Number, required: true },
         gstRate: { type: Number, required: true },
         gstAmount: { type: Number, required: true },
+        status: {
+          type: String,
+          default: "pending",
+          enum: ["pending", "processing", "packed", "shipped", "on_the_way", "delivered", "cancelled", "delayed"],
+        },
+        trackingNumber: { type: String, default: "" },
+        courier: { type: String, default: "" },
       },
     ],
     shippingAddress: {
@@ -56,7 +63,7 @@ const OrderSchema = new mongoose.Schema(
     status: {
       type: String,
       default: "pending",
-      enum: ["pending", "processing", "packed", "shipped", "on_the_way", "delivered", "cancelled"],
+      enum: ["pending", "processing", "packed", "shipped", "on_the_way", "delivered", "cancelled", "delayed"],
     },
     deliveredAt: { type: Date, default: null },
     trackingNumber: String,

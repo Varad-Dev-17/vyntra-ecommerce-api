@@ -99,7 +99,12 @@ const CustomerTrackingCard = ({ order = null }) => {
     const reqStatus = (req.status || "pending").toLowerCase();
     const isRejected = reqStatus === "rejected";
 
-    const stepsList = ["pending", "approved", "pickup_scheduled", "picked_up", "received"];
+    const matchingItem = order?.items?.find(item => (item.product?._id || item.product) === (req.product?._id || req.product));
+    const itemTitle = matchingItem?.product?.title || matchingItem?.product?.name || "";
+
+    const stepsList = type === "exchange" 
+      ? ["pending", "approved", "packed", "shipped", "pickup_scheduled", "picked_up", "exchanged"]
+      : ["pending", "approved", "pickup_scheduled", "picked_up", "received"];
     const currentIdx = stepsList.indexOf(reqStatus);
 
     return (
@@ -110,11 +115,12 @@ const CustomerTrackingCard = ({ order = null }) => {
               <RefreshCw size={20} className="stroke-[2.25]" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-gray-900 tracking-tight">
-                {type === "exchange" ? "Exchange Request Tracking" : "Return Request Tracking"}
+              <h3 className="text-base font-bold text-gray-900 tracking-tight flex items-center gap-1.5 flex-wrap">
+                <span>{type === "exchange" ? "Exchange Request Tracking" : "Return Request Tracking"}</span>
+                {itemTitle && <span className="text-[#4648d4] font-extrabold text-sm border-l-2 border-slate-200 pl-2">({itemTitle})</span>}
               </h3>
               <p className="text-xs text-gray-500 font-medium">
-                {type === "exchange" ? "Tracking your replacement variant fulfillment" : "Tracking your product return and item collection"}
+                {type === "exchange" ? "Tracking your replacement variant fulfillment & doorstep swap" : "Tracking your product return and item collection"}
               </p>
             </div>
           </div>
@@ -125,14 +131,22 @@ const CustomerTrackingCard = ({ order = null }) => {
         </div>
 
         {!isRejected ? (
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 pt-2">
-            {[
-              { label: `${type === "exchange" ? "Exchange" : "Return"} Requested`, desc: "Submitted", idx: 0 },
+          <div className={`grid grid-cols-2 ${type === "exchange" ? "sm:grid-cols-4 lg:grid-cols-7" : "sm:grid-cols-5"} gap-2.5 pt-2`}>
+            {(type === "exchange" ? [
+              { label: "Exchange Requested", desc: "Submitted", idx: 0 },
+              { label: "Approved", desc: "Reserved", idx: 1 },
+              { label: "Packed", desc: "Item Packed", idx: 2 },
+              { label: "Shipped", desc: "Dispatched", idx: 3 },
+              { label: "Out for Exchange", desc: "En Route", idx: 4 },
+              { label: "Quality Check", desc: "Tag Inspection", idx: 5 },
+              { label: "Exchanged", desc: "Swapped", idx: 6 }
+            ] : [
+              { label: "Return Requested", desc: "Submitted", idx: 0 },
               { label: "Approved", desc: "Reviewed & Verified", idx: 1 },
               { label: "Pickup Scheduled", desc: "Courier Assigned", idx: 2 },
               { label: "Picked Up", desc: "Collected by Courier", idx: 3 },
               { label: "Received", desc: "Arrived at Facility", idx: 4 }
-            ].map((s, i) => {
+            ]).map((s, i) => {
               const isComp = ["refunded", "exchanged"].includes(reqStatus) || currentIdx >= s.idx;
               const isCurr = currentIdx === s.idx && !["refunded", "exchanged"].includes(reqStatus);
 
@@ -183,7 +197,7 @@ const CustomerTrackingCard = ({ order = null }) => {
             </div>
             <div>
               <h4 className="text-sm font-bold tracking-tight text-white">Quality Inspection Status</h4>
-              <p className="text-xs text-indigo-200 font-medium">Verifying returned product condition at warehouse facility</p>
+              <p className="text-xs text-indigo-200 font-medium">Verifying product brand tags and condition during doorstep collection or upon facility intake</p>
             </div>
           </div>
 
@@ -198,7 +212,7 @@ const CustomerTrackingCard = ({ order = null }) => {
           {qcStatus === "passed" ? (
             <span className="text-emerald-300 font-semibold flex items-center gap-2">
               <CheckCircle2 size={16} className="shrink-0" />
-              Your returned item has been inspected successfully and verified by our facility.
+              Your item's quality, tags, and condition have been verified successfully.
             </span>
           ) : qcStatus === "failed" ? (
             <div className="space-y-1 text-rose-200">
@@ -213,7 +227,7 @@ const CustomerTrackingCard = ({ order = null }) => {
           ) : (
             <span className="text-indigo-200 flex items-center gap-2">
               <Clock size={16} className="text-amber-300 shrink-0" />
-              Your returned item has been received and is currently in queue for standard quality verification.
+              Your item is awaiting quality check of brand tags, packaging, and condition during courier collection or upon intake.
             </span>
           )}
         </div>
@@ -296,9 +310,9 @@ const CustomerTrackingCard = ({ order = null }) => {
   // Customer Timeline (Reusing existing timeline component with friendly language)
   const renderCustomerTimeline = () => {
     const orderEvents = Array.isArray(order.timeline) ? order.timeline : [];
-    const returnEvents = activeReturn && Array.isArray(activeReturn.timeline) ? activeReturn.timeline : [];
+    const allReturnEvents = returnRequests.flatMap(req => Array.isArray(req.timeline) ? req.timeline : []);
 
-    const combined = [...orderEvents, ...returnEvents].sort((a, b) => {
+    const combined = [...orderEvents, ...allReturnEvents].sort((a, b) => {
       return new Date(a.timestamp || 0) - new Date(b.timestamp || 0);
     });
 
@@ -363,7 +377,8 @@ const CustomerTrackingCard = ({ order = null }) => {
 
   // Customer Notes & Updates 
   const renderCustomerNotes = () => {
-    const allNotes = [...(order.adminNotes || []), ...(activeReturn?.adminNotes || [])];
+    const allReturnNotes = returnRequests.flatMap(req => Array.isArray(req.adminNotes) ? req.adminNotes : []);
+    const allNotes = [...(order.adminNotes || []), ...allReturnNotes];
 
     // Strictly display ONLY notes where visibleToCustomer is explicitly true
     const customerVisibleNotes = allNotes.filter(
@@ -401,9 +416,13 @@ const CustomerTrackingCard = ({ order = null }) => {
   return (
     <div id="customer-order-tracking" className="space-y-6 pt-2 pb-4">
       {renderOrderTracker()}
-      {activeReturn && renderReturnExchangeTracker(activeReturn)}
-      {activeReturn && renderQcTracking(activeReturn)}
-      {activeReturn && renderRefundTracking(activeReturn)}
+      {returnRequests.map((req, idx) => (
+        <div key={req._id || idx} className="space-y-6 pt-2 border-t-2 border-indigo-50/60">
+          {renderReturnExchangeTracker(req)}
+          {renderQcTracking(req)}
+          {renderRefundTracking(req)}
+        </div>
+      ))}
       {renderCustomerTimeline()}
       {renderCustomerNotes()}
     </div>

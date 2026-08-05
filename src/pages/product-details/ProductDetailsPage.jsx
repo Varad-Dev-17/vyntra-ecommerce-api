@@ -95,14 +95,14 @@ const ProductDetailsPage = () => {
 
   return (
     <div className="bg-white min-h-screen pt-[100px] pb-20">
-      <div className="w-full px-4 sm:px-8 lg:px-12">
-        <div className="text-[14px] text-[#535766] mb-6">
+      <div className="max-w-[1520px] mx-auto px-6 sm:px-12 lg:px-20 xl:px-32">
+        <div className="text-[13px] text-[#535766] mb-6">
           Home / {product.department?.name || 'Store'} / {product.category?.name || 'Category'} / <span className="text-[#282c3f] font-bold">{product.title}</span>
         </div>
 
-        <div className="flex flex-col-reverse lg:flex-row gap-8 xl:gap-12">
+        <div className="flex flex-col-reverse lg:flex-row gap-8 xl:gap-14">
           {/* Left: Info */}
-          <div className="w-full lg:w-[40%] pt-2">
+          <div className="w-full lg:w-[46%] pt-1">
             <ProductInfo
               product={product}
               activeVariant={activeVariant}
@@ -111,7 +111,7 @@ const ProductDetailsPage = () => {
           </div>
 
           {/* Right: Images */}
-          <div className="w-full lg:w-[60%]">
+          <div className="w-full lg:w-[54%]">
             <ProductImageGrid variant={activeVariant} />
           </div>
         </div>
