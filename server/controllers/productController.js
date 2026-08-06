@@ -104,7 +104,8 @@ export const getAllProducts = async (req, res) => {
 
     // Search text & SKU
     if (search.trim()) {
-      const searchRegex = new RegExp(search.trim(), "i");
+      // Replace spaces with a pattern that matches spaces, hyphens, or no space
+      const searchRegex = new RegExp(search.trim().replace(/\s+/g, "[-\\s]*"), "i");
       postLookupMatch.$or = [
         { title: searchRegex },
         { shortDescription: searchRegex },

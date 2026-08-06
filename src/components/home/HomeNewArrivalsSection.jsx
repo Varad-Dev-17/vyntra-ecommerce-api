@@ -137,6 +137,71 @@ const staticNewArrivals = [
     rating: 5.0,
     ratingCount: 16,
   },
+  {
+    id: "static-11",
+    brand: "Titan",
+    title: "Analog Men's Watch",
+    slug: "titan-analog-watch",
+    price: 2499,
+    mrp: 3999,
+    discountPercentage: 37,
+    images: [{ url: "/home/cat_luxury_1785433108279.png" }],
+    availableSizes: ["One Size"],
+    rating: 4.6,
+    ratingCount: 58,
+  },
+  {
+    id: "static-12",
+    brand: "Puma",
+    title: "Men's Running Shoes",
+    slug: "puma-running-shoes",
+    price: 2999,
+    mrp: 4999,
+    discountPercentage: 40,
+    images: [{ url: "/home/cat_sneakers_1785433154388.png" }],
+    availableSizes: ["7", "8", "9", "10"],
+    rating: 4.5,
+    ratingCount: 89,
+  },
+  {
+    id: "static-13",
+    brand: "H&M",
+    title: "Women Relaxed Fit Jeans",
+    slug: "hm-women-jeans",
+    price: 1499,
+    mrp: 2299,
+    discountPercentage: 34,
+    images: [{ url: "/home/cat_fashion_1785433098747.png" }],
+    availableSizes: ["28", "30", "32"],
+    rating: 4.3,
+    ratingCount: 42,
+  },
+  {
+    id: "static-14",
+    brand: "Philips",
+    title: "Multi Grooming Kit",
+    slug: "philips-grooming-kit",
+    price: 1199,
+    mrp: 1599,
+    discountPercentage: 25,
+    images: [{ url: "/home/cat_electronics_1785433088900.png" }],
+    availableSizes: ["Standard"],
+    rating: 4.8,
+    ratingCount: 210,
+  },
+  {
+    id: "static-15",
+    brand: "L'Oreal",
+    title: "Revitalift Night Cream",
+    slug: "loreal-night-cream",
+    price: 899,
+    mrp: 1299,
+    discountPercentage: 30,
+    images: [{ url: "/home/cat_beauty_1785433130784.png" }],
+    availableSizes: ["50ml"],
+    rating: 4.4,
+    ratingCount: 150,
+  },
 ];
 
 const HomeArrivalCard = ({ product }) => {
@@ -220,7 +285,11 @@ const HomeNewArrivalsSection = ({ title, subtitle }) => {
     let ctx = gsap.context(() => {
       const track = trackRef.current;
       const container = track.parentElement;
-      const getScrollAmount = () => -(track.scrollWidth - container.offsetWidth);
+      const getScrollAmount = () => {
+        const style = window.getComputedStyle(container);
+        const padding = parseFloat(style.paddingLeft || 0) + parseFloat(style.paddingRight || 0);
+        return -(track.scrollWidth - container.offsetWidth + padding);
+      };
 
       gsap.to(track, {
         x: getScrollAmount,
@@ -228,7 +297,7 @@ const HomeNewArrivalsSection = ({ title, subtitle }) => {
         scrollTrigger: {
           trigger: sectionRef.current,
           start: "top top",
-          end: () => `+=${track.scrollWidth - container.offsetWidth}`,
+          end: () => `+=${Math.abs(getScrollAmount())}`,
           pin: true,
           scrub: 1,
           invalidateOnRefresh: true,
