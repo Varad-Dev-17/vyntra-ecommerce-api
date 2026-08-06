@@ -88,23 +88,23 @@ const Reviews = () => {
             </p>
           </div>
 
-          <div className="flex items-center gap-2 bg-indigo-50 text-[#4F46E5] px-4 py-2 rounded-lg font-bold text-sm border border-indigo-100 self-start sm:self-center shadow-2xs">
+          <div className="flex items-center gap-2 bg-indigo-50 text-[#4F46E5] px-4 py-2 rounded-none font-bold text-sm border border-indigo-100 self-start sm:self-center shadow-2xs">
             <span>Total Reviews:</span>
             <span className="text-base font-black text-indigo-700">{reviews.length}</span>
           </div>
         </div>
 
         {/* Filter Toolbar */}
-        <div className="flex flex-col md:flex-row gap-4 items-stretch md:items-center justify-between bg-slate-50/70 p-4 rounded-xl border border-slate-200/80">
+        <div className="flex flex-col md:flex-row gap-4 items-stretch md:items-center justify-between bg-slate-50/70 p-4 rounded-none border border-slate-200/80">
           {/* Search Input */}
-          <div className="relative flex-1 max-w-md">
+          <div className="relative flex-1 max-w-sm">
             <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               placeholder="Search by product name, customer, or commentary..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#4F46E5]/20 focus:border-[#4F46E5] shadow-2xs"
+              className="w-full pl-10 pr-4 py-2 bg-white border border-slate-300 rounded-none text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#4F46E5]/20 focus:border-[#4F46E5] shadow-2xs"
             />
             {searchTerm && (
               <button
@@ -131,7 +131,7 @@ const Reviews = () => {
                 <button
                   key={pill.id}
                   onClick={() => setSelectedRating(pill.id)}
-                  className={`px-4 py-2 rounded-lg font-bold text-xs transition-all shrink-0 cursor-pointer shadow-2xs ${
+                  className={`px-4 py-2 rounded-none font-bold text-xs transition-all shrink-0 cursor-pointer shadow-2xs ${
                     active
                       ? "bg-[#1E1B4B] text-white shadow-sm"
                       : "bg-white text-slate-700 border border-slate-300 hover:bg-slate-100"
@@ -150,7 +150,7 @@ const Reviews = () => {
             <Loader2 className="w-10 h-10 text-[#4F46E5] animate-spin" />
           </div>
         ) : filteredReviews.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-24 text-center bg-slate-50 rounded-xl border border-slate-200/80 my-4">
+          <div className="flex flex-col items-center justify-center py-24 text-center bg-slate-50 rounded-none border border-slate-200/80 my-4">
             <AlertCircle size={48} className="text-slate-300 mb-3" />
             <h3 className="text-lg font-bold text-slate-800 mb-1">No customer reviews found</h3>
             <p className="text-sm text-slate-500 max-w-sm mb-4">
@@ -162,14 +162,14 @@ const Reviews = () => {
                   setSearchTerm("");
                   setSelectedRating("all");
                 }}
-                className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold text-xs rounded-lg transition-colors cursor-pointer"
+                className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold text-xs rounded-none transition-colors cursor-pointer"
               >
                 Reset Filters
               </button>
             )}
           </div>
         ) : (
-          <div className="overflow-x-auto border border-slate-200 rounded-xl shadow-xs">
+          <div className="overflow-x-auto border border-slate-200 rounded-none shadow-xs">
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-slate-50 text-slate-600 font-extrabold text-xs uppercase tracking-wider border-b border-slate-200">
@@ -199,7 +199,7 @@ const Reviews = () => {
                       {/* Product Column */}
                       <td className="py-4 px-4 align-top">
                         <div className="flex items-start gap-3">
-                          <div className="w-14 h-18 rounded border border-slate-200 overflow-hidden shrink-0 bg-white shadow-2xs">
+                          <div className="w-14 h-18 rounded-none border border-slate-200 overflow-hidden shrink-0 bg-white shadow-2xs">
                             <img
                               src={productImg}
                               alt="Product thumbnail"
@@ -231,12 +231,12 @@ const Reviews = () => {
                           {rev.user?.email || "No Email"}
                         </div>
                         {rev.verifiedBuyer ? (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-none text-[11px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200">
                             <ShieldCheck size={13} className="text-emerald-600" />
                             Verified Buyer
                           </span>
                         ) : (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 text-slate-600 border border-slate-200">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-none text-[11px] font-medium bg-slate-100 text-slate-600 border border-slate-200">
                             Unverified Order
                           </span>
                         )}
@@ -251,7 +251,7 @@ const Reviews = () => {
 
                       {/* Rating Score Column */}
                       <td className="py-4 px-4 align-top text-center">
-                        <span className={`inline-flex items-center justify-center gap-1 text-white font-black px-3 py-1 rounded shadow-2xs text-xs ${scoreBadgeBg}`}>
+                        <span className={`inline-flex items-center justify-center gap-1 text-white font-black px-3 py-1 rounded-none shadow-2xs text-xs ${scoreBadgeBg}`}>
                           <span>{rev.rating}</span>
                           <Star size={12} className="fill-white text-white" />
                         </span>
@@ -287,7 +287,7 @@ const Reviews = () => {
                                     createdAt: rev.createdAt,
                                   })
                                 }
-                                className="w-10 h-12 rounded border border-slate-300 overflow-hidden cursor-pointer hover:scale-110 hover:shadow-md transition-all relative group/thumb bg-white"
+                                className="w-10 h-12 rounded-none border border-slate-300 overflow-hidden cursor-pointer hover:scale-110 hover:shadow-md transition-all relative group/thumb bg-white"
                                 title="Click to inspect photo"
                               >
                                 <img
@@ -308,11 +308,10 @@ const Reviews = () => {
                         )}
                       </td>
 
-                      {/* Actions Column */}
                       <td className="py-4 px-4 align-top text-right">
                         <button
                           onClick={() => handleDeleteReview(rev._id)}
-                          className="p-2 text-rose-500 hover:text-white hover:bg-rose-600 rounded-lg transition-all duration-200 cursor-pointer border border-transparent hover:border-rose-700 shadow-2xs"
+                          className="p-2 text-rose-500 hover:text-white hover:bg-rose-600 rounded-none transition-all duration-200 cursor-pointer border border-transparent hover:border-rose-700 shadow-2xs"
                           title="Delete / Remove Review"
                         >
                           <Trash2 size={18} />
@@ -333,12 +332,12 @@ const Reviews = () => {
             onClick={() => setSelectedImageModal(null)}
           >
             <div
-              className="bg-white rounded-xl overflow-hidden max-w-2xl w-full flex flex-col md:flex-row shadow-2xl relative border border-slate-200"
+              className="bg-white rounded-none overflow-hidden max-w-2xl w-full flex flex-col md:flex-row shadow-2xl relative border border-slate-200"
               onClick={(e) => e.stopPropagation()}
             >
               <button
                 onClick={() => setSelectedImageModal(null)}
-                className="absolute top-3 right-3 z-10 p-1.5 bg-black/70 text-white hover:bg-slate-800 rounded-full transition-colors cursor-pointer"
+                className="absolute top-3 right-3 z-10 p-1.5 bg-black/70 text-white hover:bg-slate-800 rounded-none transition-colors cursor-pointer"
               >
                 <X size={18} />
               </button>
@@ -347,7 +346,7 @@ const Reviews = () => {
                 <img
                   src={selectedImageModal.url}
                   alt="Inspection view"
-                  className="w-full h-full object-contain max-h-[70vh] rounded"
+                  className="w-full h-full object-contain max-h-[70vh] rounded-none"
                 />
               </div>
 
@@ -367,7 +366,7 @@ const Reviews = () => {
                   </div>
 
                   <div className="flex items-center gap-1.5 mb-3">
-                    <span className="bg-slate-900 text-white text-xs font-bold px-2 py-0.5 rounded flex items-center gap-1">
+                    <span className="bg-slate-900 text-white text-xs font-bold px-2 py-0.5 rounded-none flex items-center gap-1">
                       {selectedImageModal.rating} <Star size={11} className="fill-white text-white" />
                     </span>
                     <span className="text-[11px] text-slate-400">
@@ -375,14 +374,14 @@ const Reviews = () => {
                     </span>
                   </div>
 
-                  <div className="p-3 bg-slate-50 rounded-lg border border-slate-200/80 text-xs text-slate-700 italic max-h-48 overflow-y-auto">
+                  <div className="p-3 bg-slate-50 rounded-none border border-slate-200/80 text-xs text-slate-700 italic max-h-48 overflow-y-auto">
                     "{selectedImageModal.comment || "No commentary provided."}"
                   </div>
                 </div>
 
                 <button
                   onClick={() => setSelectedImageModal(null)}
-                  className="w-full mt-6 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs uppercase tracking-wider rounded-lg transition-colors cursor-pointer shadow-sm"
+                  className="w-full mt-6 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs uppercase tracking-wider rounded-none transition-colors cursor-pointer shadow-sm"
                 >
                   Close Inspection
                 </button>

@@ -38,7 +38,6 @@ const Sidebar = ({ onClose, isCollapsed, toggleCollapse }) => {
     { path: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { path: "/admin/catalog", label: "Catalog", icon: Tags },
     { path: "/admin/products", label: "Products", icon: Package },
-    { path: "/admin/stock-management", label: "Stock Management", icon: PackageCheck },
     { path: "/admin/orders", label: "Orders", icon: ShoppingCart },
     { path: "/admin/returns", label: "Returns", icon: RefreshCcw },
     { path: "/admin/users", label: "Users", icon: Users },
