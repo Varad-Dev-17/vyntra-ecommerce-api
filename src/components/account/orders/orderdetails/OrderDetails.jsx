@@ -111,7 +111,7 @@ const OrderDetails = () => {
     <div className="max-w-3xl mx-auto py-6 px-4 sm:px-6">
       <button 
         onClick={() => navigate("/account/orders")}
-        className="flex items-center gap-2 text-gray-500 hover:text-gray-900 mb-6 transition-colors font-medium text-sm cursor-pointer"
+        className="flex items-center gap-2 text-gray-500 hover:text-slate-700 mb-6 transition-colors font-medium text-sm cursor-pointer"
       >
         <ArrowLeft className="w-4 h-4" />
         Back to Orders
@@ -121,7 +121,7 @@ const OrderDetails = () => {
         {/* Compact Items Table Container */}
         <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-xs">
           <div className="bg-gray-50 px-5 py-3.5 border-b border-gray-200 flex items-center justify-between">
-            <h3 className="font-bold text-sm text-gray-900 flex items-center gap-2">
+            <h3 className="font-bold text-sm text-slate-700 flex items-center gap-2">
               <Package className="w-4 h-4 text-indigo-600" />
               Items in this Order ({order.items?.length || 0})
             </h3>
@@ -162,7 +162,7 @@ const OrderDetails = () => {
               const currentItemStatus = (item.status || order.status || "pending").toLowerCase();
               const itemStatusDisplay = statusDisplayMap[currentItemStatus] || (currentItemStatus.charAt(0).toUpperCase() + currentItemStatus.slice(1).replace(/_/g, " "));
               const statusDotColor = currentItemStatus === "delayed" ? "bg-amber-500" : currentItemStatus === "cancelled" ? "bg-rose-500" : "bg-emerald-500";
-              const statusTextColor = currentItemStatus === "delayed" ? "text-amber-800 font-extrabold" : currentItemStatus === "cancelled" ? "text-rose-700 font-extrabold" : "text-gray-800";
+              const statusTextColor = currentItemStatus === "delayed" ? "text-amber-800 font-extrabold" : currentItemStatus === "cancelled" ? "text-rose-700 font-extrabold" : "text-slate-700";
 
               return (
                 <div key={index} className="p-4 sm:p-5 hover:bg-gray-50/50 transition-colors">
@@ -178,13 +178,13 @@ const OrderDetails = () => {
                       </div>
                       <div className="min-w-0 flex-1">
                         {brandName && <p className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">{brandName}</p>}
-                        <h4 className="text-sm font-bold text-gray-900 truncate">{item.product?.title || "Product"}</h4>
+                        <h4 className="text-sm font-bold text-slate-700 truncate">{item.product?.title || "Product"}</h4>
                         <div className="text-xs text-gray-600 flex flex-wrap items-center gap-x-2 mt-1">
-                          {color && <span>Color: <strong className="text-gray-800">{color}</strong></span>}
+                          {color && <span>Color: <strong className="text-slate-700">{color}</strong></span>}
                           {color && size && <span className="text-gray-300">•</span>}
-                          {size && <span>Size: <strong className="text-gray-800">{size}</strong></span>}
+                          {size && <span>Size: <strong className="text-slate-700">{size}</strong></span>}
                           <span className="text-gray-300">•</span>
-                          <span>Qty: <strong className="text-gray-800">{item.quantity}</strong></span>
+                          <span>Qty: <strong className="text-slate-700">{item.quantity}</strong></span>
                         </div>
                         {/* Status / Claim Subtext */}
                         <div className="mt-1.5 flex items-center gap-2 text-xs">
@@ -217,7 +217,7 @@ const OrderDetails = () => {
                     {/* Price & Actions Right Column */}
                     <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-3 border-t sm:border-t-0 pt-3 sm:pt-0 border-gray-100 shrink-0">
                       <div className="text-left sm:text-right">
-                        <div className="text-sm font-extrabold text-gray-900">
+                        <div className="text-sm font-extrabold text-slate-700">
                           Paid: ₹{itemFin.netPaid.toLocaleString("en-IN")}
                         </div>
                         <div className="text-[11px] text-gray-500 font-medium">
@@ -256,7 +256,7 @@ const OrderDetails = () => {
                 <MapPin className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="font-bold text-[14px] text-gray-900">Delivery To</h3>
+                <h3 className="font-bold text-[14px] text-slate-700">Delivery To</h3>
                 <p className="text-[13px] text-gray-500 font-semibold">{order.shippingAddress.name}</p>
               </div>
             </div>
@@ -265,14 +265,14 @@ const OrderDetails = () => {
               <div className="flex gap-3 pl-4">
                 <Phone className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
                 <div>
-                  <p className="text-[12px] text-gray-900 font-medium">Contact Details</p>
+                  <p className="text-[12px] text-slate-700 font-medium">Contact Details</p>
                   <p className="text-[12px] text-gray-500 mt-0.5">{order.shippingAddress.phone}</p>
                 </div>
               </div>
               <div className="flex gap-3 pl-4">
                 <MapPin className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
                 <div className="flex-1 relative">
-                  <p className="text-[12px] text-gray-900 font-medium">Delivery Address</p>
+                  <p className="text-[12px] text-slate-700 font-medium">Delivery Address</p>
                   <p className="text-[12px] text-gray-500 mt-0.5 pr-12 leading-relaxed">
                     {order.shippingAddress.address}, {order.shippingAddress.city}
                   </p>
@@ -287,7 +287,7 @@ const OrderDetails = () => {
 
         {/* Payment Block */}
         <div className="bg-white border border-gray-100 rounded-xl p-5 shadow-xs">
-          <h3 className="font-bold text-[14px] text-gray-900 mb-3">Order Bill Details</h3>
+          <h3 className="font-bold text-[14px] text-slate-700 mb-3">Order Bill Details</h3>
           
           {(() => {
             const shipping = Number(order.shippingAmount || 0);
@@ -315,7 +315,7 @@ const OrderDetails = () => {
                       <span className="font-mono">-₹{mrpSavings.toLocaleString('en-IN')}</span>
                     </div>
                   )}
-                  <div className="flex justify-between font-bold text-gray-800">
+                  <div className="flex justify-between font-bold text-slate-700">
                     <span>Items Selling Price ({itemCount} {itemCount === 1 ? 'item' : 'items'})</span>
                     <span className="font-mono">₹{subtotal.toLocaleString('en-IN')}</span>
                   </div>
@@ -333,12 +333,12 @@ const OrderDetails = () => {
                   )}
                   <div className="flex justify-between items-center">
                     <span>Delivery & Shipping</span>
-                    <span>{shipping === 0 ? <span className="text-emerald-600 font-bold">FREE (₹0)</span> : <span className="font-bold text-gray-800">₹{shipping.toLocaleString('en-IN')}</span>}</span>
+                    <span>{shipping === 0 ? <span className="text-emerald-600 font-bold">FREE (₹0)</span> : <span className="font-bold text-slate-700">₹{shipping.toLocaleString('en-IN')}</span>}</span>
                   </div>
                 </div>
                 
                 <div className="flex justify-between items-center pt-0.5">
-                  <h3 className="font-extrabold text-[15px] text-gray-900">Total Amount Paid</h3>
+                  <h3 className="font-extrabold text-[15px] text-slate-700">Total Amount Paid</h3>
                   <p className="font-black text-[18px] text-[#4F46E5] font-mono">₹{totalPaid.toLocaleString('en-IN')}</p>
                 </div>
                 {totalSavings > 0 && (
@@ -364,38 +364,38 @@ const OrderDetails = () => {
 
         {/* Updates Sent To Block */}
         <div className="bg-white border border-gray-100 rounded-xl p-5 shadow-xs">
-          <h3 className="font-bold text-[13px] text-gray-900 mb-4 flex items-center gap-2">
+          <h3 className="font-bold text-[13px] text-slate-700 mb-4 flex items-center gap-2">
             <Mail className="w-4 h-4 text-gray-400" />
             Updates sent to
           </h3>
           <div className="grid grid-cols-2 gap-4 pl-6 text-[12px]">
             <div>
               <p className="text-gray-400 mb-1 font-medium">Call</p>
-              <p className="font-bold text-gray-900">{order.shippingAddress?.phone || order.user?.phone || "-"}</p>
+              <p className="font-bold text-slate-700">{order.shippingAddress?.phone || order.user?.phone || "-"}</p>
             </div>
             <div>
               <p className="text-gray-400 mb-1 font-medium">Email</p>
-              <p className="font-bold text-gray-900 truncate pr-2">{order.user?.email}</p>
+              <p className="font-bold text-slate-700 truncate pr-2">{order.user?.email}</p>
             </div>
           </div>
         </div>
 
         {/* Order Details Timestamps */}
         <div className="bg-white border border-gray-100 rounded-xl p-5 shadow-xs">
-          <h3 className="font-bold text-[13px] text-gray-900 mb-4 flex items-center gap-2">
+          <h3 className="font-bold text-[13px] text-slate-700 mb-4 flex items-center gap-2">
             <Package className="w-4 h-4 text-gray-400" />
             Order details
           </h3>
           <div className="grid grid-cols-2 gap-4 pl-6 text-[12px]">
             <div>
               <p className="text-gray-400 mb-1 font-medium">Ordered On</p>
-              <p className="font-bold text-gray-900">
+              <p className="font-bold text-slate-700">
                 {new Date(order.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
               </p>
             </div>
             <div>
               <p className="text-gray-400 mb-1 font-medium">Order ID</p>
-              <p className="font-mono font-bold text-gray-900 uppercase">
+              <p className="font-mono font-bold text-slate-700 uppercase">
                 #{order.orderId || order._id}
               </p>
             </div>

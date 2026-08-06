@@ -80,7 +80,7 @@ const Address = () => {
           {/* Main Content Area */}
           <div className="flex-grow">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-[#111827]">Select Delivery Address</h2>
+              <h2 className="text-xl font-bold text-slate-700">Select Delivery Address</h2>
               <button 
                 onClick={() => setIsAddressModalOpen(true)}
                 className="text-[13px] font-bold text-[#4F46E5] border border-[#4F46E5] px-4 py-2 rounded-lg hover:bg-[#EEF2FF] transition-colors flex items-center gap-2"
@@ -98,7 +98,7 @@ const Address = () => {
                 <div className="w-16 h-16 bg-[#EEF2FF] rounded-full flex items-center justify-center mx-auto mb-4">
                   <MapPin size={24} className="text-[#4F46E5]" />
                 </div>
-                <h3 className="text-lg font-bold text-gray-900 mb-2">No addresses saved</h3>
+                <h3 className="text-lg font-bold text-slate-700 mb-2">No addresses saved</h3>
                 <p className="text-gray-500 text-sm max-w-sm mx-auto mb-6">
                   Add a delivery address to proceed with your checkout.
                 </p>
@@ -137,7 +137,7 @@ const Address = () => {
 
                       <div className="flex-grow">
                         <div className="flex items-center gap-3 mb-2">
-                          <h4 className="text-[15px] font-bold text-gray-900 tracking-wide">
+                          <h4 className="text-[15px] font-bold text-slate-700 tracking-wide">
                             {address.fullName}
                           </h4>
                           <div className="px-2.5 py-1 rounded-full bg-gray-100 text-gray-600 text-[10px] font-bold uppercase tracking-wider">
@@ -157,7 +157,7 @@ const Address = () => {
                             {address.landmark ? `, ${address.landmark}` : ''}
                           </p>
                           <p>{address.city}, {address.state} - {address.pincode}</p>
-                          <p className="pt-2 font-medium">Mobile: <span className="text-gray-900">{address.phone}</span></p>
+                          <p className="pt-2 font-medium">Mobile: <span className="text-slate-700">{address.phone}</span></p>
                         </div>
                       </div>
                     </div>

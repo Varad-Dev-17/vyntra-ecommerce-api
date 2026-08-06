@@ -1,110 +1,279 @@
-import { useState, useEffect } from "react";
-import axios from "axios";
-import { motion } from "framer-motion";
-import ShopProductCard from "../shop-now/product/ShopProductCard";
-import Loader from "./loader/Loader";
+import { useEffect, useRef } from "react";
+import { Link } from "react-router-dom";
+import { Star, ArrowUpRight } from "lucide-react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 
-const containerVariants = {
-  hidden: {},
-  visible: { transition: { staggerChildren: 0.1 } },
-};
+gsap.registerPlugin(ScrollTrigger);
 
-const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } },
-};
+const staticNewArrivals = [
+  {
+    id: "static-1",
+    brand: "Biba",
+    title: "Women Printed Cotton Kurta",
+    slug: "biba-women-printed-kurta",
+    price: 600,
+    mrp: 650,
+    discountPercentage: 8,
+    images: [{ url: "/home/cat_fashion_1785433098747.png" }],
+    availableSizes: ["S", "M", "L"],
+    rating: 4.5,
+    ratingCount: 24,
+  },
+  {
+    id: "static-2",
+    brand: "Peter England",
+    title: "Men's Polo Collar T-Shirt",
+    slug: "peter-england-polo-tshirt",
+    price: 1499,
+    mrp: 1999,
+    discountPercentage: 25,
+    images: [{ url: "/home/cat_fashion_1785433098747.png" }],
+    availableSizes: ["M", "L", "XL"],
+    rating: 4.3,
+    ratingCount: 18,
+  },
+  {
+    id: "static-3",
+    brand: "Apple",
+    title: "MacBook Air M2 13-inch",
+    slug: "apple-macbook-air-m2",
+    price: 80000,
+    mrp: 90000,
+    discountPercentage: 11,
+    images: [{ url: "/home/cat_electronics_1785433088900.png" }],
+    availableSizes: ["Standard"],
+    rating: 4.9,
+    ratingCount: 112,
+  },
+  {
+    id: "static-4",
+    brand: "Nike",
+    title: "Men Dri-FIT Polo T-Shirt",
+    slug: "nike-polo-tshirt",
+    price: 1259,
+    mrp: 1999,
+    discountPercentage: 37,
+    images: [{ url: "/home/cat_sneakers_1785433154388.png" }],
+    availableSizes: ["S", "M", "L", "XL"],
+    rating: 4.7,
+    ratingCount: 45,
+  },
+  {
+    id: "static-5",
+    brand: "Louis Philippe",
+    title: "Men Formal Cotton Shirt",
+    slug: "louis-philippe-mens-shirt",
+    price: 1999,
+    mrp: 2499,
+    discountPercentage: 20,
+    images: [{ url: "/home/cat_fashion_1785433098747.png" }],
+    availableSizes: ["M", "L", "XXL"],
+    rating: 4.4,
+    ratingCount: 31,
+  },
+  {
+    id: "static-6",
+    brand: "Raymond",
+    title: "Men Slim Fit Casual T-Shirt",
+    slug: "raymond-mens-tshirt",
+    price: 999,
+    mrp: 1499,
+    discountPercentage: 33,
+    images: [{ url: "/home/cat_fashion_1785433098747.png" }],
+    availableSizes: ["M", "L"],
+    rating: 4.2,
+    ratingCount: 14,
+  },
+  {
+    id: "static-7",
+    brand: "Peter England",
+    title: "Men Blue Cotton Formal Shirt",
+    slug: "peter-england-mens-shirt",
+    price: 1199,
+    mrp: 1699,
+    discountPercentage: 29,
+    images: [{ url: "/home/cat_fashion_1785433098747.png" }],
+    availableSizes: ["38", "40", "42"],
+    rating: 4.6,
+    ratingCount: 29,
+  },
+  {
+    id: "static-8",
+    brand: "Manyavar",
+    title: "Men Black Casual Button-Down",
+    slug: "manyavar-mens-casual-shirt",
+    price: 1799,
+    mrp: 2299,
+    discountPercentage: 22,
+    images: [{ url: "/home/cat_fashion_1785433098747.png" }],
+    availableSizes: ["M", "L", "XL"],
+    rating: 4.5,
+    ratingCount: 19,
+  },
+  {
+    id: "static-9",
+    brand: "Raymond",
+    title: "Men Pure Cotton Formal Shirt",
+    slug: "raymond-formal-shirt-white",
+    price: 2499,
+    mrp: 2999,
+    discountPercentage: 17,
+    images: [{ url: "/home/cat_fashion_1785433098747.png" }],
+    availableSizes: ["40", "42", "44"],
+    rating: 4.8,
+    ratingCount: 52,
+  },
+  {
+    id: "static-10",
+    brand: "Vyntra Luxe",
+    title: "Limited Edition Designer Watch",
+    slug: "vyntra-luxe-watch",
+    price: 4999,
+    mrp: 7999,
+    discountPercentage: 38,
+    images: [{ url: "/home/cat_luxury_1785433108279.png" }],
+    availableSizes: ["One Size"],
+    rating: 5.0,
+    ratingCount: 16,
+  },
+];
 
-const HomeNewArrivalsSection = ({ title, subtitle, endpoint }) => {
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const response = await axios.get(endpoint);
-        if (response.data.success) {
-          setProducts(response.data.data);
-        } else {
-          setError("Failed to fetch products.");
-        }
-      } catch (err) {
-        console.error("Error fetching products:", err);
-        setError("Something went wrong while fetching products.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProducts();
-  }, [endpoint]);
+const HomeArrivalCard = ({ product }) => {
+  const formatPrice = (price) =>
+    new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: "INR",
+      maximumFractionDigits: 0,
+    }).format(price);
 
   return (
-    <section className="w-full bg-[#FFFFFF] pt-12 md:pt-16 pb-16 md:pb-24">
-      <div className="max-w-[1600px] mx-auto px-4 md:px-8 lg:px-12">
+    <Link
+      to={`/product/${product.slug}`}
+      className="group flex flex-col h-full bg-white cursor-pointer transition-transform duration-300 ease-out hover:-translate-y-1 block rounded-sm shadow-sm hover:shadow-md overflow-hidden"
+    >
+      <div className="relative w-full aspect-[4/5] overflow-hidden bg-gray-50">
+        {product.images?.[0]?.url && (
+          <img
+            src={product.images[0].url}
+            alt={product.title}
+            className="w-full h-full object-cover transition-transform duration-[600ms] ease-out group-hover:scale-105"
+            loading="lazy"
+            decoding="async"
+          />
+        )}
 
+        <div className="absolute top-3 left-3 z-10 flex flex-col gap-2">
+          {product.rating ? (
+            <div className="flex items-center gap-1 bg-white px-2 py-1 rounded shadow text-[11px] font-extrabold text-[#111827]">
+              <span>{product.rating}</span>
+              <Star size={11} className="fill-[#FFB800] text-[#FFB800] -ml-0.5" />
+              <span className="text-gray-300 font-normal">|</span>
+              <span className="text-[#111827] font-bold">{product.ratingCount}</span>
+            </div>
+          ) : (
+            <div className="bg-white px-2.5 py-1 rounded-full shadow text-[11px] font-bold text-[#111827] uppercase tracking-wider">
+              New
+            </div>
+          )}
+        </div>
+
+        <div className="absolute top-3 right-3 z-10 w-8 h-8 flex items-center justify-center bg-white rounded-full shadow opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-[#111827]">
+          <ArrowUpRight size={16} strokeWidth={2} />
+        </div>
+      </div>
+
+      <div className="p-3 bg-white flex flex-col flex-grow justify-between">
+        <div>
+          <h3 className="text-[12px] font-bold uppercase tracking-wider text-[#4F46E5] mb-1 line-clamp-1">
+            {product.brand}
+          </h3>
+          <p className="text-[14px] font-semibold text-[#111827] mb-2 line-clamp-1 group-hover:text-[#4F46E5] transition-colors">
+            {product.title}
+          </p>
+        </div>
+        <div className="flex items-center gap-2 flex-wrap pt-1 border-t border-gray-100">
+          <span className="text-[15px] font-extrabold text-[#111827]">
+            {formatPrice(product.price)}
+          </span>
+          {product.mrp > product.price && (
+            <>
+              <span className="text-[13px] text-[#6B7280] line-through font-normal">
+                {formatPrice(product.mrp)}
+              </span>
+              <span className="text-[12px] font-bold text-[#ff905a]">
+                ({product.discountPercentage}% OFF)
+              </span>
+            </>
+          )}
+        </div>
+      </div>
+    </Link>
+  );
+};
+
+const HomeNewArrivalsSection = ({ title, subtitle }) => {
+  const sectionRef = useRef(null);
+  const trackRef = useRef(null);
+
+  useEffect(() => {
+    let ctx = gsap.context(() => {
+      const track = trackRef.current;
+      const container = track.parentElement;
+      const getScrollAmount = () => -(track.scrollWidth - container.offsetWidth);
+
+      gsap.to(track, {
+        x: getScrollAmount,
+        ease: "none",
+        scrollTrigger: {
+          trigger: sectionRef.current,
+          start: "top top",
+          end: () => `+=${track.scrollWidth - container.offsetWidth}`,
+          pin: true,
+          scrub: 1,
+          invalidateOnRefresh: true,
+          anticipatePin: 1,
+        },
+      });
+    }, sectionRef);
+
+    return () => ctx.revert();
+  }, []);
+
+  return (
+    <section
+      ref={sectionRef}
+      className="w-full bg-[#FAFBFF] pt-12 sm:pt-17 md:pt-20 pb-8 overflow-hidden h-screen flex flex-col justify-center relative z-10"
+    >
+      <div className="max-w-[1600px] mx-auto w-full px-4 md:px-8 lg:px-12 mb-6 sm:mb-8">
         {/* Section Header */}
-        <div className="flex flex-col items-center text-center mb-12 md:mb-16">
-          <h2 className="text-3xl sm:text-[40px] md:text-[64px] lg:text-[80px] font-bold text-[#111827]  leading-[1.1] tracking-[-0.02em]">
+        <div className="flex flex-col items-center text-center mb-4">
+          <h2 className="text-3xl sm:text-[40px] md:text-[56px] lg:text-[68px] font-bold text-[#111827] leading-[1.1] tracking-[-0.02em]">
             {title}
           </h2>
           {subtitle && (
-            <p className="text-[16px] md:text-[18px] font-normal text-[#6B7280]  leading-[1.7] mt-4">
+            <p className="text-[15px] md:text-[16px] font-normal text-[#6B7280] leading-[1.6] mt-2">
               {subtitle}
             </p>
           )}
         </div>
+      </div>
 
-        {/* Loading State */}
-        {loading && (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-4 md:gap-6 lg:gap-8">
-            {[...Array(5)].map((_, index) => (
-              <Loader key={index} />
-            ))}
-          </div>
-        )}
-
-        {/* Error State */}
-        {!loading && error && (
-          <div className="flex flex-col items-center justify-center py-12 text-center">
-            <p className="text-[#EF4444] font-medium  mb-4">{error}</p>
-            <button
-              onClick={() => window.location.reload()}
-              className="px-6 py-2 border border-gray-300 rounded-lg text-[14px] font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+      {/* Pinned Horizontal Runway Track */}
+      <div className="w-full overflow-hidden px-4 md:px-8 lg:px-12 pb-6">
+        <div
+          ref={trackRef}
+          className="flex gap-4 sm:gap-5 md:gap-6 w-max will-change-transform"
+        >
+          {staticNewArrivals.map((product) => (
+            <div
+              key={product.id}
+              className="w-[160px] sm:w-[180px] md:w-[200px] lg:w-[220px] shrink-0"
             >
-              Try Again
-            </button>
-          </div>
-        )}
-
-        {/* Empty State */}
-        {!loading && !error && products.length === 0 && (
-          <div className="flex items-center justify-center py-20">
-            <p className="text-[16px] text-gray-500  italic">
-              New arrivals coming soon.
-            </p>
-          </div>
-        )}
-
-        {/* Product Grid */}
-        {!loading && !error && products.length > 0 && (
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: "-50px" }}
-            variants={containerVariants}
-            className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-4 md:gap-6 lg:gap-8"
-          >
-            {products.map((product) => (
-              <motion.div variants={itemVariants} key={product.id}>
-                <ShopProductCard product={product} />
-              </motion.div>
-            ))}
-          </motion.div>
-        )}
-
+              <HomeArrivalCard product={product} />
+            </div>
+          ))}
+        </div>
       </div>
     </section>
   );

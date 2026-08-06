@@ -38,10 +38,16 @@ const ProductReviewSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+
+    variant: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Variant",
+      default: null,
+    },
   },
   { timestamps: true }
 );
 
-ProductReviewSchema.index({ product: 1, user: 1 }, { unique: true });
+ProductReviewSchema.index({ product: 1, variant: 1, user: 1 }, { unique: true });
 
 export default mongoose.model("ProductReview", ProductReviewSchema);

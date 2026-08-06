@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { useSearchParams } from "react-router-dom";
 import axios from "axios";
 import { useCart } from "../../context/CartContext";
 
@@ -38,8 +39,15 @@ const ProductsPage = () => {
   const [brandsList, setBrandsList] = useState([]);
   const [colorsList, setColorsList] = useState([]);
 
-  const [activeDepartment, setActiveDepartment] = useState("all");
-  const [activeCategory, setActiveCategory] = useState("all");
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const [activeDepartment, setActiveDepartment] = useState(searchParams.get("department") || "all");
+  const [activeCategory, setActiveCategory] = useState(searchParams.get("category") || "all");
+
+  useEffect(() => {
+    setActiveDepartment(searchParams.get("department") || "all");
+    setActiveCategory(searchParams.get("category") || "all");
+  }, [searchParams]);
   const [activeBrands, setActiveBrands] = useState([]);
   const [activeColors, setActiveColors] = useState([]);
   const [priceRange, setPriceRange] = useState({ min: "", max: "" });
@@ -89,7 +97,7 @@ const ProductsPage = () => {
     try {
       let url = "/categories";
       if (activeDepartment !== "all" && departmentsList.length > 0) {
-        const dept = departmentsList.find(d => d.name === activeDepartment);
+        const dept = departmentsList.find(d => d.name.toLowerCase() === activeDepartment.toLowerCase());
         if (dept) url = `/categories/department/${dept._id}`;
       }
       const res = await api.get(url);
@@ -105,7 +113,7 @@ const ProductsPage = () => {
     try {
       let url = "/brands";
       if (activeDepartment !== "all" && departmentsList.length > 0) {
-        const dept = departmentsList.find(d => d.name === activeDepartment);
+        const dept = departmentsList.find(d => d.name.toLowerCase() === activeDepartment.toLowerCase());
         if (dept) url = `/brands/department/${dept._id}`;
       }
       const res = await api.get(url);
@@ -189,11 +197,28 @@ const ProductsPage = () => {
     setActiveCategory("all");
     setActiveBrands([]);
     setCurrentPage(1);
+
+    const newParams = new URLSearchParams(searchParams);
+    if (deptName === "all") {
+      newParams.delete("department");
+    } else {
+      newParams.set("department", deptName);
+    }
+    newParams.delete("category");
+    setSearchParams(newParams);
   };
 
   const handleCategoryChange = (catName) => {
     setActiveCategory(catName);
     setCurrentPage(1);
+
+    const newParams = new URLSearchParams(searchParams);
+    if (catName === "all") {
+      newParams.delete("category");
+    } else {
+      newParams.set("category", catName);
+    }
+    setSearchParams(newParams);
   };
 
   const handleBrandChange = (brands) => {
@@ -218,6 +243,8 @@ const ProductsPage = () => {
     setActiveColors([]);
     setPriceRange({ min: "", max: "" });
     setCurrentPage(1);
+
+    setSearchParams({});
   };
 
   return (

@@ -20,7 +20,7 @@ const ConfirmationModal = ({ isOpen, onClose, onConfirm, title, message, confirm
               <X size={20} />
             </button>
           </div>
-          <h3 className="text-lg font-bold text-gray-900 mb-2">{title}</h3>
+          <h3 className="text-lg font-bold text-slate-700 mb-2">{title}</h3>
           <p className="text-gray-500 text-sm">{message}</p>
         </div>
         <div className="bg-gray-50 px-6 py-4 flex items-center gap-3 justify-end">

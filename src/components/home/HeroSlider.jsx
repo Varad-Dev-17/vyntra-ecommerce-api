@@ -20,7 +20,7 @@ const HeroSlider = () => {
       <div
         className="absolute inset-0 z-10 pointer-events-none"
         style={{
-          background: "linear-gradient(25deg, rgba(0,0,0,0.60) 0%, rgba(0,0,0,0.30) 35%, rgba(0,0,0,0.10) 60%, rgba(0,0,0,0) 100%)"
+          background: "linear-gradient(25deg, rgba(15,23,42,0.65) 0%, rgba(15,23,42,0.35) 35%, rgba(15,23,42,0.15) 60%, rgba(15,23,42,0) 100%)"
         }}
       />
 
@@ -51,7 +51,7 @@ const HeroSlider = () => {
               visible: { opacity: 1, y: 0, transition: { duration: 0.8 } },
             }}
             className="text-3xl sm:text-4xl md:text-6xl lg:text-[72px] font-bold text-white leading-[1.05] tracking-tight mb-4 md:mb-6 whitespace-pre-line"
-            style={{ fontFamily: "'Inter', sans-serif" }}
+            style={{ fontFamily: "'Poppins', sans-serif" }}
           >
             Welcome to Vyntra
           </motion.h1>

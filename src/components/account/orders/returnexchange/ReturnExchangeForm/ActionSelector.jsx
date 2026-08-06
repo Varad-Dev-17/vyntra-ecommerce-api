@@ -3,7 +3,7 @@ import React from 'react';
 const ActionSelector = ({ action, setAction }) => {
   return (
     <div>
-      <label className="block text-sm font-bold text-gray-900 mb-3">Action Required</label>
+      <label className="block text-sm font-bold text-slate-700 mb-3">Action Required</label>
       <div className="flex flex-wrap gap-3">
         <label 
           className={`flex items-center gap-2 px-5 py-2.5 border rounded-lg cursor-pointer transition-colors ${

@@ -12,7 +12,7 @@ const ColorFilter = ({ colors = [], activeColors = [], onChange }) => {
     <div className="border-b border-[#E5E7EB] pb-5 mb-5">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between text-[#111827] font-semibold text-[15px] mb-4"
+        className="w-full flex items-center justify-between text-slate-700 font-semibold text-[15px] mb-4"
       >
         <span>Colors</span>
         {isOpen ? <ChevronUp size={16} className="text-[#4B5563]" /> : <ChevronDown size={16} className="text-[#4B5563]" />}
@@ -52,7 +52,7 @@ const ColorFilter = ({ colors = [], activeColors = [], onChange }) => {
                     className={`w-6 h-6 rounded-full border border-[#E5E7EB] shadow-sm hover:scale-110 transition-all flex items-center justify-center ${isActive ? 'ring-2 ring-offset-1 ring-[#6D4AFF]' : ''}`}
                     style={{ backgroundColor: bgColor }}
                   >
-                    {isActive && <Check size={12} className={bgColor === 'white' || bgColor === '#ffffff' ? 'text-black' : 'text-white'} />}
+                    {isActive && <Check size={12} className={bgColor === 'white' || bgColor === '#ffffff' ? 'text-slate-700' : 'text-white'} />}
                   </button>
                 );
               })}

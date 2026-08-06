@@ -16,7 +16,7 @@ const Newsletter = () => {
   };
 
   return (
-    <section className="py-16 bg-[#FFFFFF]">
+    <section className="py-16 bg-[#FAFBFF]">
       <div className="max-w-5xl mx-auto px-4 md:px-12">
         <FadeIn>
           <motion.div

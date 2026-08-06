@@ -1,6 +1,7 @@
 export const getReturnEligibility = (order, item, activeRequest = null) => {
-  // If order is not delivered, return eligibility is not applicable yet.
-  if (order.status !== 'delivered') {
+  const effStatus = (item?.status || order?.status || '').toLowerCase();
+  // If order/item is not delivered, return eligibility is not applicable yet.
+  if (effStatus !== 'delivered') {
     return {
       showButton: false,
       buttonLabel: '',

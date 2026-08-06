@@ -18,13 +18,13 @@ const ProductInfo = ({ product, variant, quantity, selectedQty, onQtyChange, pri
         )}
       </div>
       <div className="flex-1 pt-1">
-        {product?.brand?.name && <h3 className="font-bold text-gray-900 text-[14px] uppercase tracking-wider">{product.brand.name}</h3>}
+        {product?.brand?.name && <h3 className="font-bold text-slate-700 text-[14px] uppercase tracking-wider">{product.brand.name}</h3>}
         {product?.title && <p className="text-gray-600 text-[15px] mt-1 font-semibold">{product.title}</p>}
         <div className="text-gray-500 text-[14px] mt-3 flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center gap-x-6 gap-y-2">
-          {color && <span>Color: <span className="font-medium text-gray-900">{color}</span></span>}
-          {size && <span>Size: <span className="font-medium text-gray-900">{size}</span></span>}
+          {color && <span>Color: <span className="font-medium text-slate-700">{color}</span></span>}
+          {size && <span>Size: <span className="font-medium text-slate-700">{size}</span></span>}
           {maxQty <= 1 ? (
-            <span>Qty: <span className="font-medium text-gray-900">1</span></span>
+            <span>Qty: <span className="font-medium text-slate-700">1</span></span>
           ) : (
             <div className="flex items-center gap-2 bg-indigo-50/70 p-1.5 px-3 rounded-lg border border-indigo-100">
               <span className="text-xs font-bold text-indigo-950">Claim Quantity:</span>
@@ -45,7 +45,7 @@ const ProductInfo = ({ product, variant, quantity, selectedQty, onQtyChange, pri
         </div>
         {price && (
           <div className="mt-4 flex items-baseline gap-2">
-            <p className="text-[16px] font-bold font-mono text-gray-900">₹{(price * currentQty).toLocaleString("en-IN")}</p>
+            <p className="text-[16px] font-bold font-mono text-slate-700">₹{(price * currentQty).toLocaleString("en-IN")}</p>
             {currentQty > 1 && <span className="text-xs text-gray-500 font-medium font-mono">({currentQty} × ₹{price.toLocaleString("en-IN")})</span>}
           </div>
         )}

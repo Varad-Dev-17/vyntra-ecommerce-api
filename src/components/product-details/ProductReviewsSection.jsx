@@ -103,10 +103,10 @@ const ProductReviewsSection = ({ product, onReviewsUpdate }) => {
             <Star size={30} className="fill-[#FFB800]" />
           </div>
           <h4 className="text-[17px] font-bold text-[#282c3f] mb-1">
-            No reviews yet for this style
+            No reviews and ratings yet for this product
           </h4>
           <p className="text-[14px] text-[#7e818c] max-w-md">
-            Have you ordered this item? Rate and share your feedback directly from your Orders section!
+            There are currently no ratings or reviews available. If you have purchased this item, be the first to rate and share your feedback from your Orders section!
           </p>
         </div>
       ) : (
@@ -208,6 +208,13 @@ const ProductReviewsSection = ({ product, onReviewsUpdate }) => {
           <div className="space-y-6">
             {reviews.map((rev) => {
               const isOwner = myUserId && ((rev.user?._id || rev.user || "") === myUserId || rev.user?.id === myUserId);
+              let colorName = "";
+              if (rev.variant && Array.isArray(rev.variant.attributes)) {
+                const colAttr = rev.variant.attributes.find(
+                  (a) => a?.attribute?.name?.toLowerCase() === "color" || a?.name?.toLowerCase() === "color"
+                );
+                if (colAttr) colorName = colAttr.option?.displayName || colAttr.value || colAttr.name || "";
+              }
               return (
                 <div
                   key={rev._id}
@@ -220,7 +227,7 @@ const ProductReviewsSection = ({ product, onReviewsUpdate }) => {
                         {(rev.user?.username || "C")[0]}
                       </div>
                       <div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex flex-wrap items-center gap-2">
                           <span className="text-[15px] font-bold text-[#282c3f]">
                             {rev.user?.username || "Verified Customer"}
                           </span>
@@ -228,6 +235,11 @@ const ProductReviewsSection = ({ product, onReviewsUpdate }) => {
                             <span className="inline-flex items-center gap-1 bg-[#EEF2FF] text-[#4F46E5] text-[11px] font-bold px-2.5 py-0.5 rounded-full border border-indigo-200">
                               <ShieldCheck size={13} className="text-[#4F46E5]" />
                               Verified Buyer
+                            </span>
+                          )}
+                          {colorName && (
+                            <span className="inline-flex items-center gap-1 bg-gray-100 text-gray-700 text-[11px] font-semibold px-2.5 py-0.5 rounded-full border border-gray-200">
+                              Color: {colorName}
                             </span>
                           )}
                         </div>
@@ -345,12 +357,12 @@ const ProductReviewsSection = ({ product, onReviewsUpdate }) => {
           >
             <button
               onClick={() => setSelectedImage(null)}
-              className="absolute top-3 right-3 z-10 p-1 bg-black/60 text-white hover:bg-black rounded-full transition-colors cursor-pointer"
+              className="absolute top-3 right-3 z-10 p-1 bg-black/60 text-white hover:bg-slate-800 rounded-full transition-colors cursor-pointer"
             >
               <X size={20} />
             </button>
 
-            <div className="bg-black flex items-center justify-center w-full md:w-3/5 aspect-[3/4] md:aspect-auto max-h-[70vh]">
+            <div className="bg-slate-950 flex items-center justify-center w-full md:w-3/5 aspect-[3/4] md:aspect-auto max-h-[70vh]">
               <img
                 src={selectedImage.url}
                 alt="Customer feedback full"
@@ -375,7 +387,7 @@ const ProductReviewsSection = ({ product, onReviewsUpdate }) => {
               </div>
               <button
                 onClick={() => setSelectedImage(null)}
-                className="w-full mt-6 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold text-sm rounded-lg transition-colors cursor-pointer"
+                className="w-full mt-6 py-2 bg-gray-100 hover:bg-gray-200 text-slate-700 font-bold text-sm rounded-lg transition-colors cursor-pointer"
               >
                 Close Viewer
               </button>

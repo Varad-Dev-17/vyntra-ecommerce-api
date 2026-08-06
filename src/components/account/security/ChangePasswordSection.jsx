@@ -31,36 +31,38 @@ const ChangePasswordSection = () => {
   };
 
   return (
-    <div className="max-w-3xl">
-      <h2 className="text-xl font-bold text-gray-900 mb-6">Change Password</h2>
+    <div className="w-full max-w-3xl">
+      <div className="mb-6">
+        <h2 className="text-2xl md:text-3xl font-extrabold text-slate-700 tracking-tight">Change Password</h2>
+      </div>
       
-      <div className="border border-gray-200 rounded-2xl p-6 md:p-8">
+      <div className="pt-2 max-w-xl">
         {error && (
-          <div className="mb-6 p-4 rounded-xl bg-red-50 text-red-700 text-sm font-medium">
+          <div className="mb-6 p-4 border border-red-300 bg-red-50 text-red-700 text-sm font-medium">
             {error}
           </div>
         )}
         {success && (
-          <div className="mb-6 p-4 rounded-xl bg-green-50 text-green-700 text-sm font-medium">
+          <div className="mb-6 p-4 border border-green-300 bg-green-50 text-green-700 text-sm font-medium">
             {success}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1.5">Current Password</label>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="border-b border-gray-100 pb-2">
+            <label className="block text-xs uppercase font-bold tracking-wider text-gray-500 mb-2">Current Password</label>
             <input
               type="password"
               value={oldPassword}
               onChange={(e) => setOldPassword(e.target.value)}
               placeholder="Enter current password"
               required
-              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl bg-gray-50 text-gray-900 font-medium focus:outline-none focus:ring-2 focus:ring-[#4F46E5]/20 focus:border-[#4F46E5] transition-all"
+              className="w-full px-4 py-3 border border-gray-300 bg-white text-slate-700 font-medium focus:outline-none focus:border-[#4F46E5] transition-all"
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1.5">New Password</label>
+          <div className="border-b border-gray-100 pb-2">
+            <label className="block text-xs uppercase font-bold tracking-wider text-gray-500 mb-2">New Password</label>
             <input
               type="password"
               value={newPassword}
@@ -68,15 +70,15 @@ const ChangePasswordSection = () => {
               placeholder="Enter new password"
               required
               minLength={6}
-              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl bg-gray-50 text-gray-900 font-medium focus:outline-none focus:ring-2 focus:ring-[#4F46E5]/20 focus:border-[#4F46E5] transition-all"
+              className="w-full px-4 py-3 border border-gray-300 bg-white text-slate-700 font-medium focus:outline-none focus:border-[#4F46E5] transition-all"
             />
           </div>
 
-          <div className="pt-2">
+          <div className="pt-4">
             <button
               type="submit"
               disabled={isLoading}
-              className="px-6 py-2.5 rounded-full bg-[#4F46E5] text-white font-semibold text-sm hover:bg-[#4338ca] transition-colors flex items-center justify-center gap-2 disabled:opacity-70"
+              className="px-8 py-3 bg-[#4F46E5] text-white font-bold uppercase tracking-wider text-xs hover:bg-[#4338ca] transition-colors flex items-center justify-center gap-2 disabled:opacity-70 cursor-pointer shadow-xs"
             >
               {isLoading ? (
                 <>

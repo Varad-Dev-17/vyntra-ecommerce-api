@@ -1,40 +1,38 @@
 import { useEffect, useRef } from "react";
 import Lenis from "lenis";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+gsap.registerPlugin(ScrollTrigger);
 
 const SmoothScrollProvider = ({ children }) => {
   const lenisRef = useRef(null);
 
   useEffect(() => {
     const lenis = new Lenis({
-      lerp: 0.05, // Ultra slow, luxurious feel
-      duration: 3, // Very long duration
+      lerp: 0.045, // Ultra-creamy, longer smooth deceleration glide
       smoothWheel: true,
-      wheelMultiplier: 0.5, // Half speed on mouse wheel
-      touchMultiplier: 1,
+      wheelMultiplier: 0.9, // Rich flywheel momentum
+      touchMultiplier: 1.5,
       infinite: false,
     });
 
     lenisRef.current = lenis;
 
-    // Sync with Framer Motion's scroll animations
-    lenis.on("scroll", (e) => {
-      // Optional: Handle scroll events here without recursive dispatch
-    });
+    // Synchronize Lenis scrolling with GSAP ScrollTrigger updates
+    lenis.on("scroll", ScrollTrigger.update);
 
-    function raf(time) {
-      lenis.raf(time);
-      requestAnimationFrame(raf);
-    }
-    requestAnimationFrame(raf);
+    // Link Lenis RAF execution directly to GSAP precision ticker for 100% frame sync
+    const updateLenis = (time) => {
+      lenis.raf(time * 1000);
+    };
+    gsap.ticker.add(updateLenis);
 
-    // Force recalculate scroll height when DOM changes (e.g. async products loading)
-    const resizeObserver = new ResizeObserver(() => {
-      lenis.resize();
-    });
-    resizeObserver.observe(document.body);
+    // Disable lag smoothing to prevent visual jumps and flickering during scroll events
+    gsap.ticker.lagSmoothing(0, 0);
 
     return () => {
-      resizeObserver.disconnect();
+      gsap.ticker.remove(updateLenis);
       lenis.destroy();
     };
   }, []);

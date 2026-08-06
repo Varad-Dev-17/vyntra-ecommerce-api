@@ -3,20 +3,21 @@ import { ChevronDown } from 'lucide-react';
 
 const ReasonDropdown = ({ reason, setReason }) => {
   const reasons = [
-    "Damaged or Defective Product",
+    "Damaged Product",
     "Wrong Item Received",
     "Size / Fit Issue",
+    "Color Mismatch",
     "Other"
   ];
 
   return (
     <div>
-      <label className="block text-sm font-bold text-gray-900 mb-2">Reason</label>
+      <label className="block text-sm font-bold text-slate-700 mb-2">Reason</label>
       <div className="relative">
         <select
           value={reason}
           onChange={(e) => setReason(e.target.value)}
-          className="w-full appearance-none border border-gray-300 rounded-lg px-4 py-2.5 text-[14px] text-gray-900 focus:outline-none focus:border-[#4F46E5] focus:ring-1 focus:ring-[#4F46E5] bg-white transition-colors cursor-pointer"
+          className="w-full appearance-none border border-gray-300 rounded-lg px-4 py-2.5 text-[14px] text-slate-700 focus:outline-none focus:border-[#4F46E5] focus:ring-1 focus:ring-[#4F46E5] bg-white transition-colors cursor-pointer"
         >
           <option value="" disabled>Select a reason</option>
           {reasons.map((r, i) => (

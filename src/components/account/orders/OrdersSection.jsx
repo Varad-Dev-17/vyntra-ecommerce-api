@@ -48,8 +48,13 @@ const OrdersSection = () => {
       if (reviewsRes.data?.success && Array.isArray(reviewsRes.data.data)) {
         const revMap = {};
         reviewsRes.data.data.forEach(rev => {
-          const pId = rev.product?._id || rev.product;
-          if (pId) revMap[String(pId)] = rev;
+          const pId = String(rev.product?._id || rev.product || '');
+          const vId = String(rev.variant?._id || rev.variant || '');
+          if (vId) {
+            revMap[`${pId}_${vId}`] = rev;
+          } else if (pId) {
+            revMap[pId] = rev;
+          }
         });
         setMyReviews(revMap);
       }
@@ -156,6 +161,10 @@ const OrdersSection = () => {
 
   return (
     <div className="w-full">
+      <div className="mb-6">
+        <h2 className="text-2xl md:text-3xl font-extrabold text-slate-700 tracking-tight">Order History & Returns</h2>
+      </div>
+
       {/* Status Filter Tabs with Inline Filters Button */}
       <div className="flex flex-wrap items-center justify-between gap-4 border-b border-gray-200 mb-6">
         <div className="flex items-center gap-4 sm:gap-8 overflow-x-auto no-scrollbar -mb-px">
@@ -176,7 +185,7 @@ const OrdersSection = () => {
                 className={`pb-3 px-1 text-sm sm:text-[15px] transition-all duration-200 whitespace-nowrap cursor-pointer relative ${
                   isActive 
                     ? 'text-[#4F46E5] font-bold border-b-2 border-[#4F46E5]' 
-                    : 'text-gray-500 hover:text-gray-800 font-medium border-b-2 border-transparent'
+                    : 'text-gray-500 hover:text-slate-700 font-medium border-b-2 border-transparent'
                 }`}
               >
                 {tab.label}
@@ -187,7 +196,7 @@ const OrdersSection = () => {
 
         <button
           onClick={openFilterModal}
-          className="flex items-center gap-1.5 px-4 py-1.5 mb-2 rounded-full border border-gray-300 hover:bg-gray-50 text-xs sm:text-sm font-medium text-gray-700 transition-all shadow-2xs shrink-0 cursor-pointer"
+          className="flex items-center gap-1.5 px-4 py-2 mb-2 border border-gray-300 hover:bg-gray-50 text-xs font-bold uppercase tracking-wider text-gray-700 transition-all shadow-xs shrink-0 cursor-pointer"
         >
           <Filter className="w-3.5 h-3.5 text-[#4F46E5]" />
           <span>Filters</span>
@@ -199,17 +208,17 @@ const OrdersSection = () => {
           <Loader2 className="w-10 h-10 text-[#4F46E5] animate-spin" />
         </div>
       ) : orderItems.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-24 bg-white rounded-2xl border border-gray-200/80 shadow-xs text-center px-4">
-          <div className="w-20 h-20 rounded-full bg-indigo-50 flex items-center justify-center mb-5 border border-indigo-100">
-            <Package className="w-10 h-10 text-[#4F46E5]" />
+        <div className="flex flex-col items-center justify-center py-24 bg-white border border-gray-200 shadow-xs text-center px-4">
+          <div className="w-16 h-16 bg-[#EEF2FF] flex items-center justify-center mb-5 border border-[#4F46E5]/20">
+            <Package className="w-8 h-8 text-[#4F46E5]" />
           </div>
-          <h2 className="text-xl font-bold text-gray-900 mb-2">No Orders Found</h2>
+          <h2 className="text-xl font-bold text-slate-700 mb-2">No Orders Found</h2>
           <p className="text-gray-500 max-w-md text-sm leading-relaxed">
             We couldn't find any orders matching your current filter selection. Try adjusting your filters to see more results.
           </p>
           <button
             onClick={clearFilters}
-            className="mt-6 px-6 py-2.5 bg-[#4F46E5] hover:bg-[#4338CA] text-white text-sm font-medium rounded-xl transition-all shadow-sm cursor-pointer"
+            className="mt-6 px-6 py-3 bg-[#4F46E5] hover:bg-[#4338CA] text-white text-xs font-bold uppercase tracking-wider transition-all shadow-xs cursor-pointer"
           >
             Reset Filters
           </button>
@@ -264,19 +273,22 @@ const OrdersSection = () => {
             const itemNetPaid = Math.max(0, grossTotal - proportionalDiscount);
             const itemGst = Number(item?.gstAmount || 0) * itemQty;
             const effStatus = (item.status || order.status || 'pending').toLowerCase();
+            const prodId = String(item.product?._id || item.product || "");
+            const varId = typeof item.variant === 'object' ? (item.variant?._id || '') : (item.variant || '');
+            const existingRev = (varId ? myReviews[`${prodId}_${varId}`] : null) || myReviews[prodId] || null;
 
             return (
               <div
                 key={`${order._id}-${index}`}
-                className="bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-md transition-all duration-300 cursor-pointer w-full"
+                className="bg-white border border-gray-200 overflow-hidden hover:border-gray-400 transition-all duration-300 cursor-pointer w-full shadow-xs"
                 onClick={() => navigate(`/account/orders/${order._id}`)}
               >
                 {/* Card Header Row: Order ID, Placed Date & Status */}
-                <div className="px-5 py-3 bg-gray-50 border-b border-gray-100 flex flex-wrap items-center justify-between gap-4 text-xs sm:text-sm">
+                <div className="px-5 py-3 bg-gray-50 border-b border-gray-200 flex flex-wrap items-center justify-between gap-4 text-xs sm:text-sm">
                   <div className="flex flex-wrap items-center gap-x-6 gap-y-1">
                     <div>
                       <span className="font-medium text-gray-600">Order ID: </span>
-                      <span className="font-medium text-[#4F46E5]">#{order.orderId || order._id}</span>
+                      <span className="font-bold text-[#4F46E5]">#{order.orderId || order._id}</span>
                     </div>
                     <div className="text-gray-500">
                       Placed on: <span className="text-gray-700 font-medium">{new Date(order.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
@@ -286,22 +298,22 @@ const OrdersSection = () => {
                   {/* Far-right Status Indicator */}
                   <div className="flex items-center gap-2 font-medium text-xs sm:text-sm">
                     {effStatus === 'delivered' ? (
-                      <div className="flex items-center gap-1.5 text-green-600">
+                      <div className="flex items-center gap-1.5 text-green-700 font-bold">
                         <span>Delivered on: {new Date(deliveryDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
-                        <CheckCircle2 className="w-4 h-4 text-green-600 shrink-0" />
+                        <CheckCircle2 className="w-4 h-4 text-green-700 shrink-0" />
                       </div>
                     ) : effStatus === 'on_the_way' ? (
-                      <div className="flex items-center gap-1.5 text-purple-600">
+                      <div className="flex items-center gap-1.5 text-purple-700 font-bold">
                         <span>On The Way (Out for Delivery)</span>
                         <Truck className="w-4 h-4 shrink-0" />
                       </div>
                     ) : effStatus === 'shipped' ? (
-                      <div className="flex items-center gap-1.5 text-indigo-600">
+                      <div className="flex items-center gap-1.5 text-indigo-700 font-bold">
                         <span>Shipped</span>
                         <Truck className="w-4 h-4 shrink-0" />
                       </div>
                     ) : effStatus === 'cancelled' ? (
-                      <div className="flex items-center gap-1.5 text-red-600">
+                      <div className="flex items-center gap-1.5 text-red-700 font-bold">
                         <span>Cancelled on: {new Date(order.updatedAt || order.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
                         <X className="w-4 h-4 shrink-0" />
                       </div>
@@ -310,12 +322,12 @@ const OrdersSection = () => {
                         <span>⚠️ Delayed • Slight Shipping Delay</span>
                       </div>
                     ) : effStatus === 'packed' || effStatus === 'processing' ? (
-                      <div className="flex items-center gap-1.5 text-blue-600">
+                      <div className="flex items-center gap-1.5 text-blue-700 font-bold">
                         <span>Packed</span>
                         <Package className="w-4 h-4 shrink-0" />
                       </div>
                     ) : (
-                      <div className="flex items-center gap-1.5 text-amber-600">
+                      <div className="flex items-center gap-1.5 text-amber-700 font-bold">
                         <span>Order Confirmed</span>
                         <Clock className="w-4 h-4 shrink-0 animate-pulse" />
                       </div>
@@ -327,7 +339,7 @@ const OrdersSection = () => {
                 <div className="p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-6 relative">
                   {/* Left & Center: Product Image + Specs */}
                   <div className="flex items-start sm:items-center gap-4 sm:gap-6 flex-1 min-w-0">
-                    <div className="w-20 h-28 sm:w-24 sm:h-32 rounded-lg bg-gray-100 border border-gray-200/80 shrink-0 overflow-hidden relative group">
+                    <div className="w-20 h-28 sm:w-24 sm:h-32 bg-gray-100 border border-gray-200 shrink-0 overflow-hidden relative group">
                       <img
                         src={item.variant?.mainImage?.url || item.product?.images?.[0]?.url || 'https://via.placeholder.com/150'}
                         alt={item.product?.title || 'Product'}
@@ -337,58 +349,58 @@ const OrdersSection = () => {
 
                     <div className="flex-1 min-w-0">
                       {/* Status Tag Pill Badge above title */}
-                      <div className="mb-1.5">
+                      <div className="mb-2">
                         {activeRequest ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#EEF2FF] text-[#4F46E5] border border-indigo-100">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider bg-[#EEF2FF] text-[#4F46E5] border border-indigo-200">
                             <RefreshCw className="w-3 h-3 animate-spin-slow text-[#4F46E5]" />
                             {activeRequest.type === 'exchange' ? 'Exchange' : 'Return'} Requested
                           </span>
                         ) : completedRequest ? (
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${
+                          <span className={`inline-flex items-center px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider border ${
                             completedRequest.status === 'exchanged' 
-                              ? 'bg-purple-50 text-purple-700 border-purple-200' 
-                              : 'bg-green-50 text-green-700 border-green-200'
+                              ? 'bg-purple-50 text-purple-700 border-purple-300' 
+                              : 'bg-green-50 text-green-700 border-green-300'
                           }`}>
                             {completedRequest.status === 'exchanged' ? 'Exchanged' : 'Returned & Refunded'}
                           </span>
                         ) : effStatus === 'delivered' ? (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-200">
+                          <span className="inline-flex items-center px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider bg-green-50 text-green-700 border border-green-300">
                             Delivered
                           </span>
                         ) : effStatus === 'on_the_way' ? (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-200">
+                          <span className="inline-flex items-center px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider bg-indigo-50 text-indigo-700 border border-indigo-300">
                             On The Way
                           </span>
                         ) : effStatus === 'shipped' ? (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-50 text-purple-700 border border-purple-200">
+                          <span className="inline-flex items-center px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider bg-purple-50 text-purple-700 border border-purple-300">
                             Shipped
                           </span>
                         ) : effStatus === 'delayed' ? (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-amber-50 text-amber-800 border border-amber-200">
+                          <span className="inline-flex items-center px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider bg-amber-50 text-amber-800 border border-amber-300">
                             ⚠️ Delayed
                           </span>
                         ) : effStatus === 'packed' || effStatus === 'processing' ? (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200">
+                          <span className="inline-flex items-center px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider bg-blue-50 text-blue-700 border border-blue-300">
                             Packed
                           </span>
                         ) : effStatus === 'pending' ? (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200">
+                          <span className="inline-flex items-center px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider bg-amber-50 text-amber-700 border border-amber-300">
                             Order Confirmed
                           </span>
                         ) : null}
                       </div>
 
                       {brandName && (
-                        <h4 className="text-[15px] font-bold text-[#0F172A] tracking-tight mb-0.5 truncate">
+                        <h4 className="text-[16px] font-bold text-slate-700 tracking-tight mb-0.5 truncate">
                           {brandName}
                         </h4>
                       )}
-                      <p className="text-[14px] text-[#334155] mb-2 truncate pr-4">
+                      <p className="text-[14px] text-[#334155] mb-2.5 truncate pr-4 font-medium">
                         {item.product?.title || 'Unknown Product'}
                       </p>
 
                       {/* Specifications with vertical divider */}
-                      <div className="text-[13px] text-gray-500 flex flex-wrap items-center gap-x-2 gap-y-1 mb-2">
+                      <div className="text-[13px] text-gray-600 flex flex-wrap items-center gap-x-2 gap-y-1 mb-2.5 font-medium">
                         {color && (
                           <span className="flex items-center gap-2">
                             <span>Color: {color}</span>
@@ -406,25 +418,25 @@ const OrdersSection = () => {
 
                       {/* Price Display */}
                       <div className="mt-1.5">
-                        <span className="text-[15px] font-bold text-gray-900">
+                        <span className="text-[16px] font-bold text-slate-700">
                           Price: ₹{itemNetPaid.toLocaleString('en-IN')}
                         </span>
                       </div>
                     </div>
                   </div>
 
-                  {/* Right Actions Column - Button Stack without Rate & Review */}
+                  {/* Right Actions Column - Button Stack */}
                   <div className="w-full sm:w-52 shrink-0 flex flex-col gap-2.5 justify-center border-t sm:border-t-0 pt-4 sm:pt-0 border-gray-100">
-                    {(order.status === 'pending' || order.status === 'processing' || order.status === 'packed') && (
+                    {(effStatus === 'pending' || effStatus === 'processing' || effStatus === 'packed') && (
                       <button
                         onClick={(e) => handleCancelOrder(e, order._id)}
-                        className="w-full py-1.5 px-4 text-sm font-medium text-red-600 border border-red-200 rounded-md hover:bg-red-50 transition-colors"
+                        className="w-full py-2 px-4 text-xs font-bold uppercase tracking-wider text-red-600 border border-red-300 hover:bg-red-50 transition-colors cursor-pointer"
                       >
                         Cancel Order
                       </button>
                     )}
 
-                    {order.status === 'delivered' && !completedRequest && (
+                    {effStatus === 'delivered' && !completedRequest && (
                       <>
                         <ReturnExchangeButton 
                           orderId={order._id} 
@@ -435,23 +447,22 @@ const OrdersSection = () => {
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            const prodId = String(item.product?._id || item.product || "");
-                            const existingRev = myReviews[prodId] || null;
                             setReviewModalState({
                               isOpen: true,
                               product: item.product,
+                              variant: item.variant,
                               existingReview: existingRev
                             });
                           }}
-                          className={`w-full flex items-center justify-center gap-1.5 py-1.5 px-4 text-sm font-bold border rounded-md transition-all cursor-pointer shadow-xs ${
-                            myReviews[String(item.product?._id || item.product)]
+                          className={`w-full flex items-center justify-center gap-1.5 py-2 px-4 text-xs font-bold uppercase tracking-wider border transition-all cursor-pointer shadow-xs ${
+                            existingRev
                               ? "bg-amber-50 text-amber-900 border-amber-300 hover:bg-amber-100"
-                              : "bg-[#eef2ff] text-[#4F46E5] border-[#4F46E5]/30 hover:bg-[#4F46E5] hover:text-white hover:border-[#4F46E5]"
+                              : "bg-[#eef2ff] text-[#4F46E5] border-[#4F46E5]/40 hover:bg-[#4F46E5] hover:text-white hover:border-[#4F46E5]"
                           }`}
                         >
                           <Star className="w-3.5 h-3.5 fill-[#FFB800] text-[#FFB800] shrink-0" />
                           <span>
-                            {myReviews[String(item.product?._id || item.product)] ? "Reviewed (Edit)" : "Rate & Review"}
+                            {existingRev ? "Reviewed (Edit)" : "Rate & Review"}
                           </span>
                         </button>
                       </>
@@ -467,7 +478,7 @@ const OrdersSection = () => {
                           navigate(`/account/orders/${order._id}`);
                         }
                       }}
-                      className="w-full flex items-center justify-center gap-1.5 py-1.5 px-4 text-sm font-medium text-gray-700 border border-gray-300 rounded-md bg-white hover:bg-gray-50 transition-all duration-200 cursor-pointer group"
+                      className="w-full flex items-center justify-center gap-1.5 py-2 px-4 text-xs font-bold uppercase tracking-wider text-gray-700 border border-gray-300 bg-white hover:bg-gray-50 transition-all duration-200 cursor-pointer group"
                     >
                       <ShoppingBag className="w-3.5 h-3.5 text-gray-500 group-hover:text-[#4F46E5] transition-colors shrink-0" />
                       <span>Buy Again</span>
@@ -482,11 +493,11 @@ const OrdersSection = () => {
 
       {/* Filter Modal */}
       {isFilterModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-          <div className="bg-white rounded-xl w-full max-w-md overflow-hidden shadow-xl animate-in fade-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between p-4 border-b border-gray-100">
-              <h3 className="text-lg font-bold text-gray-900">Filter Orders</h3>
-              <button onClick={() => setIsFilterModalOpen(false)} className="p-1 rounded-full hover:bg-gray-100 transition-colors">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-white w-full max-w-md overflow-hidden shadow-2xl border border-gray-200 animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between p-5 border-b border-gray-200">
+              <h3 className="text-lg font-bold text-slate-700 uppercase tracking-wide">Filter Orders</h3>
+              <button onClick={() => setIsFilterModalOpen(false)} className="p-1 hover:bg-gray-100 transition-colors cursor-pointer">
                 <X className="w-5 h-5 text-gray-500" />
               </button>
             </div>
@@ -494,7 +505,7 @@ const OrdersSection = () => {
             <div className="p-6 max-h-[60vh] overflow-y-auto">
               {/* Status Filters */}
               <div className="mb-6">
-                <h4 className="text-sm font-bold text-gray-900 mb-3">Status</h4>
+                <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Status</h4>
                 <div className="space-y-3">
                   {[
                     { id: 'all', label: 'All' },
@@ -506,7 +517,7 @@ const OrdersSection = () => {
                       <div className={`w-5 h-5 rounded-full border flex items-center justify-center transition-colors ${tempStatus === option.id ? 'border-[#4F46E5] bg-[#4F46E5]' : 'border-gray-300 group-hover:border-gray-400'}`}>
                         {tempStatus === option.id && <div className="w-2 h-2 rounded-full bg-white" />}
                       </div>
-                      <span className="text-sm text-gray-700">{option.label}</span>
+                      <span className="text-sm font-medium text-gray-700">{option.label}</span>
                       <input
                         type="radio"
                         name="status"
@@ -520,11 +531,11 @@ const OrdersSection = () => {
                 </div>
               </div>
 
-              <div className="h-px bg-gray-100 my-4" />
+              <div className="h-px bg-gray-200 my-5" />
 
               {/* Time Filters */}
               <div>
-                <h4 className="text-sm font-bold text-gray-900 mb-3">Time</h4>
+                <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Time</h4>
                 <div className="space-y-3">
                   {[
                     { id: 'anytime', label: 'Anytime' },
@@ -536,7 +547,7 @@ const OrdersSection = () => {
                       <div className={`w-5 h-5 rounded-full border flex items-center justify-center transition-colors ${tempTime === option.id ? 'border-[#4F46E5] bg-[#4F46E5]' : 'border-gray-300 group-hover:border-gray-400'}`}>
                         {tempTime === option.id && <div className="w-2 h-2 rounded-full bg-white" />}
                       </div>
-                      <span className="text-sm text-gray-700">{option.label}</span>
+                      <span className="text-sm font-medium text-gray-700">{option.label}</span>
                       <input
                         type="radio"
                         name="time"
@@ -551,16 +562,16 @@ const OrdersSection = () => {
               </div>
             </div>
 
-            <div className="p-4 border-t border-gray-100 flex gap-4">
+            <div className="p-5 border-t border-gray-200 flex gap-4 bg-gray-50">
               <button
                 onClick={clearFilters}
-                className="flex-1 py-3 px-4 border border-gray-300 rounded-md text-sm font-bold text-gray-700 hover:bg-gray-50 transition-colors"
+                className="flex-1 py-3 px-4 border border-gray-300 text-xs font-bold uppercase tracking-wider text-gray-700 bg-white hover:bg-gray-100 transition-colors cursor-pointer"
               >
                 CLEAR FILTERS
               </button>
               <button
                 onClick={applyFilters}
-                className="flex-1 py-3 px-4 bg-[#4F46E5] hover:bg-[#4338ca] text-white rounded-md text-sm font-bold transition-colors"
+                className="flex-1 py-3 px-4 bg-[#4F46E5] hover:bg-[#4338ca] text-white text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer shadow-xs"
               >
                 APPLY
               </button>
@@ -572,13 +583,16 @@ const OrdersSection = () => {
       {/* Write / Edit Review Modal */}
       <WriteReviewModal
         isOpen={reviewModalState.isOpen}
-        onClose={() => setReviewModalState({ isOpen: false, product: null, existingReview: null })}
+        onClose={() => setReviewModalState({ isOpen: false, product: null, variant: null, existingReview: null })}
         product={reviewModalState.product}
+        variant={reviewModalState.variant}
         existingReview={reviewModalState.existingReview}
         onSuccess={(updatedRev) => {
           const prodId = String(reviewModalState.product?._id || reviewModalState.product || "");
-          if (prodId) {
-            setMyReviews(prev => ({ ...prev, [prodId]: updatedRev }));
+          const varId = typeof reviewModalState.variant === 'object' ? (reviewModalState.variant?._id || '') : (reviewModalState.variant || '');
+          const key = varId ? `${prodId}_${varId}` : prodId;
+          if (key) {
+            setMyReviews(prev => ({ ...prev, [key]: updatedRev }));
           }
         }}
       />

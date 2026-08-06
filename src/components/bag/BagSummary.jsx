@@ -137,7 +137,7 @@ const BagSummary = ({ totals }) => {
             </div>
             <div className="text-[11px] font-bold text-gray-700 bg-gray-50 border border-gray-200 px-2 py-1 rounded">UPI</div>
             <div className="text-[11px] font-bold text-[#002970] bg-gray-50 border border-gray-200 px-2 py-1 rounded">Paytm</div>
-            <div className="text-[11px] font-bold text-gray-800 bg-gray-50 border border-gray-200 px-2 py-1 rounded flex items-center gap-1">
+            <div className="text-[11px] font-bold text-slate-700 bg-gray-50 border border-gray-200 px-2 py-1 rounded flex items-center gap-1">
               <span>Pay</span>
             </div>
           </div>

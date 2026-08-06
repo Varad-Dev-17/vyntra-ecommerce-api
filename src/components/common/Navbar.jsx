@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { Link, useNavigate, useLocation, useSearchParams } from "react-router-dom";
+import axios from "axios";
 import { useAuth } from "../../context/AuthContext";
 import { useCart } from "../../context/CartContext";
 import { useWishlist } from "../../context/WishlistContext";
@@ -18,13 +19,72 @@ import {
   ChevronDown,
 } from "lucide-react";
 
+const getCategorySection = (catName, deptName = "") => {
+  const name = (catName || "").toLowerCase();
+  const dept = (deptName || "").toLowerCase();
+
+  // 1. Department-specific priority overrides
+  if (dept.includes("electronic") || dept.includes("gadget") || dept.includes("tech") || dept.includes("appliance")) {
+    if (/laptop|phone|tablet|mobile|computer|desktop|ipad|iphone|mac/.test(name)) return "Computers & Mobiles";
+    if (/tv|camera|speaker|headphone|earbud|monitor|console|gaming/.test(name)) return "Home Entertainment & Gaming";
+    if (/wire|cable|charger|battery|adapter|case|cover|stand/.test(name)) return "Accessories & Peripherals";
+    return "Gadgets & Tech";
+  }
+
+  // 2. Universal keyword checks (Tech & Electronics checked first to prevent substring collisions like 'laptop' containing 'top')
+  if (/laptop|desktop|phone|tablet|mobile|camera|speaker|headphone|earbud|gadget|monitor|keyboard|mouse|electronic|tv|console|cable|charger/.test(name)) {
+    return "Gadgets & Tech";
+  }
+  if (/shirt|t-shirt|tshirt|\btops?\b|sweater|jacket|blazer|suit|hoodie|coat|kurta|sherwani|dress|gown|pullover|cardigan|polo|sweatshirt|rain/.test(name)) {
+    return "Topwear";
+  }
+  if (/jean|trouser|short|pant|jogger|legging|skirt|bottom|cargo|capri|track/.test(name)) {
+    return "Bottomwear";
+  }
+  if (/shoe|sneaker|sandal|floater|boot|slipper|flip|heel|flat|wedge|footwear|sock|loafer/.test(name)) {
+    return "Footwear";
+  }
+  if (/brief|trunk|boxer|vest|sleepwear|loungewear|lingerie|underwear|thermal|bra|pajama|nightwear/.test(name)) {
+    return "Innerwear & Sleepwear";
+  }
+  if (/kurti|saree|lehenga|salwar|dupatta|nehru|ethnic|festive|traditional|dhoti/.test(name)) {
+    return "Indian & Festive Wear";
+  }
+  if (/sport|active|gym|fitness|tracksuit|swim|running|jersey|athletic/.test(name)) {
+    return "Sports & Active Wear";
+  }
+  if (/watch|belt|wallet|perfume|deodorant|sunglass|frame|cap|hat|scarf|muffler|glove|tie|cufflink|bag|backpack|luggage|trolley|jewelry|ring|bracelet|chain|necklace|earring|pendant|accessory|helmet|case/.test(name)) {
+    return "Fashion Accessories";
+  }
+  if (/makeup|skin|hair|grooming|beauty|lotion|cream|trimmer|shaver|fragrance|mist|lipstick|cosmetic/.test(name)) {
+    return "Beauty & Grooming";
+  }
+  if (/bed|cushion|curtain|rug|blanket|lamp|table|chair|sofa|decor|kitchen|cookware|utensil|dining/.test(name)) {
+    return "Home & Decor";
+  }
+  
+  if (dept.includes("home") || dept.includes("kitchen")) return "Home Essentials";
+  if (dept.includes("beauty") || dept.includes("care")) return "Personal Care";
+  if (dept.includes("men") || dept.includes("women") || dept.includes("kid") || dept.includes("fashion")) return "Trending Fashion";
+  return "Trending Collections";
+};
+
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  
+  const [departments, setDepartments] = useState([]);
+  const [categoriesByDept, setCategoriesByDept] = useState({});
+  const [activeHoverDept, setActiveHoverDept] = useState(null);
+  const [mobileExpandedDept, setMobileExpandedDept] = useState(null);
+
   const profileRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
+
+  const currentDeptParam = searchParams.get("department");
 
   const { user, logout } = useAuth();
   const { cartCount } = useCart();
@@ -67,9 +127,79 @@ const Navbar = () => {
     navigate("/signin");
   };
 
-  const userNavLinks = [
-    { name: "SHOP NOW", path: "/products" }
-  ];
+  useEffect(() => {
+    setActiveHoverDept(null);
+    setIsMenuOpen(false);
+  }, [location.pathname, location.search]);
+
+  useEffect(() => {
+    const fetchNavData = async () => {
+      try {
+        const [deptRes, catRes] = await Promise.all([
+          axios.get("/departments?limit=50&status=Active"),
+          axios.get("/categories?limit=100&status=Active")
+        ]);
+
+        const depts = deptRes.data.success ? (deptRes.data.departments || []) : [];
+        const getDeptPriority = (name) => {
+          const lower = (name || "").toLowerCase();
+          if (lower === "men" || lower === "mens" || lower === "men's") return 1;
+          if (lower === "women" || lower === "womens" || lower === "women's") return 2;
+          if (lower === "kids" || lower === "kid" || lower === "kid's") return 3;
+          if (lower === "electronics" || lower === "electronic" || lower === "gadgets") return 4;
+          if (lower === "beauty" || lower === "grooming") return 5;
+          if (lower === "home" || lower === "living" || lower === "decor") return 6;
+          return 99;
+        };
+        depts.sort((a, b) => {
+          const pA = getDeptPriority(a.name);
+          const pB = getDeptPriority(b.name);
+          if (pA !== pB) return pA - pB;
+          return a.name.localeCompare(b.name);
+        });
+        const cats = catRes.data.success ? (catRes.data.categories || []) : [];
+
+        setDepartments(depts);
+
+        const catMap = {};
+        depts.forEach((d) => {
+          catMap[d.name] = [];
+        });
+
+        cats.forEach((cat) => {
+          if (Array.isArray(cat.departmentIds)) {
+            cat.departmentIds.forEach((deptRef) => {
+              const deptName = typeof deptRef === "object" ? deptRef.name : null;
+              if (deptName && catMap[deptName]) {
+                if (!catMap[deptName].some((c) => c._id === cat._id)) {
+                  catMap[deptName].push(cat);
+                }
+              } else {
+                const foundDept = depts.find(d => d._id === (typeof deptRef === "object" ? deptRef._id : deptRef));
+                if (foundDept && catMap[foundDept.name]) {
+                  if (!catMap[foundDept.name].some((c) => c._id === cat._id)) {
+                    catMap[foundDept.name].push(cat);
+                  }
+                }
+              }
+            });
+          }
+        });
+
+        Object.keys(catMap).forEach((deptName) => {
+          catMap[deptName].sort((a, b) => a.name.localeCompare(b.name));
+        });
+
+        setCategoriesByDept(catMap);
+      } catch (error) {
+        console.error("Error loading navbar catalog data:", error);
+      }
+    };
+
+    if (!isAdmin) {
+      fetchNavData();
+    }
+  }, [isAdmin]);
 
   const adminNavLinks = [
     { name: "Dashboard", path: "/admin/dashboard", icon: LayoutDashboard },
@@ -80,24 +210,25 @@ const Navbar = () => {
 
   const isActive = (path) => location.pathname.startsWith(path);
 
-  // Determine styles based on scroll and page
-  const navBg = isScrolled ? "bg-white" : "bg-transparent";
-  const navBorder = isScrolled ? "border-b border-[#E5E7EB]" : "border-transparent";
-  const textColor = isScrolled ? "text-[#111827]" : "text-white";
-  const searchBg = isScrolled ? "bg-gray-100/80" : "bg-white/10";
-  const searchBorder = isScrolled ? "border-transparent" : "border-white/20";
-  const searchPlaceholder = isScrolled ? "placeholder:text-gray-500" : "placeholder:text-gray-200";
-  const searchIconColor = isScrolled ? "text-gray-500" : "text-white";
+  // Determine styles based on scroll, hover state, and page
+  const isNavSolid = isScrolled || Boolean(activeHoverDept);
+  const navBg = isNavSolid ? "bg-white" : "bg-transparent";
+  const navBorder = isNavSolid ? "border-b border-[#E5E7EB]" : "border-transparent";
+  const textColor = isNavSolid ? "text-[#111827]" : "text-white";
+  const searchBg = isNavSolid ? "bg-gray-100/80" : "bg-white/10";
+  const searchBorder = isNavSolid ? "border-transparent" : "border-white/20";
+  const searchPlaceholder = isNavSolid ? "placeholder:text-gray-500" : "placeholder:text-gray-200";
+  const searchIconColor = isNavSolid ? "text-gray-500" : "text-white";
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-50">
+    <div className="fixed top-0 left-0 right-0 z-50" style={{ fontFamily: "'Poppins', sans-serif" }} onMouseLeave={() => setActiveHoverDept(null)}>
       {/* Navbar */}
       <nav className={`${navBg} ${navBorder} transition-all duration-300`}>
         <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-[76px]">
 
             {/* Left: Logo */}
-            <div className="flex-shrink-0 flex items-center">
+            <div className="flex-shrink-0 flex items-center" onMouseEnter={() => setActiveHoverDept(null)}>
               <Link
                 to={isAdmin ? "/admin/dashboard" : "/home"}
                 className="flex items-center"
@@ -112,7 +243,7 @@ const Navbar = () => {
             </div>
 
             {/* Center: Nav Links */}
-            <div className="hidden lg:flex flex-1 justify-center items-center gap-10">
+            <div className="hidden lg:flex flex-1 justify-center items-center gap-8 xl:gap-10">
               {isAdmin
                 ? adminNavLinks.map((link) => (
                   <Link
@@ -120,39 +251,276 @@ const Navbar = () => {
                     to={link.path}
                     className={`flex items-center gap-1.5 font-bold tracking-wide transition-colors hover:text-[#4F46E5]`}
                     style={{
-                      fontFamily: "'Inter', sans-serif",
+                      fontFamily: "'Poppins', sans-serif",
                       fontSize: "14px",
-                      color: isActive(link.path) ? "#4F46E5" : (isScrolled ? "#111827" : "white"),
+                      color: isActive(link.path) ? "#4F46E5" : (isNavSolid ? "#111827" : "white"),
                     }}
                   >
                     <link.icon className="w-4 h-4" />
                     {link.name}
                   </Link>
                 ))
-                : userNavLinks.map((link) => (
-                  <Link
-                    key={link.name}
-                    to={link.path}
-                    onClick={(e) => {
-                      if (link.name === "SHOP NOW" && !user) {
-                        e.preventDefault();
-                        navigate("/signin", { state: { from: { pathname: link.path } } });
-                      }
-                    }}
-                    className={`font-bold tracking-wide transition-colors hover:text-[#4F46E5]`}
-                    style={{
-                      fontFamily: "'Inter', sans-serif",
-                      fontSize: "14px",
-                      color: isActive(link.path) ? "#4F46E5" : (isScrolled ? "#111827" : "white"),
-                    }}
-                  >
-                    {link.name}
-                  </Link>
-                ))}
+                : (
+                  <div className="flex items-center gap-8 xl:gap-10 h-full">
+                    {/* ALL PRODUCTS Master Catalog Dropdown (Cosmira Inspired Airy Layout) */}
+                    <div
+                      className="relative flex items-center h-[76px]"
+                      onMouseEnter={() => setActiveHoverDept("ALL_PRODUCTS")}
+                      onMouseLeave={() => setActiveHoverDept(null)}
+                    >
+                      <Link
+                        to="/products"
+                        onClick={() => setActiveHoverDept(null)}
+                        className="font-bold tracking-wide transition-colors flex items-center h-[76px] hover:text-[#4F46E5] relative uppercase"
+                        style={{
+                          fontFamily: "'Poppins', sans-serif",
+                          fontSize: "14px",
+                          color: (location.pathname === "/products" && !currentDeptParam && !searchParams.get("category")) || activeHoverDept === "ALL_PRODUCTS" ? "#4F46E5" : (isNavSolid ? "#111827" : "white"),
+                        }}
+                      >
+                        ALL PRODUCTS
+                        {((location.pathname === "/products" && !currentDeptParam && !searchParams.get("category")) || activeHoverDept === "ALL_PRODUCTS") && (
+                          <span className="absolute bottom-0 left-0 w-full h-0.5 bg-[#4F46E5] rounded-full transition-all duration-200" />
+                        )}
+                      </Link>
+
+                      {!isAdmin && activeHoverDept === "ALL_PRODUCTS" && departments.length > 0 && (() => {
+                        const numCols = Math.min(5, Math.max(1, departments.length));
+                        const getWidthClass = (cols) => {
+                          if (cols === 1) return "w-[360px]";
+                          if (cols === 2) return "w-[640px]";
+                          if (cols === 3) return "w-[880px]";
+                          if (cols === 4) return "w-[1050px]";
+                          return "w-[1200px]";
+                        };
+
+                        const getGridColsClass = (cols) => {
+                          if (cols === 1) return "grid-cols-1";
+                          if (cols === 2) return "grid-cols-2";
+                          if (cols === 3) return "grid-cols-3";
+                          if (cols === 4) return "grid-cols-4";
+                          return "grid-cols-5";
+                        };
+
+                        return (
+                          <div
+                            className={`hidden lg:block absolute top-[75px] left-0 -ml-4 ${getWidthClass(numCols)} max-w-[95vw] bg-white rounded-none border border-[#E5E7EB] shadow-[0_25px_50px_-12px_rgba(17,24,39,0.18)] transition-all duration-200 z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-150`}
+                          >
+                            {/* Airy Cosmira-style layout: Generous spacing, no vertical borders */}
+                            <div className={`grid ${getGridColsClass(numCols)} gap-8 p-8 h-auto max-h-[75vh] overflow-y-auto`}>
+                              {departments.map((dept) => {
+                                const deptCats = categoriesByDept[dept.name] || [];
+                                return (
+                                  <div key={dept._id} className="flex flex-col">
+                                    {/* Department Header - Clickable */}
+                                    <Link
+                                      to={`/products?department=${encodeURIComponent(dept.name)}`}
+                                      onClick={() => setActiveHoverDept(null)}
+                                      className="text-[13px] font-extrabold tracking-wider uppercase text-[#111827] hover:text-[#4F46E5] mb-4 transition-colors select-none flex items-center justify-between group/header border-b border-gray-100 pb-2"
+                                      style={{ fontFamily: "'Poppins', sans-serif" }}
+                                    >
+                                      <span>SHOP FOR {dept.name.toUpperCase()}</span>
+                                      <span className="opacity-0 group-hover/header:opacity-100 transition-opacity text-[#4F46E5]">→</span>
+                                    </Link>
+
+                                    {/* Categories cleanly stacked below */}
+                                    <ul className="space-y-2.5 mt-1">
+                                      {deptCats.map((cat) => (
+                                        <li key={cat._id}>
+                                          <Link
+                                            to={`/products?department=${encodeURIComponent(dept.name)}&category=${encodeURIComponent(cat.name)}`}
+                                            onClick={() => setActiveHoverDept(null)}
+                                            className="text-[13px] text-[#4B5563] hover:text-[#111827] hover:font-bold hover:translate-x-0.5 transition-all block duration-150 truncate"
+                                            style={{ fontFamily: "'Poppins', sans-serif" }}
+                                          >
+                                            {cat.name}
+                                          </Link>
+                                        </li>
+                                      ))}
+                                      {deptCats.length === 0 && (
+                                        <li className="text-xs text-gray-400 italic py-1">New styles coming soon</li>
+                                      )}
+                                    </ul>
+                                  </div>
+                                );
+                              })}
+                            </div>
+
+                            {/* Master Footer Strip */}
+                            <div className="bg-[#F9FAFB] border-t border-[#E5E7EB] px-8 py-3.5 flex items-center justify-between shrink-0">
+                              <span className="text-xs text-[#6B7280] font-medium">
+                                Discover our entire curated collection across all categories.
+                              </span>
+                              <Link
+                                to="/products"
+                                onClick={() => setActiveHoverDept(null)}
+                                className="text-xs font-bold text-[#4F46E5] hover:text-[#4338CA] flex items-center gap-1 group transition-colors uppercase tracking-wide"
+                                style={{ fontFamily: "'Poppins', sans-serif" }}
+                              >
+                                Explore All Products
+                                <span className="group-hover:translate-x-1 transition-transform inline-block ml-1">→</span>
+                              </Link>
+                            </div>
+                          </div>
+                        );
+                      })()}
+                    </div>
+
+                    {departments.map((dept) => {
+                      const isCurrent = location.pathname === "/products" && currentDeptParam === dept.name;
+                      const isHovered = activeHoverDept === dept.name;
+                      const deptCategories = categoriesByDept[dept.name] || [];
+
+                      return (
+                        <div
+                          key={dept._id}
+                          className="relative flex items-center h-[76px]"
+                          onMouseEnter={() => setActiveHoverDept(dept.name)}
+                          onMouseLeave={() => setActiveHoverDept(null)}
+                        >
+                          <Link
+                            to={`/products?department=${encodeURIComponent(dept.name)}`}
+                            onClick={() => setActiveHoverDept(null)}
+                            className="font-bold tracking-wide transition-colors uppercase hover:text-[#4F46E5] flex items-center gap-1"
+                            style={{
+                              fontFamily: "'Poppins', sans-serif",
+                              fontSize: "14px",
+                              color: isCurrent || isHovered ? "#4F46E5" : (isNavSolid ? "#111827" : "white"),
+                            }}
+                          >
+                            {dept.name}
+                          </Link>
+                          {(isCurrent || isHovered) && (
+                            <span className="absolute bottom-0 left-0 w-full h-0.5 bg-[#4F46E5] rounded-full transition-all duration-200" />
+                          )}
+
+                          {/* Desktop Mega-Menu Dropdown (Anchored directly below category tab) */}
+                          {!isAdmin && isHovered && (() => {
+                            // Group categories by smart section header
+                            const sectionGroups = {};
+                            deptCategories.forEach((cat) => {
+                              const section = getCategorySection(cat.name, dept.name);
+                              if (!sectionGroups[section]) sectionGroups[section] = [];
+                              sectionGroups[section].push(cat);
+                            });
+                            const sectionNames = Object.keys(sectionGroups);
+                            
+                            // Determine dynamic columns based on section count and items
+                            const sectionCount = Math.max(1, sectionNames.length);
+                            const numCols = Math.min(5, Math.max(1, sectionCount));
+
+                            // Distribute section headers into columns
+                            const columns = Array.from({ length: numCols }, () => []);
+                            if (deptCategories.length === 0) {
+                              columns[0] = [];
+                            } else {
+                              sectionNames.forEach((secName, idx) => {
+                                columns[idx % numCols].push({ title: secName, items: sectionGroups[secName] });
+                              });
+                            }
+
+                            // Dynamic width styling based on column count
+                            const getWidthClass = (cols) => {
+                              if (cols === 1) return "w-[360px]";
+                              if (cols === 2) return "w-[640px]";
+                              if (cols === 3) return "w-[880px]";
+                              if (cols === 4) return "w-[1050px]";
+                              return "w-[1200px]";
+                            };
+
+                            // Center the dropdown horizontally right beneath its corresponding parent department tab
+                            const getPositionClass = (cols) => {
+                              return "left-1/2 -translate-x-1/2";
+                            };
+
+                            const getGridColsClass = (cols) => {
+                              if (cols === 1) return "grid-cols-1";
+                              if (cols === 2) return "grid-cols-2";
+                              if (cols === 3) return "grid-cols-3";
+                              if (cols === 4) return "grid-cols-4";
+                              return "grid-cols-5";
+                            };
+
+                            return (
+                              <div
+                                className={`hidden lg:block absolute top-[75px] ${getPositionClass(numCols)} ${getWidthClass(numCols)} max-w-[95vw] bg-white rounded-none border border-[#E5E7EB] shadow-[0_25px_50px_-12px_rgba(17,24,39,0.18)] transition-all duration-200 z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-150`}
+                              >
+                                {/* Dynamic Height Grid with Vertical Column Dividers */}
+                                <div className={`grid ${getGridColsClass(numCols)} divide-x divide-[#E5E7EB] h-auto max-h-[75vh] overflow-y-auto`}>
+                                  {deptCategories.length > 0 ? (
+                                    columns.map((colSections, colIdx) => (
+                                      <div key={colIdx} className="p-6 flex flex-col gap-6">
+                                        {colSections.map((sec, secIdx) => (
+                                          <div key={sec.title} className={secIdx > 0 ? "border-t border-[#E5E7EB]/70 pt-5" : ""}>
+                                            {/* Section Header */}
+                                            <h4 
+                                              className="text-[13px] font-extrabold tracking-wide uppercase text-[#4F46E5] mb-3 select-none"
+                                              style={{ fontFamily: "'Poppins', sans-serif" }}
+                                            >
+                                              {sec.title}
+                                            </h4>
+
+                                            {/* Category Links List */}
+                                            <ul className="space-y-2">
+                                              {sec.items.map((cat) => {
+                                                const isCatSelected = location.pathname === "/products" && currentDeptParam === dept.name && searchParams.get("category") === cat.name;
+                                                return (
+                                                  <li key={cat._id}>
+                                                    <Link
+                                                      to={`/products?department=${encodeURIComponent(dept.name)}&category=${encodeURIComponent(cat.name)}`}
+                                                      onClick={() => setActiveHoverDept(null)}
+                                                      className={`text-[13px] transition-all block duration-150 py-0.5 truncate ${
+                                                        isCatSelected
+                                                          ? "text-[#4F46E5] font-bold pl-2 border-l-2 border-[#4F46E5]"
+                                                          : "text-[#4B5563] font-medium hover:text-[#111827] hover:font-bold hover:translate-x-0.5"
+                                                      }`}
+                                                      style={{ fontFamily: "'Poppins', sans-serif" }}
+                                                    >
+                                                      {cat.name}
+                                                    </Link>
+                                                  </li>
+                                                );
+                                              })}
+                                            </ul>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    ))
+                                  ) : (
+                                    <div className="col-span-full p-8 flex flex-col items-center justify-center text-center text-[#6B7280]">
+                                      <p className="text-sm font-semibold text-[#374151]">No categories added under {dept.name} yet</p>
+                                      <p className="text-xs text-gray-400 mt-1">Check back soon for upcoming arrivals!</p>
+                                    </div>
+                                  )}
+                                </div>
+
+                                {/* Bottom Exploration Footer Strip */}
+                                <div className="bg-[#F9FAFB] border-t border-[#E5E7EB] px-6 py-3 flex items-center justify-between shrink-0">
+                                  <span className="text-xs text-[#6B7280] font-medium">
+                                    Browsing collection for <strong className="text-[#111827]">{dept.name}</strong>
+                                  </span>
+                                  <Link
+                                    to={`/products?department=${encodeURIComponent(dept.name)}`}
+                                    onClick={() => setActiveHoverDept(null)}
+                                    className="text-xs font-bold text-[#4F46E5] hover:text-[#4338CA] flex items-center gap-1 group transition-colors"
+                                    style={{ fontFamily: "'Poppins', sans-serif" }}
+                                  >
+                                    Explore All {dept.name} Products
+                                    <span className="group-hover:translate-x-1 transition-transform inline-block ml-1">→</span>
+                                  </Link>
+                                </div>
+                              </div>
+                            );
+                          })()}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
             </div>
 
             {/* Right: Search Bar & Icons */}
-            <div className="flex items-center justify-end gap-4 sm:gap-6 flex-shrink-0">
+            <div className="flex items-center justify-end gap-4 sm:gap-6 flex-shrink-0" onMouseEnter={() => setActiveHoverDept(null)}>
               {/* Search Bar (Desktop) */}
               {!isAdmin && (
                 <div className="hidden lg:block relative w-[280px] group">
@@ -163,7 +531,7 @@ const Navbar = () => {
                     type="text"
                     placeholder="Search for products, brands and more..."
                     className={`w-full pl-11 pr-4 py-2.5 rounded-md focus:outline-none focus:ring-1 focus:ring-[#4F46E5] text-[13px] border ${searchBg} ${searchBorder} ${textColor} ${searchPlaceholder} transition-all duration-300 backdrop-blur-sm`}
-                    style={{ fontFamily: "'Inter', sans-serif" }}
+                    style={{ fontFamily: "'Poppins', sans-serif" }}
                   />
                 </div>
               )}
@@ -258,10 +626,12 @@ const Navbar = () => {
           </div>
         </div>
 
+
+
         {/* Mobile Menu */}
         {isMenuOpen && (
-          <div className="lg:hidden border-t border-border bg-white shadow-lg text-[#111827]">
-            <div className="px-4 py-3">
+          <div className="lg:hidden border-t border-border bg-white shadow-lg text-[#111827] max-h-[calc(100vh-76px)] overflow-y-auto">
+            <div className="px-4 py-3 border-b border-[#E5E7EB]">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input
@@ -271,7 +641,7 @@ const Navbar = () => {
                 />
               </div>
             </div>
-            <div className="px-4 py-2 space-y-1">
+            <div className="px-4 py-3 space-y-1">
               {isAdmin
                 ? adminNavLinks.map((link) => (
                   <Link
@@ -285,17 +655,84 @@ const Navbar = () => {
                     {link.name}
                   </Link>
                 ))
-                : userNavLinks.map((link) => (
-                  <Link
-                    key={link.name}
-                    to={link.path}
-                    onClick={() => setIsMenuOpen(false)}
-                    className="block px-3 py-2 rounded-lg font-bold tracking-wide hover:bg-gray-50 hover:text-[#4F46E5] text-[14px]"
-                    style={{ color: isActive(link.path) ? "#4F46E5" : "#111827" }}
-                  >
-                    {link.name}
-                  </Link>
-                ))}
+                : (
+                  <div className="flex flex-col space-y-1">
+                    <Link
+                      to="/products"
+                      onClick={() => setIsMenuOpen(false)}
+                      className={`block px-3 py-2.5 rounded-lg font-bold tracking-wide transition-colors text-[14px] ${
+                        location.pathname === "/products" && !currentDeptParam && !searchParams.get("category")
+                          ? "bg-[#4F46E5]/10 text-[#4F46E5]"
+                          : "text-[#111827] hover:bg-gray-50 hover:text-[#4F46E5]"
+                      }`}
+                    >
+                      ALL PRODUCTS
+                    </Link>
+
+                    {departments.map((dept) => {
+                      const isDeptSelected = location.pathname === "/products" && currentDeptParam === dept.name;
+                      const isExpanded = mobileExpandedDept === dept.name;
+                      const deptCats = categoriesByDept[dept.name] || [];
+
+                      return (
+                        <div key={dept._id} className="flex flex-col border-b border-[#E5E7EB]/50 last:border-0 py-1">
+                          <div className="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors">
+                            <Link
+                              to={`/products?department=${encodeURIComponent(dept.name)}`}
+                              onClick={() => setIsMenuOpen(false)}
+                              className={`flex-1 font-bold tracking-wide text-[14px] transition-colors uppercase ${
+                                isDeptSelected ? "text-[#4F46E5]" : "text-[#111827] hover:text-[#4F46E5]"
+                              }`}
+                            >
+                              {dept.name}
+                            </Link>
+                            {deptCats.length > 0 && (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setMobileExpandedDept(isExpanded ? null : dept.name);
+                                }}
+                                className="p-1 text-[#4B5563] hover:text-[#4F46E5] focus:outline-none"
+                                aria-label={`Toggle ${dept.name} categories`}
+                              >
+                                <ChevronDown size={18} className={`transition-transform duration-200 ${isExpanded ? "rotate-180 text-[#4F46E5]" : ""}`} />
+                              </button>
+                            )}
+                          </div>
+
+                          {/* Expandable Categories (Accordion) */}
+                          {isExpanded && deptCats.length > 0 && (
+                            <div className="pl-6 pr-3 py-2 space-y-1.5 bg-gray-50/70 rounded-lg mt-1 mb-2 border-l-2 border-[#4F46E5]/30 ml-3 animate-in fade-in duration-200">
+                              <Link
+                                to={`/products?department=${encodeURIComponent(dept.name)}`}
+                                onClick={() => setIsMenuOpen(false)}
+                                className="block py-1.5 px-2 text-[13px] font-semibold text-[#111827] hover:text-[#4F46E5]"
+                              >
+                                View All {dept.name}
+                              </Link>
+                              {deptCats.map((cat) => {
+                                const isCatSelected = isDeptSelected && searchParams.get("category") === cat.name;
+                                return (
+                                  <Link
+                                    key={cat._id}
+                                    to={`/products?department=${encodeURIComponent(dept.name)}&category=${encodeURIComponent(cat.name)}`}
+                                    onClick={() => setIsMenuOpen(false)}
+                                    className={`block py-1.5 px-2 text-[13px] rounded transition-colors ${
+                                      isCatSelected ? "text-[#4F46E5] font-bold bg-[#4F46E5]/10" : "text-[#4B5563] hover:text-[#4F46E5]"
+                                    }`}
+                                  >
+                                    {cat.name}
+                                  </Link>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
             </div>
           </div>
         )}

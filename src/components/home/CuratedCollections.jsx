@@ -9,7 +9,7 @@ const bentoItems = [
     subtitle: "Fresh styles for a new season.",
     image: "/home/spring_couple.jpg",
     link: "/products",
-    className: "col-span-1 md:col-span-6 md:row-span-2 h-[450px] md:h-full",
+    className: "col-span-1 md:col-span-6 md:row-span-2 h-[380px] md:h-full",
     objectPosition: "object-center"
   },
   {
@@ -18,7 +18,7 @@ const bentoItems = [
     subtitle: "Bold colors to stand out.",
     image: "/home/pink_sweater.jpg",
     link: "/products",
-    className: "col-span-1 md:col-span-6 md:row-span-1 h-[320px] md:h-full",
+    className: "col-span-1 md:col-span-6 md:row-span-1 h-[260px] md:h-full",
     objectPosition: "object-[center_30%]"
   },
   {
@@ -27,7 +27,7 @@ const bentoItems = [
     subtitle: "Up to 40% off on selected items.",
     image: "/home/shopping_bags.jpg",
     link: "/products",
-    className: "col-span-1 md:col-span-6 md:row-span-1 h-[320px] md:h-full",
+    className: "col-span-1 md:col-span-6 md:row-span-1 h-[260px] md:h-full",
     objectPosition: "object-[center_20%]"
   }
 ];
@@ -44,11 +44,11 @@ const itemVariants = {
 
 const CuratedCollections = () => {
   return (
-    <section className="w-full bg-[#FFFFFF] pt-6 md:pt-[40px] pb-10 md:pb-[80px]">
-      <div className="max-w-[1600px] mx-auto px-4 md:px-8 lg:px-12 flex flex-col gap-8">
+    <section className="w-full bg-[#FAFBFF] pt-16 sm:pt-20 md:pt-28 pb-10 md:pb-[80px]">
+      <div className="max-w-[1360px] mx-auto px-4 md:px-8 lg:px-12 flex flex-col gap-8">
         {/* Section Header */}
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-3xl font-bold text-[#111827]">Collections</h2>
+        <div className="flex flex-col items-center text-center mb-2 md:mb-6">
+          <h2 className="text-3xl sm:text-4xl md:text-[42px] lg:text-[48px] font-extrabold text-[#111827] tracking-[-0.02em]">Explore Collections</h2>
         </div>
 
         <motion.div
@@ -56,7 +56,7 @@ const CuratedCollections = () => {
           whileInView="visible"
           viewport={{ once: true, margin: "-100px" }}
           variants={containerVariants}
-          className="grid grid-cols-1 md:grid-cols-12 md:grid-rows-2 gap-[24px] md:h-[700px]"
+          className="grid grid-cols-1 md:grid-cols-12 md:grid-rows-2 gap-[24px] md:gap-x-[48px] lg:gap-x-[60px] md:gap-y-[32px] md:h-[540px]"
         >
           {bentoItems.map((item) => (
             <motion.div variants={itemVariants} key={item.id} className={item.className}>
@@ -77,7 +77,7 @@ const CuratedCollections = () => {
                 <div
                   className="absolute inset-0 z-10 transition-opacity duration-[400ms] ease-in-out opacity-100 group-hover:opacity-0"
                   style={{
-                    background: 'linear-gradient(to top, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.15) 45%, transparent 80%)'
+                    background: 'linear-gradient(to top, rgba(15,23,42,0.60) 0%, rgba(15,23,42,0.18) 45%, transparent 80%)'
                   }}
                 />
                 
@@ -85,16 +85,16 @@ const CuratedCollections = () => {
                 <div
                   className="absolute inset-0 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-[400ms] ease-in-out"
                   style={{
-                    background: 'linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.25) 50%, transparent 100%)'
+                    background: 'linear-gradient(to top, rgba(15,23,42,0.80) 0%, rgba(15,23,42,0.28) 50%, transparent 100%)'
                   }}
                 />
 
                 {/* Content Overlay */}
-                <div className="absolute bottom-6 md:bottom-10 left-0 w-full px-6 md:px-10 z-20 flex flex-col justify-end">
-                  <h3 className="text-[28px] md:text-[36px] font-bold text-white mb-2 leading-tight">
+                <div className="absolute bottom-6 md:bottom-8 left-0 w-full px-6 md:px-8 z-20 flex flex-col justify-end">
+                  <h3 className="text-[24px] md:text-[30px] font-bold text-white mb-2 leading-tight">
                     {item.title}
                   </h3>
-                  <p className="text-[15px] md:text-[17px] text-white/90 mb-6 font-medium">
+                  <p className="text-[15px] md:text-[16px] text-white/90 mb-5 font-medium">
                     {item.subtitle}
                   </p>
 

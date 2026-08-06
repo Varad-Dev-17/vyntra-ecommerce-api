@@ -142,23 +142,23 @@ const ReturnExchangeRequest = () => {
         
         {/* Breadcrumb Navigation */}
         <nav className="flex items-center text-[13px] text-gray-500 mb-6 font-medium">
-          <span className="hover:text-gray-900 cursor-pointer transition-colors" onClick={() => navigate('/account/profile')}>My Account</span>
+          <span className="hover:text-slate-700 cursor-pointer transition-colors" onClick={() => navigate('/account/profile')}>My Account</span>
           <ChevronRight className="w-4 h-4 mx-2 text-gray-400" />
-          <span className="hover:text-gray-900 cursor-pointer transition-colors" onClick={() => navigate('/account/orders')}>My Orders</span>
+          <span className="hover:text-slate-700 cursor-pointer transition-colors" onClick={() => navigate('/account/orders')}>My Orders</span>
           <ChevronRight className="w-4 h-4 mx-2 text-gray-400" />
-          <span className="text-gray-900">Return / Exchange</span>
+          <span className="text-slate-700">Return / Exchange</span>
         </nav>
 
         <button 
           onClick={() => navigate(-1)}
-          className="flex items-center gap-2 text-gray-500 hover:text-gray-900 mb-6 transition-colors font-medium text-[13px]"
+          className="flex items-center gap-2 text-gray-500 hover:text-slate-700 mb-6 transition-colors font-medium text-[13px]"
         >
           <ArrowLeft className="w-4 h-4" />
           Back to Order
         </button>
 
         <div className="mb-8">
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Request Return or Exchange</h1>
+          <h1 className="text-2xl md:text-3xl font-extrabold text-slate-700 tracking-tight">Request Return or Exchange</h1>
           <p className="text-[14px] text-gray-500 mt-2">Order #{order.orderId || order._id.toString().slice(-8)}</p>
         </div>
 
@@ -218,13 +218,13 @@ const ReturnExchangeRequest = () => {
           </div>
 
           <div>
-            <label className="block text-[14px] font-bold text-gray-900 mb-3">Additional Details</label>
+            <label className="block text-[14px] font-bold text-slate-700 mb-3">Additional Details</label>
             <textarea
               rows="4"
               value={additionalDetails}
               onChange={(e) => setAdditionalDetails(e.target.value)}
               placeholder="Please provide any additional details about your request..."
-              className="w-full border border-gray-300 rounded-lg px-4 py-3 text-[14px] text-gray-900 focus:outline-none focus:border-[#4F46E5] focus:ring-1 focus:ring-[#4F46E5] placeholder-gray-400 resize-none transition-colors"
+              className="w-full border border-gray-300 rounded-lg px-4 py-3 text-[14px] text-slate-700 focus:outline-none focus:border-[#4F46E5] focus:ring-1 focus:ring-[#4F46E5] placeholder-gray-400 resize-none transition-colors"
             ></textarea>
           </div>
           

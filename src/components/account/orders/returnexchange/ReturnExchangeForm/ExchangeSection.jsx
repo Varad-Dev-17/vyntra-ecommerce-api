@@ -70,7 +70,7 @@ const ExchangeSection = ({ requestedVariantId, setRequestedVariantId, productVar
     <div className="space-y-6">
       {colors.length > 0 && (
         <div>
-          <label className="block text-[14px] font-bold text-gray-900 mb-3">Select Color</label>
+          <label className="block text-[14px] font-bold text-slate-700 mb-3">Select Color</label>
           <div className="flex flex-wrap gap-3">
             {colors.map(color => (
               <button
@@ -94,7 +94,7 @@ const ExchangeSection = ({ requestedVariantId, setRequestedVariantId, productVar
       )}
 
       <div>
-        <label className="block text-[14px] font-bold text-gray-900 mb-3">Select Size</label>
+        <label className="block text-[14px] font-bold text-slate-700 mb-3">Select Size</label>
         <div className="flex flex-wrap gap-3 mt-2 pt-1">
           {colorVariants.length > 0 ? (
             colorVariants.map((variant) => {

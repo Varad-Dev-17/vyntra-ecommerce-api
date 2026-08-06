@@ -32,15 +32,6 @@ export const createReturnRequest = async (req, res) => {
       });
     }
 
-    // Validate Order is Delivered
-    if (order.status !== "delivered") {
-      return res.status(400).json({
-        success: false,
-        message: "Can only request return/exchange for delivered orders",
-        data: null,
-      });
-    }
-
     // Validate Product exists in Order
     const orderItem = order.items.find(
       (item) => item.product.toString() === productId && item.variant.toString() === variantId
@@ -50,6 +41,16 @@ export const createReturnRequest = async (req, res) => {
       return res.status(404).json({
         success: false,
         message: "Product/Variant not found in this order",
+        data: null,
+      });
+    }
+
+    // Validate Order or Item is Delivered
+    const itemStatus = (orderItem.status || order.status || "").toLowerCase();
+    if (itemStatus !== "delivered") {
+      return res.status(400).json({
+        success: false,
+        message: "Can only request return/exchange for delivered items",
         data: null,
       });
     }

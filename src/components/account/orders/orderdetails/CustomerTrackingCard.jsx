@@ -42,7 +42,7 @@ const CustomerTrackingCard = ({ order = null }) => {
             <Package size={20} className="stroke-[2.25]" />
           </div>
           <div>
-            <h3 className="text-base font-bold text-gray-900 tracking-tight">Order Tracking Status</h3>
+            <h3 className="text-base font-bold text-slate-700 tracking-tight">Order Tracking Status</h3>
             <p className="text-xs text-gray-500 font-medium">Real-time fulfillment progress for your order</p>
           </div>
         </div>
@@ -71,7 +71,7 @@ const CustomerTrackingCard = ({ order = null }) => {
                   }`}>
                   <Icon size={18} className="stroke-[2.25]" />
                 </div>
-                <span className={`text-xs font-extrabold ${isCompleted ? "text-gray-900" : isCurrent ? "text-[#4F46E5]" : "text-gray-400"}`}>
+                <span className={`text-xs font-extrabold ${isCompleted ? "text-slate-700" : isCurrent ? "text-[#4F46E5]" : "text-gray-400"}`}>
                   {s.label}
                 </span>
                 <span className="text-[11px] text-gray-500 font-medium mt-0.5 max-w-[120px] leading-tight">
@@ -115,7 +115,7 @@ const CustomerTrackingCard = ({ order = null }) => {
               <RefreshCw size={20} className="stroke-[2.25]" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-gray-900 tracking-tight flex items-center gap-1.5 flex-wrap">
+              <h3 className="text-base font-bold text-slate-700 tracking-tight flex items-center gap-1.5 flex-wrap">
                 <span>{type === "exchange" ? "Exchange Request Tracking" : "Return Request Tracking"}</span>
                 {itemTitle && <span className="text-[#4648d4] font-extrabold text-sm border-l-2 border-slate-200 pl-2">({itemTitle})</span>}
               </h3>
@@ -156,7 +156,7 @@ const CustomerTrackingCard = ({ order = null }) => {
                     }`}>
                     {isComp ? <Check size={14} className="stroke-[3]" /> : i + 1}
                   </div>
-                  <span className={`text-xs font-bold ${isComp ? "text-gray-900" : isCurr ? "text-amber-700 font-extrabold" : "text-gray-400"}`}>
+                  <span className={`text-xs font-bold ${isComp ? "text-slate-700" : isCurr ? "text-amber-700 font-extrabold" : "text-gray-400"}`}>
                     {s.label}
                   </span>
                   <span className="text-[10px] text-gray-500 font-medium mt-0.5 leading-tight">
@@ -257,7 +257,7 @@ const CustomerTrackingCard = ({ order = null }) => {
               <DollarSign size={20} className="stroke-[2.25]" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-gray-900 tracking-tight">Refund Progress & Settlement</h3>
+              <h3 className="text-base font-bold text-slate-700 tracking-tight">Refund Progress & Settlement</h3>
               <p className="text-xs text-gray-500 font-medium">Tracking financial credit to your payment source</p>
             </div>
           </div>
@@ -272,20 +272,20 @@ const CustomerTrackingCard = ({ order = null }) => {
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 bg-slate-50 p-4 rounded-xl border border-gray-200/60 text-xs">
           <div>
             <span className="text-gray-400 font-bold uppercase tracking-wider block text-[10px]">Refund Amount:</span>
-            <span className="font-extrabold text-base text-gray-900">₹{Number(refundAmount).toLocaleString("en-IN")}</span>
+            <span className="font-extrabold text-base text-slate-700">₹{Number(refundAmount).toLocaleString("en-IN")}</span>
           </div>
           <div>
             <span className="text-gray-400 font-bold uppercase tracking-wider block text-[10px]">Settlement Method:</span>
-            <span className="font-bold text-gray-800">{refundMethod}</span>
+            <span className="font-bold text-slate-700">{refundMethod}</span>
           </div>
           <div>
             <span className="text-gray-400 font-bold uppercase tracking-wider block text-[10px]">Completion Date:</span>
-            <span className="font-bold text-gray-800">{isDone ? formatDate(req.refundProcessedAt || req.updatedAt) : "Processing In Progress"}</span>
+            <span className="font-bold text-slate-700">{isDone ? formatDate(req.refundProcessedAt || req.updatedAt) : "Processing In Progress"}</span>
           </div>
           {req.refundTransactionId && (
             <div>
               <span className="text-gray-400 font-bold uppercase tracking-wider block text-[10px]">Reference / Txn ID:</span>
-              <span className="font-mono font-bold text-gray-800 break-all">{req.refundTransactionId}</span>
+              <span className="font-mono font-bold text-slate-700 break-all">{req.refundTransactionId}</span>
             </div>
           )}
         </div>
@@ -362,7 +362,7 @@ const CustomerTrackingCard = ({ order = null }) => {
 
     return (
       <div className="bg-white rounded-2xl border border-gray-200/80 p-6 shadow-xs space-y-4">
-        <h3 className="text-base font-bold text-gray-900 tracking-tight flex items-center gap-2 border-b border-gray-100 pb-3">
+        <h3 className="text-base font-bold text-slate-700 tracking-tight flex items-center gap-2 border-b border-gray-100 pb-3">
           <Clock size={18} className="text-[#4F46E5] stroke-[2.25]" />
           <span>Complete Journey & Timeline History</span>
         </h3>
@@ -402,7 +402,7 @@ const CustomerTrackingCard = ({ order = null }) => {
                 <span className="uppercase text-[#4F46E5] tracking-wider">Vyntra Support Notification</span>
                 <span>{formatDate(noteItem.createdAt)}</span>
               </div>
-              <p className="text-sm font-semibold text-gray-800 leading-snug">
+              <p className="text-sm font-semibold text-slate-700 leading-snug">
                 "{noteItem.note || String(noteItem)}"
               </p>
             </div>

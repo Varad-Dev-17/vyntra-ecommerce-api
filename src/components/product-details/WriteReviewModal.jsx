@@ -16,6 +16,7 @@ const WriteReviewModal = ({
   isOpen,
   onClose,
   product,
+  variant = null,
   existingReview = null,
   onSuccess,
 }) => {
@@ -47,8 +48,17 @@ const WriteReviewModal = ({
 
   const idStr = String(product._id || product.id || "");
   const productId = idStr.includes("-") ? idStr.split("-")[0] : idStr;
-  const productImage =
-    product.images?.[0]?.url || product.image || product.productImage || "";
+  const activeVariant = variant || existingReview?.variant;
+  const variantImage = typeof activeVariant === 'object' ? (activeVariant?.mainImage?.url || activeVariant?.image || null) : null;
+  const productImage = variantImage || product.images?.[0]?.url || product.image || product.productImage || "";
+
+  let colorName = "";
+  if (typeof activeVariant === 'object' && Array.isArray(activeVariant?.attributes)) {
+    const colAttr = activeVariant.attributes.find(
+      (a) => a?.attribute?.name?.toLowerCase() === "color" || a?.name?.toLowerCase() === "color"
+    );
+    if (colAttr) colorName = colAttr.option?.displayName || colAttr.value || colAttr.name || "";
+  }
 
   const handleFileChange = async (e) => {
     const files = Array.from(e.target.files);
@@ -108,10 +118,13 @@ const WriteReviewModal = ({
 
     setIsSubmitting(true);
     try {
+      const activeVar = variant || existingReview?.variant;
+      const variantId = typeof activeVar === 'object' ? activeVar?._id : (activeVar || null);
       const payload = {
         rating,
         review: comment.trim(),
         images,
+        variantId,
       };
 
       let response;
@@ -157,7 +170,7 @@ const WriteReviewModal = ({
           <button
             type="button"
             onClick={onClose}
-            className="p-1 -ml-1 text-gray-600 hover:text-black rounded-full transition-colors cursor-pointer"
+            className="p-1 -ml-1 text-gray-600 hover:text-slate-700 rounded-full transition-colors cursor-pointer"
           >
             <ArrowLeft size={22} />
           </button>
@@ -184,6 +197,11 @@ const WriteReviewModal = ({
             <h4 className="text-[15px] font-extrabold text-[#282c3f] mt-0.5 line-clamp-2">
               {product.title || product.productName || "Product Title"}
             </h4>
+            {colorName && (
+              <span className="inline-flex items-center gap-1 mt-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold tracking-wide uppercase bg-indigo-50 text-indigo-700 border border-indigo-100 shadow-2xs">
+                Color: {colorName}
+              </span>
+            )}
           </div>
 
           {/* Interactive Rating Strip: empty 5 stars */}

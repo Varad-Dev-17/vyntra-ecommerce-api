@@ -876,6 +876,7 @@ export const getNewArrivals = async (req, res) => {
         mrp: originalPrice,
         discountPercentage,
         rating: product.ratingAverage || null,
+        ratingCount: product.ratingCount || 0,
         images
       };
     });

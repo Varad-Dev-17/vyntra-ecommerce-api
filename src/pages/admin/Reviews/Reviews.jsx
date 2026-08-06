@@ -337,7 +337,7 @@ const Reviews = () => {
             >
               <button
                 onClick={() => setSelectedImageModal(null)}
-                className="absolute top-3 right-3 z-10 p-1.5 bg-black/70 text-white hover:bg-black rounded-full transition-colors cursor-pointer"
+                className="absolute top-3 right-3 z-10 p-1.5 bg-black/70 text-white hover:bg-slate-800 rounded-full transition-colors cursor-pointer"
               >
                 <X size={18} />
               </button>

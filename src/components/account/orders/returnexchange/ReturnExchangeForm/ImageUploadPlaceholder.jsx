@@ -48,7 +48,7 @@ const ImageUploadPlaceholder = ({ images, setImages }) => {
 
   return (
     <div>
-      <label className="block text-[14px] font-bold text-gray-900 mb-3">Upload Images (Optional)</label>
+      <label className="block text-[14px] font-bold text-slate-700 mb-3">Upload Images (Optional)</label>
       
       {images.length > 0 && (
         <div className="flex flex-wrap gap-4 mb-4">
@@ -79,7 +79,7 @@ const ImageUploadPlaceholder = ({ images, setImages }) => {
               <ImagePlus className="w-6 h-6" />
             </div>
           )}
-          <p className="text-[15px] font-bold text-gray-900">
+          <p className="text-[15px] font-bold text-slate-700">
             {isUploading ? 'Uploading...' : 'Click to upload images'}
           </p>
           <p className="text-[13px] text-gray-500 mt-1">SVG, PNG, JPG (max. 800x400px)</p>

@@ -1,6 +1,7 @@
 import ProductReview from "../models/productReview.js";
 import Product from "../models/product.js";
 import Order from "../models/order.js";
+import Variant from "../models/variant.js";
 
 // GET REVIEWS BY PRODUCT
 export const getReviews = async (req, res) => {
@@ -23,6 +24,11 @@ export const getReviews = async (req, res) => {
     const [reviews, total] = await Promise.all([
       ProductReview.find({ product: productId })
         .populate("user", "username email")
+        .populate({
+          path: "variant",
+          select: "attributes mainImage",
+          populate: { path: "attributes.attribute", select: "name" },
+        })
         .sort(sort)
         .skip(skip)
         .limit(limitNum)
@@ -59,6 +65,7 @@ export const getUserReviews = async (req, res) => {
     const userId = req.user.userId;
     const reviews = await ProductReview.find({ user: userId })
       .populate("product", "title images slug")
+      .populate("variant", "attributes mainImage")
       .lean();
 
     return res.status(200).json({
@@ -80,7 +87,7 @@ export const getUserReviews = async (req, res) => {
 export const createReview = async (req, res) => {
   try {
     const { productId } = req.params;
-    const { rating, comment, review: reviewText, images = [] } = req.body;
+    const { rating, comment, review: reviewText, images = [], variantId = null } = req.body;
     const userId = req.user.userId;
 
     // Validate rating
@@ -102,24 +109,33 @@ export const createReview = async (req, res) => {
       });
     }
 
-    // Check if user already reviewed this product
-    const existingReview = await ProductReview.findOne({
-      product: productId,
-      user: userId,
-    });
+    // Check if user already reviewed this product variant
+    const query = { product: productId, user: userId };
+    if (variantId) {
+      query.variant = variantId;
+    } else {
+      query.variant = null;
+    }
+    const existingReview = await ProductReview.findOne(query);
     if (existingReview) {
       return res.status(409).json({
         success: false,
-        message: "You have already reviewed this product. Please update your existing review.",
+        message: variantId
+          ? "You have already reviewed this specific color/variant. Please update your existing review."
+          : "You have already reviewed this product. Please update your existing review.",
         data: null,
       });
     }
 
-    // Check if user has an order for this product (Verified Buyer)
-    const existingOrder = await Order.findOne({
-      user: userId,
-      "items.product": productId,
-    });
+    // Check if user has an order for this product/variant (Verified Buyer)
+    const orderQuery = { user: userId, "items.product": productId };
+    if (variantId) {
+      orderQuery["items.variant"] = variantId;
+    }
+    let existingOrder = await Order.findOne(orderQuery);
+    if (!existingOrder) {
+      existingOrder = await Order.findOne({ user: userId, "items.product": productId });
+    }
     const isVerified = !!existingOrder;
 
     const finalReviewText = reviewText !== undefined ? reviewText : (comment || "");
@@ -127,6 +143,7 @@ export const createReview = async (req, res) => {
     // Create review
     const review = await ProductReview.create({
       product: productId,
+      variant: variantId || null,
       user: userId,
       rating: Number(rating),
       review: finalReviewText.trim(),
@@ -145,7 +162,8 @@ export const createReview = async (req, res) => {
 
     const populatedReview = await ProductReview.findById(review._id)
       .populate("user", "username email")
-      .populate("product", "title");
+      .populate("product", "title")
+      .populate("variant", "attributes mainImage");
 
     return res.status(201).json({
       success: true,
@@ -222,7 +240,8 @@ export const updateReview = async (req, res) => {
 
     const populatedReview = await ProductReview.findById(reviewId)
       .populate("user", "username email")
-      .populate("product", "title");
+      .populate("product", "title")
+      .populate("variant", "attributes mainImage");
 
     return res.status(200).json({
       success: true,

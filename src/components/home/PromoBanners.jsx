@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 
 const PromoBanners = () => {
   return (
-    <section className="py-8 bg-[#FFFFFF] px-4 md:px-8 max-w-[1600px] mx-auto">
+    <section className="py-8 bg-[#FAFBFF] px-4 md:px-8 max-w-[1600px] mx-auto">
       <div className="flex flex-col md:flex-row gap-6">
         {/* Banner 1 */}
         <Link to="/products?category=electronics" className="flex-1 block relative rounded-3xl overflow-hidden group shadow-lg">
@@ -47,7 +47,7 @@ const PromoBanners = () => {
             <div className="absolute inset-0 flex flex-col justify-center items-start p-6 sm:p-8 md:p-10 lg:p-12 z-10 pointer-events-none">
               <div className="flex flex-col items-start max-w-[65%] sm:max-w-[55%]">
                 <span className="text-[13px] sm:text-base md:text-lg font-bold text-pink-600 tracking-wider mb-1 uppercase">Mega Sale</span>
-                <span className="text-xl sm:text-3xl md:text-4xl font-black text-gray-900 mb-2 sm:mb-3 leading-tight tracking-tight">Up to 50% Off<br/>Sneakers</span>
+                <span className="text-xl sm:text-3xl md:text-4xl font-black text-slate-700 mb-2 sm:mb-3 leading-tight tracking-tight">Up to 50% Off<br/>Sneakers</span>
                 
                 <p className="text-[10px] sm:text-xs md:text-sm text-gray-600 leading-relaxed mb-6 sm:mb-8 font-medium">
                   Step up your game with our premium collection.

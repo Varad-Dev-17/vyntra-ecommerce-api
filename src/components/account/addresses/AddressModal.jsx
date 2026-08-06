@@ -70,7 +70,7 @@ const AddressModal = ({ isOpen, onClose, onSave, address, isProcessing }) => {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 overflow-y-auto pt-20">
       <div className="bg-white rounded-2xl w-full max-w-2xl shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 my-auto">
         <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between sticky top-0 bg-white z-10">
-          <h2 className="text-xl font-bold text-gray-900">
+          <h2 className="text-xl font-bold text-slate-700">
             {address ? 'Edit Address' : 'Add New Address'}
           </h2>
           <button
@@ -86,7 +86,7 @@ const AddressModal = ({ isOpen, onClose, onSave, address, isProcessing }) => {
           <div className="space-y-8">
             {/* Contact Details */}
             <div>
-              <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-4">Contact Details</h3>
+              <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wider mb-4">Contact Details</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-1">Full Name *</label>
@@ -121,7 +121,7 @@ const AddressModal = ({ isOpen, onClose, onSave, address, isProcessing }) => {
 
             {/* Address Details */}
             <div>
-              <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-4">Address Details</h3>
+              <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wider mb-4">Address Details</h3>
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
@@ -213,7 +213,7 @@ const AddressModal = ({ isOpen, onClose, onSave, address, isProcessing }) => {
 
             {/* Type & Settings */}
             <div>
-              <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-4">Save Address As</h3>
+              <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wider mb-4">Save Address As</h3>
               <div className="flex flex-wrap items-center gap-3 mb-6">
                 <button
                   type="button"
@@ -279,7 +279,7 @@ const AddressModal = ({ isOpen, onClose, onSave, address, isProcessing }) => {
                     </svg>
                   )}
                 </div>
-                <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900 transition-colors">
+                <span className="text-sm font-medium text-gray-700 group-hover:text-slate-700 transition-colors">
                   Make this my default address
                 </span>
               </label>

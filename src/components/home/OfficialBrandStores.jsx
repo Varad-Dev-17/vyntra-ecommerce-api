@@ -13,8 +13,8 @@ const brands = [
 
 const OfficialBrandStores = () => {
   return (
-    <section className="pt-8 pb-24 bg-[#FFFFFF] px-4 md:px-8 max-w-[1600px] mx-auto mt-4">
-      <h2 className="text-2xl font-bold text-[#111827] mb-6">Explore Official Brand Stores</h2>
+    <section className="pt-8 pb-24 bg-[#FAFBFF] px-4 md:px-8 max-w-[1600px] mx-auto mt-4">
+      <h2 className="text-3xl sm:text-4xl md:text-[42px] font-extrabold text-[#111827] tracking-[-0.02em] mb-6">Explore Official Brand Stores</h2>
       
       {/* Brand Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
@@ -35,7 +35,7 @@ const OfficialBrandStores = () => {
               </span>
             </div>
             <div>
-              <h3 className="font-semibold text-gray-900 text-[15px] leading-tight mb-1">{brand.name}</h3>
+              <h3 className="font-semibold text-slate-700 text-[15px] leading-tight mb-1">{brand.name}</h3>
               <p className="text-[12px] text-gray-500">{brand.desc}</p>
             </div>
           </Link>

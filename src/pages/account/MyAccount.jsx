@@ -22,15 +22,15 @@ const MyAccount = () => {
   };
 
   return (
-    <div className="bg-gray-50 min-h-screen pt-24 pb-12">
-      <div className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-12">
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200/80 flex flex-col md:flex-row overflow-hidden min-h-[700px]">
+    <div className="bg-white min-h-screen pt-[72px]">
+      <div className="w-full border-t border-gray-200">
+        <div className="bg-white flex flex-col md:flex-row min-h-[calc(100vh-72px)]">
           {/* Sidebar */}
-          <div className="w-full md:w-64 border-r border-gray-100 p-6 shrink-0 flex flex-col">
-            <nav className="space-y-2 flex-1">
+          <div className="w-full md:w-64 border-r border-gray-200 p-6 shrink-0 flex flex-col bg-white">
+            <nav className="space-y-1 flex-1">
               <button
                 onClick={() => navigate('/account/profile')}
-                className={`w-full text-left px-4 py-2.5 rounded-full font-bold text-[14px] transition-colors flex items-center gap-3 ${activeTab === 'profile' ? 'bg-[#EEF2FF] text-[#4F46E5]' : 'text-gray-500 hover:text-gray-900'
+                className={`w-full text-left px-4 py-3 font-bold text-[14px] transition-all flex items-center gap-3 border-l-[4px] ${activeTab === 'profile' ? 'bg-[#EEF2FF] text-[#4F46E5] border-[#4F46E5]' : 'border-transparent text-gray-600 hover:text-slate-700 hover:bg-gray-50'
                   }`}
               >
                 <User size={18} className={activeTab === 'profile' ? 'text-[#4F46E5]' : 'text-gray-400'} />
@@ -38,7 +38,7 @@ const MyAccount = () => {
               </button>
               <button
                 onClick={() => navigate('/account/orders')}
-                className={`w-full text-left px-4 py-2.5 rounded-full font-medium text-[14px] transition-colors flex items-center gap-3 ${activeTab === 'orders' ? 'bg-[#EEF2FF] text-[#4F46E5] font-bold' : 'text-gray-500 hover:text-gray-900'
+                className={`w-full text-left px-4 py-3 font-medium text-[14px] transition-all flex items-center gap-3 border-l-[4px] ${activeTab === 'orders' ? 'bg-[#EEF2FF] text-[#4F46E5] font-bold border-[#4F46E5]' : 'border-transparent text-gray-600 hover:text-slate-700 hover:bg-gray-50'
                   }`}
               >
                 <Package size={18} className={activeTab === 'orders' ? 'text-[#4F46E5]' : 'text-gray-400'} />
@@ -46,17 +46,17 @@ const MyAccount = () => {
               </button>
               <button
                 onClick={() => navigate('/account/addresses')}
-                className={`w-full text-left px-4 py-2.5 rounded-full font-medium text-[14px] transition-colors flex items-center gap-3 ${activeTab === 'addresses' ? 'bg-[#EEF2FF] text-[#4F46E5] font-bold' : 'text-gray-500 hover:text-gray-900'
+                className={`w-full text-left px-4 py-3 font-medium text-[14px] transition-all flex items-center gap-3 border-l-[4px] ${activeTab === 'addresses' ? 'bg-[#EEF2FF] text-[#4F46E5] font-bold border-[#4F46E5]' : 'border-transparent text-gray-600 hover:text-slate-700 hover:bg-gray-50'
                   }`}
               >
                 <MapPin size={18} className={activeTab === 'addresses' ? 'text-[#4F46E5]' : 'text-gray-400'} />
                 <span>Delivery Addresses</span>
               </button>
             </nav>
-            <div className="mt-8 pt-6 border-t border-gray-100 flex flex-col gap-2">
+            <div className="mt-8 pt-6 border-t border-gray-200 flex flex-col space-y-1">
               <button
                 onClick={() => navigate('/account/security')}
-                className={`w-full text-left px-4 py-2.5 rounded-full font-medium text-[14px] transition-colors flex items-center gap-3 ${activeTab === 'security' ? 'bg-[#EEF2FF] text-[#4F46E5] font-bold' : 'text-gray-500 hover:text-gray-900'
+                className={`w-full text-left px-4 py-3 font-medium text-[14px] transition-all flex items-center gap-3 border-l-[4px] ${activeTab === 'security' ? 'bg-[#EEF2FF] text-[#4F46E5] font-bold border-[#4F46E5]' : 'border-transparent text-gray-600 hover:text-slate-700 hover:bg-gray-50'
                   }`}
               >
                 <Lock size={18} className={activeTab === 'security' ? 'text-[#4F46E5]' : 'text-gray-400'} />
@@ -64,7 +64,7 @@ const MyAccount = () => {
               </button>
               <button
                 onClick={handleLogout}
-                className="w-full text-left px-4 py-2.5 rounded-full font-medium text-[14px] transition-colors flex items-center gap-3 text-red-500 hover:bg-red-50"
+                className="w-full text-left px-4 py-3 font-medium text-[14px] transition-all flex items-center gap-3 border-l-[4px] border-transparent text-red-600 hover:bg-red-50"
               >
                 <LogOut size={18} />
                 <span>Logout</span>
@@ -73,7 +73,7 @@ const MyAccount = () => {
           </div>
 
           {/* Main Content */}
-          <div className="flex-1 p-8 md:p-10">
+          <div className="flex-1 px-6 py-4 md:px-10 md:py-6 lg:px-12 lg:py-6 bg-white">
             {activeTab === 'profile' && <ProfileSection />}
             {activeTab === 'orders' && <OrdersSection />}
             {activeTab === 'addresses' && <SavedAddressSection />}

@@ -119,15 +119,15 @@ const SavedAddressSection = () => {
   }
 
   return (
-    <div className="max-w-4xl">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-bold text-gray-900">Saved Addresses</h2>
+    <div className="w-full max-w-5xl">
+      <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
+        <h2 className="text-2xl md:text-3xl font-extrabold text-slate-700 tracking-tight">Saved Addresses</h2>
         <button 
           onClick={() => {
             setEditingAddress(null);
             setIsAddressModalOpen(true);
           }}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg border border-[#4F46E5] text-[#4F46E5] text-sm font-bold tracking-wide hover:bg-[#EEF2FF] transition-colors uppercase"
+          className="flex items-center gap-2 px-5 py-2.5 bg-[#4F46E5] text-white hover:bg-[#4338CA] transition-colors text-xs font-bold uppercase tracking-wider cursor-pointer shadow-2xs"
         >
           <Plus size={16} />
           <span>Add New Address</span>
@@ -135,38 +135,40 @@ const SavedAddressSection = () => {
       </div>
       
       {addresses.length === 0 ? (
-        <div className="border border-gray-200 rounded-2xl p-8 text-center bg-gray-50/50">
-          <div className="w-16 h-16 bg-[#EEF2FF] rounded-full flex items-center justify-center mx-auto mb-4">
+        <div className="border border-gray-200 p-12 text-center bg-gray-50/50">
+          <div className="w-16 h-16 bg-[#EEF2FF] border border-[#4F46E5]/20 flex items-center justify-center mx-auto mb-4">
             <MapPin size={24} className="text-[#4F46E5]" />
           </div>
-          <h3 className="text-lg font-bold text-gray-900 mb-2">No addresses saved yet</h3>
+          <h3 className="text-lg font-bold text-slate-700 mb-2">No addresses saved yet</h3>
           <p className="text-gray-500 text-sm max-w-sm mx-auto">
             Add your home or work address for faster checkout on your next order.
           </p>
         </div>
       ) : (
-        <div className="space-y-4">
-
-          
-          <div className="grid grid-cols-1 gap-4">
+        <div className="space-y-5">
+          <div className="grid grid-cols-1 gap-5">
             {addresses.map((address) => (
-              <div key={address._id} className="border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm hover:shadow transition-shadow relative group">
-                
+              <div 
+                key={address._id} 
+                className={`border border-gray-200 bg-white shadow-2xs transition-all relative group ${
+                  address.isDefault ? 'border-l-[6px] border-l-[#4F46E5] bg-gradient-to-r from-[#EEF2FF]/40 to-white' : 'border-l-[6px] border-l-gray-300 hover:border-l-[#4F46E5]'
+                }`}
+              >
                 {/* Main Content Area */}
-                <div className="p-6">
+                <div className="p-6 md:p-8">
                   {/* Header Row: Name & Badge */}
-                  <div className="flex justify-between items-start mb-3">
+                  <div className="flex justify-between items-start mb-4">
                     <div className="flex items-center gap-3">
-                      <h4 className="text-[15px] font-bold text-gray-900 tracking-wide">
+                      <h4 className="text-[17px] font-extrabold text-slate-700 tracking-tight">
                         {address.fullName}
                       </h4>
-                      <div className="px-2.5 py-1 rounded-full bg-gray-100 text-gray-600 text-[11px] font-bold uppercase tracking-wider">
+                      <div className="px-2.5 py-0.5 bg-[#EEF2FF] text-[#4F46E5] text-[11px] font-extrabold uppercase tracking-wider border border-indigo-200">
                         {address.label}
                       </div>
                     </div>
                     {address.isDefault && (
-                      <div className="px-2 py-1 bg-green-50 border border-green-200 text-green-700 text-[10px] font-bold uppercase tracking-wider rounded">
-                        Default
+                      <div className="px-2.5 py-1 bg-emerald-100 border border-emerald-300 text-emerald-800 text-[10px] font-extrabold uppercase tracking-wider shadow-2xs">
+                        Default Address
                       </div>
                     )}
                   </div>
@@ -180,7 +182,7 @@ const SavedAddressSection = () => {
                     </p>
                     <p>{address.city}, {address.state} - {address.pincode}</p>
                     <p>{address.country}</p>
-                    <p className="pt-2 font-medium">Mobile: <span className="text-gray-900">{address.phone}</span></p>
+                    <p className="pt-2 font-medium">Mobile: <span className="text-slate-700">{address.phone}</span></p>
                   </div>
                 </div>
 
