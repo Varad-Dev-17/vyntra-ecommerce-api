@@ -73,6 +73,8 @@ const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   
   const [departments, setDepartments] = useState([]);
   const [categoriesByDept, setCategoriesByDept] = useState({});
@@ -523,16 +525,42 @@ const Navbar = () => {
             <div className="flex items-center justify-end gap-4 sm:gap-6 flex-shrink-0" onMouseEnter={() => setActiveHoverDept(null)}>
               {/* Search Bar (Desktop) */}
               {!isAdmin && (
-                <div className="hidden lg:block relative w-[280px] group">
-                  <Search
-                    className={`absolute z-10 left-4 top-1/2 -translate-y-1/2 w-4 h-4 ${searchIconColor} group-focus-within:text-[#4F46E5] transition-colors`}
-                  />
-                  <input
-                    type="text"
-                    placeholder="Search for products, brands and more..."
-                    className={`w-full pl-11 pr-4 py-2.5 rounded-md focus:outline-none focus:ring-1 focus:ring-[#4F46E5] text-[13px] border ${searchBg} ${searchBorder} ${textColor} ${searchPlaceholder} transition-all duration-300 backdrop-blur-sm`}
-                    style={{ fontFamily: "'Poppins', sans-serif" }}
-                  />
+                <div className="hidden lg:flex relative items-center justify-end h-[40px]">
+                  {isSearchOpen ? (
+                    <div className="relative w-[280px] animate-in fade-in slide-in-from-right-4 duration-300">
+                      <Search
+                        className={`absolute z-10 left-4 top-1/2 -translate-y-1/2 w-4 h-4 ${searchIconColor} transition-colors`}
+                      />
+                      <input
+                        type="text"
+                        autoFocus
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && searchQuery.trim()) {
+                            navigate(`/products?search=${encodeURIComponent(searchQuery.trim())}`);
+                            setIsSearchOpen(false);
+                          }
+                        }}
+                        onBlur={() => {
+                          if (!searchQuery.trim()) {
+                            setIsSearchOpen(false);
+                          }
+                        }}
+                        placeholder="Search products..."
+                        className={`w-full pl-11 pr-4 py-2 rounded-full focus:outline-none focus:ring-2 focus:ring-[#4F46E5] text-[13px] border ${searchBg} ${searchBorder} ${textColor} ${searchPlaceholder} transition-all duration-300 backdrop-blur-sm shadow-sm`}
+                        style={{ fontFamily: "'Poppins', sans-serif" }}
+                      />
+                    </div>
+                  ) : (
+                    <button 
+                      onClick={() => setIsSearchOpen(true)}
+                      className={`p-2 rounded-full transition-all duration-300 ${isScrolled ? "hover:bg-gray-100" : "hover:bg-white/10"}`}
+                      aria-label="Search"
+                    >
+                      <Search className={`w-5 h-5 ${searchIconColor} transition-colors`} />
+                    </button>
+                  )}
                 </div>
               )}
 
@@ -636,6 +664,14 @@ const Navbar = () => {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input
                   type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && searchQuery.trim()) {
+                      navigate(`/products?search=${encodeURIComponent(searchQuery.trim())}`);
+                      setIsMenuOpen(false);
+                    }
+                  }}
                   placeholder="Search products..."
                   className="w-full pl-10 pr-4 py-2 rounded-md focus:outline-none focus:ring-1 focus:ring-[#4F46E5] text-[13px] bg-gray-100 border-transparent text-[#111827]"
                 />

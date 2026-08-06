@@ -45,7 +45,7 @@ const itemVariants = {
 const CuratedCollections = () => {
   return (
     <section className="w-full bg-[#FAFBFF] pt-16 sm:pt-20 md:pt-28 pb-10 md:pb-[80px]">
-      <div className="max-w-[1360px] mx-auto px-4 md:px-8 lg:px-12 flex flex-col gap-8">
+      <div className="max-w-[1500px] mx-auto px-4 md:px-6 lg:px-8 flex flex-col gap-8">
         {/* Section Header */}
         <div className="flex flex-col items-center text-center mb-2 md:mb-6">
           <h2 className="text-3xl sm:text-4xl md:text-[42px] lg:text-[48px] font-extrabold text-[#111827] tracking-[-0.02em]">Explore Collections</h2>
@@ -56,7 +56,7 @@ const CuratedCollections = () => {
           whileInView="visible"
           viewport={{ once: true, margin: "-100px" }}
           variants={containerVariants}
-          className="grid grid-cols-1 md:grid-cols-12 md:grid-rows-2 gap-[24px] md:gap-x-[48px] lg:gap-x-[60px] md:gap-y-[32px] md:h-[540px]"
+          className="grid grid-cols-1 md:grid-cols-12 md:grid-rows-2 gap-[16px] md:gap-x-[24px] lg:gap-x-[32px] md:gap-y-[32px] md:h-[540px]"
         >
           {bentoItems.map((item) => (
             <motion.div variants={itemVariants} key={item.id} className={item.className}>

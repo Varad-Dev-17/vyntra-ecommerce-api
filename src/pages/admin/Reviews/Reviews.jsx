@@ -184,6 +184,7 @@ const Reviews = () => {
               <tbody className="divide-y divide-slate-200 text-sm">
                 {filteredReviews.map((rev) => {
                   const productImg =
+                    rev.variant?.mainImage?.url ||
                     rev.product?.images?.[0]?.url ||
                     "https://via.placeholder.com/80";
                   const prodSlugOrId = rev.product?.slug || rev.product?._id || rev.product;
@@ -215,7 +216,7 @@ const Reviews = () => {
                               <ExternalLink size={12} className="opacity-0 group-hover/link:opacity-100 transition-opacity text-[#4F46E5] shrink-0" />
                             </Link>
                             <span className="text-xs font-mono text-slate-400 block mt-1">
-                              ID: {String(rev.product?._id || rev.product || "").slice(-8)}
+                              ID: {rev.product?.productId || String(rev.product?._id || rev.product || "")}
                             </span>
                           </div>
                         </div>

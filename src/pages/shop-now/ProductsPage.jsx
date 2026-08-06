@@ -53,6 +53,7 @@ const ProductsPage = () => {
   const [priceRange, setPriceRange] = useState({ min: "", max: "" });
   
   const [sort, setSort] = useState("newest");
+  const searchQuery = searchParams.get("search") || "";
   
   const { updateCartCount } = useCart();
 
@@ -69,7 +70,7 @@ const ProductsPage = () => {
 
   useEffect(() => {
     fetchProducts();
-  }, [activeDepartment, activeCategory, activeBrands, activeColors, priceRange, currentPage, limit, sort]);
+  }, [activeDepartment, activeCategory, activeBrands, activeColors, priceRange, currentPage, limit, sort, searchQuery]);
 
   const fetchCartCount = async () => {
     try {
@@ -168,6 +169,9 @@ const ProductsPage = () => {
       }
       if (priceRange.max !== "") {
         params.append("maxPrice", priceRange.max);
+      }
+      if (searchQuery) {
+        params.append("search", searchQuery);
       }
 
       const res = await api.get(`/products?${params.toString()}`);

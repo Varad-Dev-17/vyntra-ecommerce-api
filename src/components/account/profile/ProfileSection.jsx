@@ -105,7 +105,7 @@ const ProfileSection = () => {
       </div>
       
       {/* Slightly Left-Aligned Content Container */}
-      <div className="w-full max-w-[1200px] md:ml-6 lg:ml-10 mr-auto">
+      <div className="w-full max-w-[1200px] mr-auto">
         {/* Profile Photo & Identity */}
         <div className="mb-6 flex flex-col items-center justify-center text-center">
         {/* Profile Image Circle */}

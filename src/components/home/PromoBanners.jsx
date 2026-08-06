@@ -2,8 +2,8 @@ import { Link } from "react-router-dom";
 
 const PromoBanners = () => {
   return (
-    <section className="py-8 bg-[#FAFBFF] px-4 md:px-8 max-w-[1600px] mx-auto">
-      <div className="flex flex-col md:flex-row gap-6">
+    <section className="py-8 bg-[#FAFBFF] px-4 md:px-6 lg:px-8 max-w-[1500px] mx-auto">
+      <div className="flex flex-col md:flex-row gap-4 md:gap-6 lg:gap-8">
         {/* Banner 1 */}
         <Link to="/products?category=electronics" className="flex-1 block relative rounded-3xl overflow-hidden group shadow-lg">
           <div className="aspect-[21/9] md:aspect-[16/9] lg:aspect-[21/9] relative">

@@ -94,21 +94,27 @@ const OrderDetails = () => {
     const unitPrice = Number(item?.sellingPrice ?? item?.price ?? item?.mrp ?? item?.variant?.price ?? 0) || 0;
     const qty = Number(item?.quantity || 1);
     const grossTotal = unitPrice * qty;
-    
-    const orderSubtotal = Number(orderData?.subtotal || 0) || (orderData?.totalAmount ? Number(orderData.totalAmount) : grossTotal);
-    const shipping = Number(orderData?.shippingAmount || 0);
-    const totalPaid = Number(orderData?.totalAmount || orderSubtotal);
-    const actualCouponDiscount = Math.max(0, Math.round((orderSubtotal + shipping) - totalPaid));
-    const proportionalDiscount = orderSubtotal > 0 && grossTotal > 0 && actualCouponDiscount > 0
-      ? Math.round((grossTotal / orderSubtotal) * actualCouponDiscount) 
-      : 0;
-    const netPaid = Math.max(0, grossTotal - proportionalDiscount);
     const gst = Number(item?.gstAmount || 0) * qty;
-    return { unitPrice, qty, grossTotal, proportionalDiscount, netPaid, gst };
+    
+    const orderSubtotal = Number(orderData?.subtotal || 0) || (orderData?.items || []).reduce((acc, i) => acc + (Number(i.sellingPrice ?? i.price ?? i.mrp ?? 0) * (i.quantity || 1)), 0);
+    const shipping = Number(orderData?.shippingAmount || 0);
+    const weight = orderSubtotal > 0 ? (grossTotal / orderSubtotal) : 1;
+    const proportionalShipping = Math.round(shipping * weight);
+    
+    const totalPaidByOrder = Number(orderData?.totalAmount || orderSubtotal);
+    const orderTotalGst = Number(orderData?.taxAmount || 0) || (orderData?.items || []).reduce((acc, i) => acc + (Number(i.gstAmount || 0) * (i.quantity || 1)), 0);
+    
+    const expectedGross = orderSubtotal + orderTotalGst + shipping;
+    const actualCouponDiscount = Math.max(0, Math.round(expectedGross - totalPaidByOrder));
+    const proportionalDiscount = Math.round(actualCouponDiscount * weight);
+    
+    const netPaid = Math.max(0, grossTotal + gst + proportionalShipping - proportionalDiscount);
+    
+    return { unitPrice, qty, grossTotal, proportionalDiscount, proportionalShipping, netPaid, gst };
   };
 
   return (
-    <div className="max-w-3xl mx-auto py-6 px-4 sm:px-6">
+    <div className="max-w-full lg:max-w-[1150px] mx-auto pt-24 sm:pt-32 pb-6 px-4 sm:px-6 md:px-8">
       <button 
         onClick={() => navigate("/account/orders")}
         className="flex items-center gap-2 text-gray-500 hover:text-slate-700 mb-6 transition-colors font-medium text-sm cursor-pointer"
@@ -117,9 +123,11 @@ const OrderDetails = () => {
         Back to Orders
       </button>
 
-      <div className="space-y-6">
-        {/* Compact Items Table Container */}
-        <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-xs">
+      <div className="flex flex-col lg:flex-row gap-6 items-start">
+        {/* Left Column (Items & Tracking) */}
+        <div className="flex-1 w-full space-y-6">
+          {/* Compact Items Table Container */}
+          <div className="bg-white border border-gray-200 rounded-none overflow-hidden shadow-xs">
           <div className="bg-gray-50 px-5 py-3.5 border-b border-gray-200 flex items-center justify-between">
             <h3 className="font-bold text-sm text-slate-700 flex items-center gap-2">
               <Package className="w-4 h-4 text-indigo-600" />
@@ -169,7 +177,7 @@ const OrderDetails = () => {
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     {/* Item Thumbnail & Specifications */}
                     <div className="flex items-start sm:items-center gap-4 flex-1 min-w-0">
-                      <div className="w-14 h-16 sm:w-16 sm:h-20 bg-gray-100 rounded-lg overflow-hidden border border-gray-200 shrink-0 shadow-2xs">
+                      <div className="w-14 h-16 sm:w-16 sm:h-20 bg-gray-100 rounded-none overflow-hidden border border-gray-200 shrink-0 shadow-2xs">
                         <img 
                           src={item.variant?.mainImage?.url || item.product?.images?.[0]?.url || "https://via.placeholder.com/150"} 
                           alt={item.product?.title || "Product"} 
@@ -216,14 +224,9 @@ const OrderDetails = () => {
 
                     {/* Price & Actions Right Column */}
                     <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-3 border-t sm:border-t-0 pt-3 sm:pt-0 border-gray-100 shrink-0">
-                      <div className="text-left sm:text-right">
                         <div className="text-sm font-extrabold text-slate-700">
-                          Paid: ₹{itemFin.netPaid.toLocaleString("en-IN")}
+                          Paid: ₹{itemFin.netPaid.toLocaleString("en-IN", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
                         </div>
-                        <div className="text-[11px] text-gray-500 font-medium">
-                          Includes ₹{Math.round(itemFin.gst)} GST
-                        </div>
-                      </div>
 
                       <div className="shrink-0">
                         <ReturnExchangeButton 
@@ -249,8 +252,12 @@ const OrderDetails = () => {
         <CustomerTrackingCard order={order} />
 
         {/* Delivery Details Block */}
-        {order.shippingAddress && (
-          <div className="bg-white border border-gray-100 rounded-xl p-5 shadow-xs">
+        </div>
+
+        {/* Right Column (Info Blocks) */}
+        <div className="w-full lg:w-[400px] xl:w-[450px] shrink-0 space-y-6">
+          {order.shippingAddress && (
+            <div className="bg-white border border-gray-100 rounded-none p-5 shadow-xs">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 bg-gray-50 rounded-full flex items-center justify-center text-gray-500 flex-shrink-0">
                 <MapPin className="w-5 h-5" />
@@ -286,18 +293,19 @@ const OrderDetails = () => {
         )}
 
         {/* Payment Block */}
-        <div className="bg-white border border-gray-100 rounded-xl p-5 shadow-xs">
+        <div className="bg-white border border-gray-100 rounded-none p-5 shadow-xs">
           <h3 className="font-bold text-[14px] text-slate-700 mb-3">Order Bill Details</h3>
           
           {(() => {
             const shipping = Number(order.shippingAmount || 0);
             const totalPaid = Number(order.totalAmount || 0);
-            const subtotal = Number(order.subtotal ?? (totalPaid - shipping)) || 0;
-            const actualCoupon = Math.max(0, Math.round((subtotal + shipping) - totalPaid));
+            const subtotal = Number(order.subtotal || 0) || (order.items || []).reduce((acc, i) => acc + (Number(i.sellingPrice ?? i.price ?? i.mrp ?? 0) * (i.quantity || 1)), 0);
+            const gst = Math.round(order.taxAmount || (order.items || []).reduce((acc, i) => acc + (Number(i.gstAmount || 0) * (i.quantity || 1)), 0));
+            
+            const actualCoupon = Math.max(0, Math.round((subtotal + gst + shipping) - totalPaid));
             const computedMRP = Number(order.totalMRP || (subtotal + Math.max(0, Number(order.discountAmount || 0) - actualCoupon))) || subtotal;
             const mrpSavings = Math.max(0, Math.round(computedMRP - subtotal));
             const totalSavings = mrpSavings + actualCoupon;
-            const gst = Math.round(order.taxAmount || (order.items || []).reduce((acc, i) => acc + (Number(i.gstAmount || 0) * (i.quantity || 1)), 0));
             const itemCount = order.items?.length || 0;
 
             return (
@@ -320,9 +328,9 @@ const OrderDetails = () => {
                     <span className="font-mono">₹{subtotal.toLocaleString('en-IN')}</span>
                   </div>
                   {gst > 0 && (
-                    <div className="flex justify-between text-[11px] text-gray-400 font-normal pl-2 border-l-2 border-gray-200 ml-1 py-0.5">
-                      <span>└ Includes GST (Folded in Selling Price)</span>
-                      <span className="font-mono">₹{gst.toLocaleString('en-IN')}</span>
+                    <div className="flex justify-between text-slate-600 font-medium py-0.5">
+                      <span>GST Amount</span>
+                      <span className="font-mono">+₹{gst.toLocaleString('en-IN')}</span>
                     </div>
                   )}
                   {actualCoupon > 0 && (
@@ -342,7 +350,7 @@ const OrderDetails = () => {
                   <p className="font-black text-[18px] text-[#4F46E5] font-mono">₹{totalPaid.toLocaleString('en-IN')}</p>
                 </div>
                 {totalSavings > 0 && (
-                  <div className="bg-emerald-50 border border-emerald-200/80 text-emerald-800 text-xs font-bold px-3 py-2 rounded-lg text-center shadow-2xs mt-2">
+                  <div className="bg-emerald-50 border border-emerald-200/80 text-emerald-800 text-xs font-bold px-3 py-2 rounded-none text-center shadow-2xs mt-2">
                     🎉 You saved ₹{totalSavings.toLocaleString('en-IN')} on this order!
                   </div>
                 )}
@@ -350,20 +358,20 @@ const OrderDetails = () => {
             );
           })()}
           
-          <div className="bg-gray-50 rounded-lg p-3 flex items-center gap-3 text-[13px] text-gray-700 border border-gray-100 font-medium">
-            <div className="bg-white px-2 py-1 rounded text-[10px] font-extrabold text-gray-500 border border-gray-200 uppercase tracking-wider">
+          <div className="bg-gray-50 rounded-none p-3 flex items-center gap-3 text-[13px] text-gray-700 border border-gray-100 font-medium">
+            <div className="bg-white px-2 py-1 rounded-none text-[10px] font-extrabold text-gray-500 border border-gray-200 uppercase tracking-wider">
               {order.paymentMethod === "cod" ? "COD" : "UPI"}
             </div>
             <span>Paid by {order.paymentMethod === "cod" ? "Cash on Delivery" : "Online Payment"}</span>
           </div>
           <p className="text-[11px] text-gray-400 mt-4 mb-3 font-medium">Item sold by: Vyntra Retail</p>
-          <button className="w-full py-2.5 border border-gray-200 rounded-lg text-[13px] font-bold text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer">
+          <button className="w-full py-2.5 border border-gray-200 rounded-none text-[13px] font-bold text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer">
             Get Invoice
           </button>
         </div>
 
         {/* Updates Sent To Block */}
-        <div className="bg-white border border-gray-100 rounded-xl p-5 shadow-xs">
+        <div className="bg-white border border-gray-100 rounded-none p-5 shadow-xs">
           <h3 className="font-bold text-[13px] text-slate-700 mb-4 flex items-center gap-2">
             <Mail className="w-4 h-4 text-gray-400" />
             Updates sent to
@@ -381,7 +389,7 @@ const OrderDetails = () => {
         </div>
 
         {/* Order Details Timestamps */}
-        <div className="bg-white border border-gray-100 rounded-xl p-5 shadow-xs">
+        <div className="bg-white border border-gray-100 rounded-none p-5 shadow-xs">
           <h3 className="font-bold text-[13px] text-slate-700 mb-4 flex items-center gap-2">
             <Package className="w-4 h-4 text-gray-400" />
             Order details
@@ -402,6 +410,7 @@ const OrderDetails = () => {
           </div>
         </div>
 
+        </div>
       </div>
     </div>
   );
