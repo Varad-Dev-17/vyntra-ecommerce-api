@@ -80,7 +80,7 @@ const BagItem = ({ item, isSelected, toggleSelection, updateQuantity, removeItem
             src={item.image}
             alt={item.title}
             className={`w-full h-full object-cover ${isOutOfStock ? "opacity-50 grayscale" : ""}`}
-          />
+           loading="lazy" decoding="async" />
         </Link>
 
         {/* Product Details */}

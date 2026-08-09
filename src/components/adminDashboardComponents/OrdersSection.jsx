@@ -191,7 +191,7 @@ const OrdersSection = () => {
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-md overflow-hidden bg-gray-100 flex-shrink-0 border border-gray-200">
               {productImage ? (
-                <img src={productImage} alt={productName} className="w-full h-full object-cover" />
+                <img src={productImage} alt={productName} className="w-full h-full object-cover"  loading="lazy" decoding="async" />
               ) : (
                 <Package className="w-5 h-5 m-auto text-gray-400 mt-2.5" />
               )}
@@ -293,37 +293,7 @@ const OrdersSection = () => {
           </div>
         </div>
         
-        {/* Pending / Order Confirmed */}
-        <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm flex flex-col gap-2">
-          <div className="flex items-center gap-3">
-             <div className="w-10 h-10 rounded-full bg-orange-50 flex items-center justify-center text-orange-500 shrink-0 border border-orange-100">
-               <Clock size={20} />
-             </div>
-             <div className="flex flex-col">
-               <p className="text-[11px] text-gray-500 font-semibold uppercase tracking-wide">Order Confirmed</p>
-             </div>
-          </div>
-          <div className="flex items-end justify-between mt-1">
-             <h3 className="text-2xl font-bold text-gray-900 leading-none">{stats.pending || 0}</h3>
-             <p className="text-[10px] text-gray-400 font-medium">Orders</p>
-          </div>
-        </div>
 
-        {/* Packed */}
-        <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm flex flex-col gap-2">
-          <div className="flex items-center gap-3">
-             <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-500 shrink-0 border border-blue-100">
-               <Package size={20} />
-             </div>
-             <div className="flex flex-col">
-               <p className="text-[11px] text-gray-500 font-semibold uppercase tracking-wide">Packed</p>
-             </div>
-          </div>
-          <div className="flex items-end justify-between mt-1">
-             <h3 className="text-2xl font-bold text-gray-900 leading-none">{(stats.packed || 0) + (stats.processing || 0)}</h3>
-             <p className="text-[10px] text-gray-400 font-medium">Orders</p>
-          </div>
-        </div>
 
         {/* Shipped */}
         <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm flex flex-col gap-2">
@@ -341,21 +311,6 @@ const OrdersSection = () => {
           </div>
         </div>
 
-        {/* On The Way */}
-        <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm flex flex-col gap-2">
-          <div className="flex items-center gap-3">
-             <div className="w-10 h-10 rounded-full bg-purple-50 flex items-center justify-center text-purple-500 shrink-0 border border-purple-100">
-               <Box size={20} />
-             </div>
-             <div className="flex flex-col">
-               <p className="text-[11px] text-gray-500 font-semibold uppercase tracking-wide">On The Way</p>
-             </div>
-          </div>
-          <div className="flex items-end justify-between mt-1">
-             <h3 className="text-2xl font-bold text-gray-900 leading-none">{stats.on_the_way || 0}</h3>
-             <p className="text-[10px] text-gray-400 font-medium">Orders</p>
-          </div>
-        </div>
 
         {/* Delivered */}
         <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm flex flex-col gap-2">

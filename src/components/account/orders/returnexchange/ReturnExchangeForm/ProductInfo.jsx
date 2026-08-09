@@ -12,7 +12,7 @@ const ProductInfo = ({ product, variant, quantity, selectedQty, onQtyChange, pri
             src={variant?.mainImage?.url || product?.images?.[0]?.url} 
             alt={product?.title || 'Product'} 
             className="w-full h-full object-cover"
-          />
+           loading="lazy" decoding="async" />
         ) : (
           <div className="w-full h-full bg-gray-100" />
         )}

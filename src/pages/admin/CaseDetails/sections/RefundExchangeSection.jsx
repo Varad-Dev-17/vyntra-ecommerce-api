@@ -20,7 +20,7 @@ const RefundExchangeSection = ({ returnRequest = null, order = {}, onUpdateRefun
   const refundStatus = (returnRequest.refundStatus || "not_required").toLowerCase();
 
   // For Return cases & Refund difference exchanges
-  const refundAmount = returnRequest.refundAmount || (type === "exchange" && returnRequest.priceDifference < 0 ? Math.abs(returnRequest.priceDifference) : order.totalAmount || returnRequest.product?.price || 0);
+  const refundAmount = returnRequest.refundAmount || returnRequest.originalPrice || (type === "exchange" && returnRequest.priceDifference < 0 ? Math.abs(returnRequest.priceDifference) : returnRequest.product?.price || returnRequest.product?.sellingPrice || order.totalAmount || 0);
   const refundMethod = returnRequest.refundMethod || order.paymentMethod?.toUpperCase() || "Original Payment Mode";
   const isRefunded = status === "refunded" || refundStatus === "completed";
   const isExchanged = status === "exchanged";
@@ -215,7 +215,7 @@ const RefundExchangeSection = ({ returnRequest = null, order = {}, onUpdateRefun
               </span>
               <div className="flex items-center gap-4 pt-2">
                 {origInfo.image ? (
-                  <img src={origInfo.image} alt="old" className="w-16 h-20 object-cover rounded-lg border border-gray-100 shadow-2xs shrink-0" />
+                  <img src={origInfo.image} alt="old" className="w-16 h-20 object-cover rounded-lg border border-gray-100 shadow-2xs shrink-0"  loading="lazy" decoding="async" />
                 ) : (
                   <div className="w-16 h-20 rounded-lg bg-gray-100 border border-gray-200 shrink-0" />
                 )}
@@ -243,7 +243,7 @@ const RefundExchangeSection = ({ returnRequest = null, order = {}, onUpdateRefun
               </span>
               <div className="flex items-center gap-4 pt-2">
                 {newInfo.image ? (
-                  <img src={newInfo.image} alt="new" className="w-16 h-20 object-cover rounded-lg border border-gray-100 shadow-2xs shrink-0" />
+                  <img src={newInfo.image} alt="new" className="w-16 h-20 object-cover rounded-lg border border-gray-100 shadow-2xs shrink-0"  loading="lazy" decoding="async" />
                 ) : (
                   <div className="w-16 h-20 rounded-lg bg-gray-100 border border-gray-200 shrink-0" />
                 )}

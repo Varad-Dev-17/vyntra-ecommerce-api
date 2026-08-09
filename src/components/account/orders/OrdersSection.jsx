@@ -344,7 +344,7 @@ const OrdersSection = () => {
                         src={item.variant?.mainImage?.url || item.product?.images?.[0]?.url || 'https://via.placeholder.com/150'}
                         alt={item.product?.title || 'Product'}
                         className="w-full h-full object-cover object-top transition-transform duration-300 group-hover:scale-105"
-                      />
+                       loading="lazy" decoding="async" />
                     </div>
 
                     <div className="flex-1 min-w-0">

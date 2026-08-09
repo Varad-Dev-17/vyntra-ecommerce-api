@@ -189,7 +189,7 @@ const ReturnsSection = () => {
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded overflow-hidden bg-gray-100 shrink-0 border border-gray-200">
               {productImage ? (
-                <img src={productImage} alt={productName} className="w-full h-full object-cover" />
+                <img src={productImage} alt={productName} className="w-full h-full object-cover"  loading="lazy" decoding="async" />
               ) : (
                 <Package className="w-4 h-4 m-auto text-gray-400 mt-2" />
               )}

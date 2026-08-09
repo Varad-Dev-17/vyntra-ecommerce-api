@@ -226,7 +226,7 @@ const ProductInfo = ({ product, activeVariant, onVariantChange }) => {
                   className={`relative w-14 h-18 rounded overflow-hidden border-2 transition-all ${isSelected ? 'border-[#4F46E5]' : 'border-transparent hover:border-[#d4d5d9]'}`}
                   title={cName}
                 >
-                  <img src={v.mainImage?.url} alt={cName} className="w-full h-full object-cover" />
+                  <img src={v.mainImage?.url} alt={cName} className="w-full h-full object-cover"  loading="lazy" decoding="async" />
                 </button>
               );
             })}

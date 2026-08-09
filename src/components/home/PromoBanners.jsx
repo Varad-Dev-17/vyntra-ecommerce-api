@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 
 const PromoBanners = () => {
   return (
-    <section className="py-8 bg-[#FAFBFF] px-4 md:px-6 lg:px-8 max-w-[1500px] mx-auto">
+    <section className="py-8 bg-white px-4 md:px-6 lg:px-8 max-w-[1500px] mx-auto">
       <div className="flex flex-col md:flex-row gap-4 md:gap-6 lg:gap-8">
         {/* Banner 1 */}
         <Link to="/products?category=electronics" className="flex-1 block relative rounded-3xl overflow-hidden group shadow-lg">
@@ -11,13 +11,13 @@ const PromoBanners = () => {
               src="/home/iphone.jpg" 
               alt="iPhone 16 Pro Max Promo" 
               className="w-full h-full object-cover object-[center_30%] transition-transform duration-700 group-hover:scale-105"
-            />
+             loading="lazy" decoding="async" />
             
             {/* Text Content Overlay */}
             <div className="absolute inset-0 flex items-center justify-end p-6 sm:p-8 md:p-10 lg:p-12 z-10 pointer-events-none">
               <div className="flex flex-col items-start text-left text-white w-[55%] sm:w-[50%]">
                 <span className="text-[13px] sm:text-base md:text-lg font-normal tracking-wide mb-1 opacity-90">iPhone 16 Pro Max</span>
-                <span className="text-xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4 tracking-tight">From $ 50,769*</span>
+                <span className="text-xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4 tracking-tight">From ₹ 50,769*</span>
                 
                 <p className="text-[10px] sm:text-xs md:text-sm text-white/80 leading-snug">
                   A18 chip. Superfast. Supersmart
@@ -41,7 +41,7 @@ const PromoBanners = () => {
               src="/home/shoes_banner.jpg" 
               alt="Sneakers Sale Promo" 
               className="w-full h-full object-cover object-[center_26%] transition-transform duration-500 group-hover:scale-105"
-            />
+             loading="lazy" decoding="async" />
             
             {/* Text Content Overlay */}
             <div className="absolute inset-0 flex flex-col justify-center items-start p-6 sm:p-8 md:p-10 lg:p-12 z-10 pointer-events-none">

@@ -106,10 +106,11 @@ export const createReturnRequest = async (req, res) => {
     }
 
     // Validate exchange logic & Price Calc
-    let originalPrice = undefined;
+    let originalPrice = orderItem.price || orderItem.sellingPrice || 0;
     let exchangePrice = undefined;
     let priceDifference = undefined;
     let settlementType = undefined;
+    let refundAmount = undefined;
 
     if (type === "exchange") {
       if (!requestedExchangeVariantId) {
@@ -137,13 +138,18 @@ export const createReturnRequest = async (req, res) => {
         });
       }
 
-      originalPrice = orderItem.price || orderItem.sellingPrice || 0;
       exchangePrice = reqVariant.price || 0;
       priceDifference = exchangePrice - originalPrice;
 
       if (priceDifference > 0) settlementType = "additional_payment";
-      else if (priceDifference < 0) settlementType = "refund";
+      else if (priceDifference < 0) {
+        settlementType = "refund";
+        refundAmount = Math.abs(priceDifference);
+      }
       else settlementType = "no_difference";
+    } else if (type === "return") {
+      settlementType = "refund";
+      refundAmount = originalPrice;
     }
 
     // Create request with initial QC and Refund states
@@ -161,6 +167,7 @@ export const createReturnRequest = async (req, res) => {
       exchangePrice,
       priceDifference,
       settlementType,
+      refundAmount,
       qcStatus: "pending",
       refundStatus: "not_required",
     });

@@ -188,7 +188,7 @@ const ProductPriceSection = ({
                 <div key={index} className="flex items-start gap-3.5 pt-3 first:pt-0">
                   <div className="w-16 h-20 rounded-xl bg-gray-50 border border-gray-100 overflow-hidden shrink-0 shadow-2xs flex items-center justify-center">
                     {img ? (
-                      <img src={img} alt={title} className="w-full h-full object-cover" />
+                      <img src={img} alt={title} className="w-full h-full object-cover"  loading="lazy" decoding="async" />
                     ) : (
                       <ShoppingBag size={20} className="text-gray-300" />
                     )}
@@ -376,7 +376,7 @@ const ProductPriceSection = ({
                   return (
                     <div key={rIdx} className="flex items-center justify-between text-xs pt-2 first:pt-0 text-slate-700">
                       <div className="flex items-center gap-2.5">
-                        {rimg && <img src={rimg} alt="retained" className="w-10 h-12 rounded object-cover border border-slate-200 shadow-2xs" />}
+                        {rimg && <img src={rimg} alt="retained" className="w-10 h-12 rounded object-cover border border-slate-200 shadow-2xs"  loading="lazy" decoding="async" />}
                         <div>
                           <p className="font-bold">{rtitle}</p>
                           <p className="text-[11px] text-slate-500">Qty: {rqty} • Retained (No active claim)</p>

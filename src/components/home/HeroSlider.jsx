@@ -12,7 +12,7 @@ const HeroSlider = () => {
         loop
         muted
         playsInline
-        preload="metadata"
+        preload="auto"
         className="absolute inset-0 w-full h-full object-cover z-0"
       />
 

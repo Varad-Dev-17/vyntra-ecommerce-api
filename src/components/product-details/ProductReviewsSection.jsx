@@ -129,7 +129,7 @@ const ProductReviewsSection = ({ product, onReviewsUpdate }) => {
                       src={photo.url}
                       alt="Customer review"
                       className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                    />
+                     loading="lazy" decoding="async" />
                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
                     <div className="absolute bottom-1 left-1 bg-black/60 backdrop-blur-xs px-1.5 py-0.5 rounded text-[10px] font-bold text-white flex items-center gap-0.5">
                       <Star size={9} className="fill-[#FFB800] text-[#FFB800]" />
@@ -317,7 +317,7 @@ const ProductReviewsSection = ({ product, onReviewsUpdate }) => {
                               src={img.url}
                               alt="Review attachment"
                               className="w-full h-full object-cover"
-                            />
+                             loading="lazy" decoding="async" />
                           </div>
                         ))}
                       </div>
@@ -367,7 +367,7 @@ const ProductReviewsSection = ({ product, onReviewsUpdate }) => {
                 src={selectedImage.url}
                 alt="Customer feedback full"
                 className="w-full h-full object-contain max-h-[70vh]"
-              />
+               loading="lazy" decoding="async" />
             </div>
 
             <div className="p-6 w-full md:w-2/5 flex flex-col justify-between bg-white">

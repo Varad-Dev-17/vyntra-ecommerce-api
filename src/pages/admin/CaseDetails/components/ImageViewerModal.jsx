@@ -81,7 +81,7 @@ const ImageViewerModal = ({ isOpen, onClose, images = [], initialIndex = 0 }) =>
             className={`max-h-[70vh] w-auto rounded-lg transition-transform duration-300 ${
               isZoomed ? "scale-150 cursor-zoom-out" : "scale-100 cursor-zoom-in object-contain"
             }`}
-            onClick={() => setIsZoomed(!isZoomed)}
+            onClick={() = loading="lazy" decoding="async"> setIsZoomed(!isZoomed)}
           />
 
           {/* Navigation controls for multi-image sets */}
@@ -121,7 +121,7 @@ const ImageViewerModal = ({ isOpen, onClose, images = [], initialIndex = 0 }) =>
                       : "border-white/20 opacity-60 hover:opacity-100"
                   }`}
                 >
-                  <img src={thumbUrl} alt="thumb" className="w-full h-full object-cover" />
+                  <img src={thumbUrl} alt="thumb" className="w-full h-full object-cover"  loading="lazy" decoding="async" />
                 </button>
               );
             })}

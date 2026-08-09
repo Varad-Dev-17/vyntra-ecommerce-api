@@ -1,47 +1,83 @@
 import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
 
 const brands = [
-  { name: "Adidas", logo: "https://upload.wikimedia.org/wikipedia/commons/2/20/Adidas_Logo.svg", desc: "Delivery within 24 hours" },
-  { name: "Nestle", logo: "https://upload.wikimedia.org/wikipedia/commons/c/cd/Nestle_logo.svg", desc: "Delivery within 24 hours" },
-  { name: "Dr Pepper", logo: "https://upload.wikimedia.org/wikipedia/commons/0/05/Dr_Pepper_Logo.svg", desc: "Delivery within 24 hours" },
-  { name: "LG Electronics", logo: "https://upload.wikimedia.org/wikipedia/commons/b/b1/LG_logo_%282015%29.svg", desc: "Delivery within 24 hours" },
-  { name: "Dell", logo: "https://upload.wikimedia.org/wikipedia/commons/1/18/Dell_logo_2016.svg", desc: "Delivery within 24 hours" },
-  { name: "Apple", logo: "https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg", desc: "Delivery within 24 hours" },
-  { name: "Chanel", logo: "https://upload.wikimedia.org/wikipedia/commons/9/94/Chanel_logo.svg", desc: "Delivery within 24 hours" },
-  { name: "Zara", logo: "https://upload.wikimedia.org/wikipedia/commons/f/fd/Zara_Logo.svg", desc: "Delivery within 24 hours" }
+  { name: "Levi's", logo: "https://upload.wikimedia.org/wikipedia/commons/1/11/Levi%27s_logo.svg" },
+  { name: "H&M", logo: "https://upload.wikimedia.org/wikipedia/commons/5/53/H%26M-Logo.svg" },
+  { name: "Tommy Hilfiger", logo: "https://upload.wikimedia.org/wikipedia/commons/9/91/Tommy_Hilfiger_Logo.svg" },
+  { name: "Nivea", logo: "https://upload.wikimedia.org/wikipedia/commons/8/81/Nivea_logo.svg" },
+  { name: "Garnier", logo: "https://upload.wikimedia.org/wikipedia/commons/2/23/Garnier_logo.svg" },
+  { name: "Samsung", logo: "https://upload.wikimedia.org/wikipedia/commons/2/24/Samsung_Logo.svg" },
+  { name: "Panasonic", logo: "https://upload.wikimedia.org/wikipedia/commons/a/a2/Panasonic_logo_%28Blue%29.svg" },
+  { name: "Nintendo", logo: "https://upload.wikimedia.org/wikipedia/commons/0/0d/Nintendo.svg" }
 ];
 
-const OfficialBrandStores = () => {
-  return (
-    <section className="pt-8 pb-24 bg-[#FAFBFF] px-4 md:px-8 max-w-[1600px] mx-auto mt-4">
-      <h2 className="text-3xl sm:text-4xl md:text-[42px] font-extrabold text-[#111827] tracking-[-0.02em] mb-6">Explore Official Brand Stores</h2>
-      
-      {/* Brand Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        {brands.map((brand, idx) => (
-          <Link key={idx} to={`/brand/${brand.name.toLowerCase()}`} className="bg-[#f9f9f9] hover:bg-gray-100 rounded-xl p-4 flex items-center gap-4 transition-colors duration-300">
-            <div className="w-[50px] h-[50px] rounded-full bg-white flex items-center justify-center p-2.5 shadow-sm shrink-0 border border-gray-100">
-              <img 
-                src={brand.logo} 
-                alt={brand.name} 
-                className="w-full h-full object-contain mix-blend-multiply" 
-                onError={(e) => {
-                  e.target.style.display = 'none';
-                  e.target.nextSibling.style.display = 'flex';
-                }}
-              />
-              <span className="hidden w-full h-full items-center justify-center text-lg font-bold text-gray-500">
-                {brand.name[0]}
-              </span>
-            </div>
-            <div>
-              <h3 className="font-semibold text-slate-700 text-[15px] leading-tight mb-1">{brand.name}</h3>
-              <p className="text-[12px] text-gray-500">{brand.desc}</p>
-            </div>
-          </Link>
-        ))}
-      </div>
+const BrandCard = ({ brand }) => (
+  <Link to={`/brand/${brand.name.toLowerCase()}`} className="bg-transparent rounded-xl p-4 flex items-center gap-4 transition-colors duration-300 min-w-[260px] mx-2 shrink-0 group hover:opacity-80">
+    <div className="w-[50px] h-[50px] rounded-full bg-white flex items-center justify-center p-2.5 shadow-sm shrink-0 border border-gray-100">
+      <img 
+        src={brand.logo} 
+        alt={brand.name} 
+        className="w-full h-full object-contain mix-blend-multiply" 
+        loading="lazy"
+        decoding="async"
+        onError={(e) => {
+          e.target.style.display = 'none';
+          e.target.nextSibling.style.display = 'flex';
+        }}
+      />
+      <span className="hidden w-full h-full items-center justify-center text-lg font-bold text-gray-500">
+        {brand.name[0]}
+      </span>
+    </div>
+    <div>
+      <h3 className="font-semibold text-slate-700 text-[16px] leading-tight mb-1">{brand.name}</h3>
+    </div>
+  </Link>
+);
 
+const MarqueeRow = ({ items, direction = "left", speed = 40 }) => {
+  const isLeft = direction === "left";
+  // Duplicate items to ensure seamless loop
+  const duplicatedItems = [...items, ...items, ...items, ...items];
+  
+  return (
+    <div className="flex overflow-hidden whitespace-nowrap w-full relative py-2">
+      <motion.div
+        className="flex min-w-max"
+        animate={{ x: isLeft ? ["0%", "-50%"] : ["-50%", "0%"] }}
+        transition={{ repeat: Infinity, ease: "linear", duration: speed }}
+      >
+        {duplicatedItems.map((brand, idx) => (
+          <BrandCard key={idx} brand={brand} />
+        ))}
+      </motion.div>
+    </div>
+  );
+};
+
+const OfficialBrandStores = () => {
+  const row1Brands = [...brands];
+  const row2Brands = [...brands].reverse();
+  const row3Brands = [...brands.slice(4), ...brands.slice(0, 4)];
+
+  return (
+    <section className="pt-12 pb-24 bg-white w-full mt-4 overflow-hidden relative">
+      <div className="max-w-[1600px] mx-auto px-4 md:px-8 mb-10 text-center flex flex-col items-center">
+        <h2 className="text-4xl sm:text-5xl md:text-[56px] font-extrabold text-[#111827] tracking-[-0.02em] mb-3">Top Brands</h2>
+        <p className="text-gray-500 max-w-2xl text-[15px] md:text-lg">Discover top deals and official collections from your favorite global brands.</p>
+      </div>
+      
+      {/* Marquee Container */}
+      <div className="relative w-full flex flex-col gap-2 overflow-hidden">
+        {/* Left/Right Fade Overlays */}
+        <div className="absolute top-0 bottom-0 left-0 w-16 md:w-40 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none"></div>
+        <div className="absolute top-0 bottom-0 right-0 w-16 md:w-40 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none"></div>
+        
+        <MarqueeRow items={row1Brands} direction="left" speed={60} />
+        <MarqueeRow items={row2Brands} direction="right" speed={75} />
+        <MarqueeRow items={row3Brands} direction="left" speed={65} />
+      </div>
     </section>
   );
 };

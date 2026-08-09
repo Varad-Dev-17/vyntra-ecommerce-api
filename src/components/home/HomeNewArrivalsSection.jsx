@@ -312,7 +312,7 @@ const HomeNewArrivalsSection = ({ title, subtitle }) => {
   return (
     <section
       ref={sectionRef}
-      className="w-full bg-[#FAFBFF] pt-12 sm:pt-17 md:pt-20 pb-8 overflow-hidden h-screen flex flex-col justify-center relative z-10"
+      className="w-full bg-white pt-12 sm:pt-17 md:pt-20 pb-8 overflow-hidden h-screen flex flex-col justify-center relative z-10"
     >
       <div className="max-w-[1600px] mx-auto w-full px-4 md:px-8 lg:px-12 mb-6 sm:mb-8">
         {/* Section Header */}

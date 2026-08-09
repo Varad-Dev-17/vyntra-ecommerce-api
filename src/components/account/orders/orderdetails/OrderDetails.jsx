@@ -182,7 +182,7 @@ const OrderDetails = () => {
                           src={item.variant?.mainImage?.url || item.product?.images?.[0]?.url || "https://via.placeholder.com/150"} 
                           alt={item.product?.title || "Product"} 
                           className="w-full h-full object-cover"
-                        />
+                         loading="lazy" decoding="async" />
                       </div>
                       <div className="min-w-0 flex-1">
                         {brandName && <p className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">{brandName}</p>}

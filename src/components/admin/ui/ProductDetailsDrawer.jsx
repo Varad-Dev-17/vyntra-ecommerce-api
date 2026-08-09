@@ -224,7 +224,7 @@ const ProductDetailsDrawer = ({ isOpen, onClose, product }) => {
                       <div className="p-4 flex gap-4 items-center border-b border-gray-100">
                         <div className="w-16 h-20 rounded-lg overflow-hidden bg-gray-50 shrink-0 border border-gray-100">
                           {g.mainImage ? (
-                            <img src={g.mainImage.url} alt={g.name} className="w-full h-full object-cover" />
+                            <img src={g.mainImage.url} alt={g.name} className="w-full h-full object-cover"  loading="lazy" decoding="async" />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center text-gray-400"><ImageIcon size={20}/></div>
                           )}

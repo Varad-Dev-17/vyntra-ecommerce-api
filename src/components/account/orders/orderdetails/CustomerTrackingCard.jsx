@@ -244,7 +244,7 @@ const CustomerTrackingCard = ({ order = null }) => {
     // Show only when applicable
     if (type === "exchange" && req.settlementType !== "refund" && refundStatus === "not_required") return null;
 
-    const refundAmount = req.refundAmount || (type === "exchange" && req.priceDifference < 0 ? Math.abs(req.priceDifference) : order.totalAmount || 0);
+    const refundAmount = req.refundAmount || req.originalPrice || (type === "exchange" && req.priceDifference < 0 ? Math.abs(req.priceDifference) : req.product?.price || req.product?.sellingPrice || order.totalAmount || 0);
     const refundMethod = req.refundMethod || order.paymentMethod?.toUpperCase() || "Original Payment Mode";
 
     const isDone = req.status === "refunded" || refundStatus === "completed";

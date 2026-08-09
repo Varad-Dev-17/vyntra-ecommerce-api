@@ -54,7 +54,7 @@ const ImageUploadPlaceholder = ({ images, setImages }) => {
         <div className="flex flex-wrap gap-4 mb-4">
           {images.map((img, index) => (
             <div key={index} className="relative w-20 h-20 border border-gray-200 rounded-lg overflow-hidden">
-              <img src={img.url} alt="Upload preview" className="w-full h-full object-cover" />
+              <img src={img.url} alt="Upload preview" className="w-full h-full object-cover"  loading="lazy" decoding="async" />
               <button
                 type="button"
                 onClick={() => removeImage(index)}

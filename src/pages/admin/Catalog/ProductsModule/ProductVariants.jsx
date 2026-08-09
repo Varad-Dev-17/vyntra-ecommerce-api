@@ -681,7 +681,7 @@ const ProductVariants = () => {
                      <label className="block text-sm font-medium text-[#4648d4] mb-2">Main Image *</label>
                      {currentGroup.mainImage ? (
                        <div className="relative aspect-[3/4] border border-gray-200 rounded-xl overflow-hidden group">
-                         <img src={currentGroup.mainImage.url} className="w-full h-full object-cover" alt="Main" />
+                         <img src={currentGroup.mainImage.url} className="w-full h-full object-cover" alt="Main"  loading="lazy" decoding="async" />
                          <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex flex-col justify-center items-center gap-2 transition-opacity">
                            <label className="bg-white px-4 py-2 rounded-lg text-sm font-medium cursor-pointer shadow-sm text-gray-900">
                              Replace
@@ -706,7 +706,7 @@ const ProductVariants = () => {
                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                        {currentGroup.galleryImages?.map((img, gIndex) => (
                          <div key={img.publicId || gIndex} className="relative aspect-square border border-gray-200 rounded-xl overflow-hidden group">
-                           <img src={img.url} className="w-full h-full object-cover" alt="Gallery" />
+                           <img src={img.url} className="w-full h-full object-cover" alt="Gallery"  loading="lazy" decoding="async" />
                            <button type="button" onClick={() => removeGalleryImage(gIndex)} className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white transition-opacity">
                              <Trash2 size={20} />
                            </button>
@@ -916,7 +916,7 @@ const ProductVariants = () => {
                           src={images[previewImageIndex]?.url || images[0]?.url} 
                           alt="Variant Preview" 
                           className="w-full h-full object-cover object-center transition-all duration-500" 
-                        />
+                         loading="lazy" decoding="async" />
                         {images.length > 1 && (
                           <>
                             <button 
@@ -957,7 +957,7 @@ const ProductVariants = () => {
                           title={optName}
                         >
                           {g.mainImage ? (
-                            <img src={g.mainImage.url} alt="Thumbnail" className="w-full h-full object-cover rounded-lg" />
+                            <img src={g.mainImage.url} alt="Thumbnail" className="w-full h-full object-cover rounded-lg"  loading="lazy" decoding="async" />
                           ) : (
                             <div className="w-full h-full bg-gray-50 flex items-center justify-center rounded-lg"><Package size={20} className="text-gray-400"/></div>
                           )}
@@ -1012,7 +1012,7 @@ const ProductVariants = () => {
                   <div className="p-4 flex gap-4 items-center border-b border-gray-100">
                     <div className="w-16 h-20 rounded-lg overflow-hidden bg-gray-50 shrink-0 border border-gray-100">
                       {group.mainImage ? (
-                        <img src={group.mainImage.url} alt={optName} className="w-full h-full object-cover" />
+                        <img src={group.mainImage.url} alt={optName} className="w-full h-full object-cover"  loading="lazy" decoding="async" />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-gray-400"><ImageIcon size={20}/></div>
                       )}

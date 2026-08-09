@@ -16,71 +16,81 @@ const Newsletter = () => {
   };
 
   return (
-    <section className="py-8 md:py-12 bg-[#FAFBFF]">
-      <div className="max-w-4xl mx-auto px-4 md:px-8">
+    <section className="py-12 md:py-20 relative bg-gradient-to-b from-white to-[#f0f4f8] overflow-hidden">
+      {/* Decorative subtle background blobs */}
+      <div className="absolute top-0 left-0 w-64 h-64 bg-blue-100 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse"></div>
+      <div className="absolute bottom-0 right-0 w-80 h-80 bg-purple-100 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse" style={{ animationDelay: '2s' }}></div>
+      <div className="max-w-6xl mx-auto px-4 md:px-8 relative z-10">
         <FadeIn>
-          <motion.div
-            className="p-6 md:p-10 relative overflow-hidden flex flex-col items-center text-center rounded-2xl bg-[#FCF8FF]"
-            style={{
-              border: "1px dashed #d1c8f0",
-            }}
-            whileHover={{
-              borderColor: "#a78bfa"
-            }}
-          >
-            <motion.h2
-              className="text-2xl md:text-4xl font-black text-[#111827] mb-2 uppercase tracking-wide"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
+          <div className="flex flex-col md:flex-row items-center justify-center gap-10 md:gap-20">
+            {/* Left Image */}
+            <motion.div
+              className="w-full max-w-sm md:w-1/2 flex justify-center"
+              initial={{ opacity: 0, x: -30 }}
+              whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.5 }}
+              transition={{ duration: 0.7 }}
             >
-              Unlock 15% Off
-            </motion.h2>
-
-            <motion.p
-              className="text-sm md:text-base text-[#535766] max-w-lg mb-6"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-            >
-              Sign up for our newsletter and enjoy 15% off your first order.
-            </motion.p>
-
-            <motion.form
-              onSubmit={handleSubmit}
-              className="flex flex-col sm:flex-row gap-3 w-full max-w-lg"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-            >
-              <motion.input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter your email"
-                required
-                className="grow bg-white border border-[#d1c8f0] rounded-xl px-5 py-3 focus:ring-2 focus:ring-[#4648D4] outline-none text-[#111827] placeholder-[#767586] text-sm font-medium shadow-sm"
-                whileFocus={{ scale: 1.02 }}
+              <img 
+                src="/home/newsletter_vyntra_bag.png" 
+                alt="Subscribe" 
+                className="w-full max-w-[350px] object-contain mix-blend-multiply"
               />
-              <motion.button
-                type="submit"
-                className="px-6 py-3 text-white font-bold rounded-xl text-sm shadow-[0_10px_30px_rgba(70,72,212,0.2)] shrink-0"
-                style={{
-                  background: "linear-gradient(135deg, #4648d4 0%, #6b38d4 100%)",
-                }}
-                whileHover={{
-                  scale: 1.05,
-                  boxShadow: "0 15px 40px rgba(70,72,212,0.4)",
-                }}
-                whileTap={{ scale: 0.95 }}
+            </motion.div>
+
+            {/* Right Content */}
+            <div className="w-full md:w-1/2 flex flex-col items-center text-center">
+              <motion.h2
+                className="text-[32px] md:text-[40px] font-black text-[#111827] mb-2 tracking-[0.1em]"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5 }}
               >
-                {isSubmitted ? "Signed up!" : "Sign up"}
-              </motion.button>
-            </motion.form>
-          </motion.div>
+                SUBSCRIBE
+              </motion.h2>
+
+              <motion.p
+                className="text-[15px] md:text-base text-gray-600 mb-8 font-medium"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.1 }}
+              >
+                Subscribe to our newsletter and stay updated.
+              </motion.p>
+
+              <motion.form
+                onSubmit={handleSubmit}
+                className="flex flex-col items-center w-full max-w-[400px]"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+              >
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="enter your mail id"
+                  required
+                  className="w-full bg-transparent border-b-2 border-gray-200 focus:border-[#4648D4] px-2 py-3 outline-none text-[#111827] placeholder-gray-400 text-sm font-medium transition-colors mb-6 text-center md:text-left"
+                />
+                
+                <motion.button
+                  type="submit"
+                  className="px-10 py-2.5 text-white font-semibold rounded-full text-[13px] tracking-wide"
+                  style={{
+                    background: "linear-gradient(90deg, #1d4ed8 0%, #60a5fa 100%)",
+                  }}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  {isSubmitted ? "subscribed!" : "subscribe"}
+                </motion.button>
+              </motion.form>
+            </div>
+          </div>
         </FadeIn>
       </div>
     </section>

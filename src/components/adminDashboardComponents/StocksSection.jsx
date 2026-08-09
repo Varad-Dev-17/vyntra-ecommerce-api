@@ -84,7 +84,7 @@ const StocksSection = () => {
               src={row.images[0]}
               alt={row.title}
               className="w-10 h-10 rounded-lg object-cover border border-gray-100"
-            />
+             loading="lazy" decoding="async" />
           )}
           <span className="font-medium text-[#1a1a2e] line-clamp-2">
             {row.title}

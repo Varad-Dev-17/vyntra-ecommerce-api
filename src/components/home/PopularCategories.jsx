@@ -13,7 +13,7 @@ const categories = [
 
 const PopularCategories = () => {
   return (
-    <section className="pt-16 sm:pt-20 md:pt-28 pb-4 bg-[#FAFBFF] px-4 md:px-8 lg:px-12 max-w-[1360px] mx-auto">
+    <section className="pt-16 sm:pt-20 md:pt-28 pb-4 bg-white px-4 md:px-8 lg:px-12 max-w-[1360px] mx-auto">
       <div className="flex flex-col items-center text-center mb-8 md:mb-12">
         <h2 className="text-3xl sm:text-4xl md:text-[42px] lg:text-[48px] font-extrabold text-[#111827] tracking-[-0.02em]">Explore Categories</h2>
       </div>
@@ -31,7 +31,7 @@ const PopularCategories = () => {
                   src={cat.image} 
                   alt={cat.name} 
                   className="w-full h-full object-cover scale-[1.08] mix-blend-multiply group-hover:scale-[1.18] transition-transform duration-300"
-                />
+                 loading="lazy" decoding="async" />
               </div>
               <span className="text-xs md:text-sm font-semibold text-[#111827] text-center">
                 {cat.name}

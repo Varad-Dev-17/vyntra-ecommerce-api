@@ -154,7 +154,7 @@ const ExchangeSection = ({ requestedVariantId, setRequestedVariantId, productVar
               </span>
               <div className="flex items-center gap-4 pt-1">
                 {(currentVariant?.mainImage?.url || selectedVariant?.mainImage?.url) ? (
-                  <img src={currentVariant?.mainImage?.url || selectedVariant?.mainImage?.url} alt="Original" className="w-16 h-20 object-cover rounded-lg border border-gray-100 shadow-2xs shrink-0" />
+                  <img src={currentVariant?.mainImage?.url || selectedVariant?.mainImage?.url} alt="Original" className="w-16 h-20 object-cover rounded-lg border border-gray-100 shadow-2xs shrink-0"  loading="lazy" decoding="async" />
                 ) : (
                   <div className="w-16 h-20 rounded-lg bg-gray-100 border border-gray-200 shrink-0" />
                 )}
@@ -185,7 +185,7 @@ const ExchangeSection = ({ requestedVariantId, setRequestedVariantId, productVar
               </span>
               <div className="flex items-center gap-4 pt-1">
                 {(selectedVariant?.mainImage?.url || currentVariant?.mainImage?.url) ? (
-                  <img src={selectedVariant?.mainImage?.url || currentVariant?.mainImage?.url} alt="Replacement" className="w-16 h-20 object-cover rounded-lg border border-gray-100 shadow-2xs shrink-0" />
+                  <img src={selectedVariant?.mainImage?.url || currentVariant?.mainImage?.url} alt="Replacement" className="w-16 h-20 object-cover rounded-lg border border-gray-100 shadow-2xs shrink-0"  loading="lazy" decoding="async" />
                 ) : (
                   <div className="w-16 h-20 rounded-lg bg-gray-100 border border-gray-200 shrink-0" />
                 )}

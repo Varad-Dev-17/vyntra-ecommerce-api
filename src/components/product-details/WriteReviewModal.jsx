@@ -188,7 +188,7 @@ const WriteReviewModal = ({
                   src={productImage}
                   alt={product.title || "Product Image"}
                   className="w-full h-full object-cover"
-                />
+                 loading="lazy" decoding="async" />
               </div>
             )}
             <div className="text-[12px] font-bold uppercase tracking-wider text-[#7e818c]">
@@ -278,7 +278,7 @@ const WriteReviewModal = ({
                       src={img.url}
                       alt={`Upload preview ${index + 1}`}
                       className="w-full h-full object-cover"
-                    />
+                     loading="lazy" decoding="async" />
                     <button
                       type="button"
                       onClick={() => removeImage(index)}

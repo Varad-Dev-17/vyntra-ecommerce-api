@@ -23,7 +23,6 @@ const getCategorySection = (catName, deptName = "") => {
   const name = (catName || "").toLowerCase();
   const dept = (deptName || "").toLowerCase();
 
-  // 1. Department-specific priority overrides
   if (dept.includes("electronic") || dept.includes("gadget") || dept.includes("tech") || dept.includes("appliance")) {
     if (/laptop|phone|tablet|mobile|computer|desktop|ipad|iphone|mac/.test(name)) return "Computers & Mobiles";
     if (/tv|camera|speaker|headphone|earbud|monitor|console|gaming/.test(name)) return "Home Entertainment & Gaming";
@@ -31,7 +30,6 @@ const getCategorySection = (catName, deptName = "") => {
     return "Gadgets & Tech";
   }
 
-  // 2. Universal keyword checks (Tech & Electronics checked first to prevent substring collisions like 'laptop' containing 'top')
   if (/laptop|desktop|phone|tablet|mobile|camera|speaker|headphone|earbud|gadget|monitor|keyboard|mouse|electronic|tv|console|cable|charger/.test(name)) {
     return "Gadgets & Tech";
   }
@@ -62,7 +60,7 @@ const getCategorySection = (catName, deptName = "") => {
   if (/bed|cushion|curtain|rug|blanket|lamp|table|chair|sofa|decor|kitchen|cookware|utensil|dining/.test(name)) {
     return "Home & Decor";
   }
-  
+
   if (dept.includes("home") || dept.includes("kitchen")) return "Home Essentials";
   if (dept.includes("beauty") || dept.includes("care")) return "Personal Care";
   if (dept.includes("men") || dept.includes("women") || dept.includes("kid") || dept.includes("fashion")) return "Trending Fashion";
@@ -75,7 +73,7 @@ const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  
+
   const [departments, setDepartments] = useState([]);
   const [categoriesByDept, setCategoriesByDept] = useState({});
   const [activeHoverDept, setActiveHoverDept] = useState(null);
@@ -238,13 +236,14 @@ const Navbar = () => {
                 <img
                   src="/Logo/logo.png"
                   alt="Vyntra Logo"
-                  className="h-10 sm:h-14 w-auto transition-all duration-300"
+                  fetchpriority="high"
+                  className="h-27 sm:h-27 w-auto transition-all duration-300 pt-2"
                   style={{ filter: isScrolled ? "none" : "drop-shadow(0px 0px 4px rgba(255,255,255,1)) drop-shadow(0px 0px 10px rgba(255,255,255,0.8))" }}
                 />
               </Link>
             </div>
 
-            {/* Center: Nav Links */}
+            {/* Nav Links */}
             <div className="hidden lg:flex flex-1 justify-center items-center gap-8 xl:gap-10">
               {isAdmin
                 ? adminNavLinks.map((link) => (
@@ -264,109 +263,6 @@ const Navbar = () => {
                 ))
                 : (
                   <div className="flex items-center gap-8 xl:gap-10 h-full">
-                    {/* ALL PRODUCTS Master Catalog Dropdown (Cosmira Inspired Airy Layout) */}
-                    <div
-                      className="relative flex items-center h-[76px]"
-                      onMouseEnter={() => setActiveHoverDept("ALL_PRODUCTS")}
-                      onMouseLeave={() => setActiveHoverDept(null)}
-                    >
-                      <Link
-                        to="/products"
-                        onClick={() => setActiveHoverDept(null)}
-                        className="font-bold tracking-wide transition-colors flex items-center h-[76px] hover:text-[#4F46E5] relative uppercase"
-                        style={{
-                          fontFamily: "'Poppins', sans-serif",
-                          fontSize: "14px",
-                          color: (location.pathname === "/products" && !currentDeptParam && !searchParams.get("category")) || activeHoverDept === "ALL_PRODUCTS" ? "#4F46E5" : (isNavSolid ? "#111827" : "white"),
-                        }}
-                      >
-                        ALL PRODUCTS
-                        {((location.pathname === "/products" && !currentDeptParam && !searchParams.get("category")) || activeHoverDept === "ALL_PRODUCTS") && (
-                          <span className="absolute bottom-0 left-0 w-full h-0.5 bg-[#4F46E5] rounded-full transition-all duration-200" />
-                        )}
-                      </Link>
-
-                      {!isAdmin && activeHoverDept === "ALL_PRODUCTS" && departments.length > 0 && (() => {
-                        const numCols = Math.min(5, Math.max(1, departments.length));
-                        const getWidthClass = (cols) => {
-                          if (cols === 1) return "w-[360px]";
-                          if (cols === 2) return "w-[640px]";
-                          if (cols === 3) return "w-[880px]";
-                          if (cols === 4) return "w-[1050px]";
-                          return "w-[1200px]";
-                        };
-
-                        const getGridColsClass = (cols) => {
-                          if (cols === 1) return "grid-cols-1";
-                          if (cols === 2) return "grid-cols-2";
-                          if (cols === 3) return "grid-cols-3";
-                          if (cols === 4) return "grid-cols-4";
-                          return "grid-cols-5";
-                        };
-
-                        return (
-                          <div
-                            className={`hidden lg:block absolute top-[75px] left-0 -ml-4 ${getWidthClass(numCols)} max-w-[95vw] bg-white rounded-none border border-[#E5E7EB] shadow-[0_25px_50px_-12px_rgba(17,24,39,0.18)] transition-all duration-200 z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-150`}
-                          >
-                            {/* Airy Cosmira-style layout: Generous spacing, no vertical borders */}
-                            <div className={`grid ${getGridColsClass(numCols)} gap-8 p-8 h-auto max-h-[75vh] overflow-y-auto`}>
-                              {departments.map((dept) => {
-                                const deptCats = categoriesByDept[dept.name] || [];
-                                return (
-                                  <div key={dept._id} className="flex flex-col">
-                                    {/* Department Header - Clickable */}
-                                    <Link
-                                      to={`/products?department=${encodeURIComponent(dept.name)}`}
-                                      onClick={() => setActiveHoverDept(null)}
-                                      className="text-[13px] font-extrabold tracking-wider uppercase text-[#111827] hover:text-[#4F46E5] mb-4 transition-colors select-none flex items-center justify-between group/header border-b border-gray-100 pb-2"
-                                      style={{ fontFamily: "'Poppins', sans-serif" }}
-                                    >
-                                      <span>SHOP FOR {dept.name.toUpperCase()}</span>
-                                      <span className="opacity-0 group-hover/header:opacity-100 transition-opacity text-[#4F46E5]">→</span>
-                                    </Link>
-
-                                    {/* Categories cleanly stacked below */}
-                                    <ul className="space-y-2.5 mt-1">
-                                      {deptCats.map((cat) => (
-                                        <li key={cat._id}>
-                                          <Link
-                                            to={`/products?department=${encodeURIComponent(dept.name)}&category=${encodeURIComponent(cat.name)}`}
-                                            onClick={() => setActiveHoverDept(null)}
-                                            className="text-[13px] text-[#4B5563] hover:text-[#111827] hover:font-bold hover:translate-x-0.5 transition-all block duration-150 truncate"
-                                            style={{ fontFamily: "'Poppins', sans-serif" }}
-                                          >
-                                            {cat.name}
-                                          </Link>
-                                        </li>
-                                      ))}
-                                      {deptCats.length === 0 && (
-                                        <li className="text-xs text-gray-400 italic py-1">New styles coming soon</li>
-                                      )}
-                                    </ul>
-                                  </div>
-                                );
-                              })}
-                            </div>
-
-                            {/* Master Footer Strip */}
-                            <div className="bg-[#F9FAFB] border-t border-[#E5E7EB] px-8 py-3.5 flex items-center justify-between shrink-0">
-                              <span className="text-xs text-[#6B7280] font-medium">
-                                Discover our entire curated collection across all categories.
-                              </span>
-                              <Link
-                                to="/products"
-                                onClick={() => setActiveHoverDept(null)}
-                                className="text-xs font-bold text-[#4F46E5] hover:text-[#4338CA] flex items-center gap-1 group transition-colors uppercase tracking-wide"
-                                style={{ fontFamily: "'Poppins', sans-serif" }}
-                              >
-                                Explore All Products
-                                <span className="group-hover:translate-x-1 transition-transform inline-block ml-1">→</span>
-                              </Link>
-                            </div>
-                          </div>
-                        );
-                      })()}
-                    </div>
 
                     {departments.map((dept) => {
                       const isCurrent = location.pathname === "/products" && currentDeptParam === dept.name;
@@ -406,7 +302,7 @@ const Navbar = () => {
                               sectionGroups[section].push(cat);
                             });
                             const sectionNames = Object.keys(sectionGroups);
-                            
+
                             // Determine dynamic columns based on section count and items
                             const sectionCount = Math.max(1, sectionNames.length);
                             const numCols = Math.min(5, Math.max(1, sectionCount));
@@ -455,7 +351,7 @@ const Navbar = () => {
                                         {colSections.map((sec, secIdx) => (
                                           <div key={sec.title} className={secIdx > 0 ? "border-t border-[#E5E7EB]/70 pt-5" : ""}>
                                             {/* Section Header */}
-                                            <h4 
+                                            <h4
                                               className="text-[13px] font-extrabold tracking-wide uppercase text-[#4F46E5] mb-3 select-none"
                                               style={{ fontFamily: "'Poppins', sans-serif" }}
                                             >
@@ -471,11 +367,10 @@ const Navbar = () => {
                                                     <Link
                                                       to={`/products?department=${encodeURIComponent(dept.name)}&category=${encodeURIComponent(cat.name)}`}
                                                       onClick={() => setActiveHoverDept(null)}
-                                                      className={`text-[13px] transition-all block duration-150 py-0.5 truncate ${
-                                                        isCatSelected
+                                                      className={`text-[13px] transition-all block duration-150 py-0.5 truncate ${isCatSelected
                                                           ? "text-[#4F46E5] font-bold pl-2 border-l-2 border-[#4F46E5]"
                                                           : "text-[#4B5563] font-medium hover:text-[#111827] hover:font-bold hover:translate-x-0.5"
-                                                      }`}
+                                                        }`}
                                                       style={{ fontFamily: "'Poppins', sans-serif" }}
                                                     >
                                                       {cat.name}
@@ -553,7 +448,7 @@ const Navbar = () => {
                       />
                     </div>
                   ) : (
-                    <button 
+                    <button
                       onClick={() => setIsSearchOpen(true)}
                       className={`p-2 rounded-full transition-all duration-300 ${isScrolled ? "hover:bg-gray-100" : "hover:bg-white/10"}`}
                       aria-label="Search"
@@ -602,13 +497,12 @@ const Navbar = () => {
                 {user ? (
                   <Link
                     to="/account"
-                    className={`flex items-center gap-2 ${textColor} transition-all duration-300 pl-2 pr-3 py-1.5 rounded-full ${
-                      isScrolled ? "hover:bg-gray-100 hover:text-[#4F46E5]" : "hover:bg-white/10 hover:text-white"
-                    }`}
+                    className={`flex items-center gap-2 ${textColor} transition-all duration-300 pl-2 pr-3 py-1.5 rounded-full ${isScrolled ? "hover:bg-gray-100 hover:text-[#4F46E5]" : "hover:bg-white/10 hover:text-white"
+                      }`}
                   >
                     <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 overflow-hidden shrink-0">
                       {user?.profileImage?.url ? (
-                        <img src={user.profileImage.url} alt="Profile" className="w-full h-full object-cover" />
+                        <img src={user.profileImage.url} alt="Profile" className="w-full h-full object-cover"  loading="lazy" decoding="async" />
                       ) : (
                         <span className="text-[14px] font-bold">{user?.username?.charAt(0).toUpperCase() || 'U'}</span>
                       )}
@@ -623,8 +517,8 @@ const Navbar = () => {
                     <Link
                       to="/signin"
                       className={`hidden md:flex items-center justify-center px-6 py-2 border rounded-full font-medium transition-all duration-300 ${isScrolled
-                          ? "border-[#111827] text-[#111827] hover:bg-[#111827] hover:text-white"
-                          : "border-white text-white hover:text-white/80"
+                        ? "border-[#111827] text-[#111827] hover:bg-[#111827] hover:text-white"
+                        : "border-white text-white hover:text-white/80"
                         }`}
                       style={{ fontSize: "15px", height: "40px" }}
                     >
@@ -693,17 +587,6 @@ const Navbar = () => {
                 ))
                 : (
                   <div className="flex flex-col space-y-1">
-                    <Link
-                      to="/products"
-                      onClick={() => setIsMenuOpen(false)}
-                      className={`block px-3 py-2.5 rounded-lg font-bold tracking-wide transition-colors text-[14px] ${
-                        location.pathname === "/products" && !currentDeptParam && !searchParams.get("category")
-                          ? "bg-[#4F46E5]/10 text-[#4F46E5]"
-                          : "text-[#111827] hover:bg-gray-50 hover:text-[#4F46E5]"
-                      }`}
-                    >
-                      ALL PRODUCTS
-                    </Link>
 
                     {departments.map((dept) => {
                       const isDeptSelected = location.pathname === "/products" && currentDeptParam === dept.name;
@@ -716,9 +599,8 @@ const Navbar = () => {
                             <Link
                               to={`/products?department=${encodeURIComponent(dept.name)}`}
                               onClick={() => setIsMenuOpen(false)}
-                              className={`flex-1 font-bold tracking-wide text-[14px] transition-colors uppercase ${
-                                isDeptSelected ? "text-[#4F46E5]" : "text-[#111827] hover:text-[#4F46E5]"
-                              }`}
+                              className={`flex-1 font-bold tracking-wide text-[14px] transition-colors uppercase ${isDeptSelected ? "text-[#4F46E5]" : "text-[#111827] hover:text-[#4F46E5]"
+                                }`}
                             >
                               {dept.name}
                             </Link>
@@ -754,9 +636,8 @@ const Navbar = () => {
                                     key={cat._id}
                                     to={`/products?department=${encodeURIComponent(dept.name)}&category=${encodeURIComponent(cat.name)}`}
                                     onClick={() => setIsMenuOpen(false)}
-                                    className={`block py-1.5 px-2 text-[13px] rounded transition-colors ${
-                                      isCatSelected ? "text-[#4F46E5] font-bold bg-[#4F46E5]/10" : "text-[#4B5563] hover:text-[#4F46E5]"
-                                    }`}
+                                    className={`block py-1.5 px-2 text-[13px] rounded transition-colors ${isCatSelected ? "text-[#4F46E5] font-bold bg-[#4F46E5]/10" : "text-[#4B5563] hover:text-[#4F46E5]"
+                                      }`}
                                   >
                                     {cat.name}
                                   </Link>

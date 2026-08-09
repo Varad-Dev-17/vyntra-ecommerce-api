@@ -25,20 +25,7 @@ const CategoryFilters = ({ categories = [], activeCategory = "all", onChange }) 
             exit={{ height: 0, opacity: 0 }}
             className="overflow-hidden flex flex-col gap-3"
           >
-            {/* All option */}
-            <label 
-              className="flex items-center justify-between cursor-pointer group"
-              onClick={() => onChange && onChange("all")}
-            >
-              <div className="flex items-center gap-3">
-                <div className={`w-4 h-4 rounded-full border flex items-center justify-center transition-colors ${activeCategory === "all" ? 'border-[#6D4AFF]' : 'border-[#E5E7EB] group-hover:border-[#6D4AFF]'}`}>
-                  {activeCategory === "all" && <div className="w-2 h-2 rounded-full bg-[#6D4AFF]" />}
-                </div>
-                <span className={`text-[15px] ${activeCategory === "all" ? 'text-[#111827] font-medium' : 'text-[#4B5563]'}`}>
-                  All Categories
-                </span>
-              </div>
-            </label>
+
 
             {displayedCategories.map((cat) => {
               const isActive = activeCategory === cat.name;

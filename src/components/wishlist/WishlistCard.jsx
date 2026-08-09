@@ -89,7 +89,7 @@ const WishlistCard = ({ item }) => {
           src={variant.mainImage?.url || product.mainImage?.url || product.images?.[0]?.url}
           alt={product.title}
           className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-        />
+         loading="lazy" decoding="async" />
         {variant.stock === 0 && (
           <div className="absolute inset-0 bg-white/50 backdrop-blur-[2px] z-10 flex items-center justify-center">
              <div className="bg-white text-red-500 font-bold px-4 py-2 uppercase tracking-widest text-[12px] rounded-md shadow-md">

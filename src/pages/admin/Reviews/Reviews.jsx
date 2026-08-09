@@ -204,7 +204,7 @@ const Reviews = () => {
                               src={productImg}
                               alt="Product thumbnail"
                               className="w-full h-full object-cover"
-                            />
+                             loading="lazy" decoding="async" />
                           </div>
                           <div className="min-w-0">
                             <Link
@@ -294,7 +294,7 @@ const Reviews = () => {
                                   src={img.url}
                                   alt="Customer photo"
                                   className="w-full h-full object-cover"
-                                />
+                                 loading="lazy" decoding="async" />
                                 <div className="absolute inset-0 bg-black/0 group-hover/thumb:bg-black/30 transition-colors flex items-center justify-center">
                                   <Eye size={14} className="text-white opacity-0 group-hover/thumb:opacity-100 transition-opacity" />
                                 </div>
@@ -347,7 +347,7 @@ const Reviews = () => {
                   src={selectedImageModal.url}
                   alt="Inspection view"
                   className="w-full h-full object-contain max-h-[70vh] rounded-none"
-                />
+                 loading="lazy" decoding="async" />
               </div>
 
               <div className="p-6 w-full md:w-2/5 flex flex-col justify-between bg-white">

@@ -68,7 +68,7 @@ const ShopProductCard = ({ product }) => {
               alt={`${product.productName} - Image ${index + 1}`}
               className={`absolute inset-0 w-full h-full object-cover transition-all duration-500 ${index === currentImageIndex ? "opacity-100 z-10" : "opacity-0 z-0"
                 } ${isHovering ? "scale-104" : "scale-100"}`}
-            />
+             loading="lazy" decoding="async" />
           ))
         ) : (
           <div className="absolute inset-0 flex items-center justify-center bg-gray-200 text-gray-400">

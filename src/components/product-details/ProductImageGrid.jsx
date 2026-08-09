@@ -19,7 +19,7 @@ const ProductImageGrid = ({ variant }) => {
             src={img.url}
             alt={`Product View ${idx + 1}`}
             className="w-full h-full object-cover cursor-crosshair transition-transform duration-700 hover:scale-[1.03]"
-          />
+           loading="lazy" decoding="async" />
         </div>
       ))}
     </div>

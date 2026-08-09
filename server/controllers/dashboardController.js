@@ -133,7 +133,15 @@ export const getDashboardStats = async (req, res) => {
           },
           revenue: { $sum: "$totalAmount" },
           orders: { $sum: 1 },
+          customers: { $addToSet: "$user" }
         },
+      },
+      {
+        $project: {
+          revenue: 1,
+          orders: 1,
+          customers: { $size: "$customers" }
+        }
       },
       { $sort: { "_id.year": 1, "_id.month": 1 } },
     ]);
@@ -157,6 +165,47 @@ export const getDashboardStats = async (req, res) => {
       year: item._id.year,
       revenue: Math.round(item.revenue * 100) / 100,
       orders: item.orders,
+      customers: item.customers,
+    }));
+
+    const salesByCategoryRaw = await Order.aggregate([
+      { $match: { status: { $ne: "cancelled" } } },
+      { $unwind: "$items" },
+      {
+        $lookup: {
+          from: "products",
+          localField: "items.product",
+          foreignField: "_id",
+          as: "product",
+        },
+      },
+      { $unwind: "$product" },
+      {
+        $lookup: {
+          from: "categories",
+          localField: "product.category",
+          foreignField: "_id",
+          as: "category",
+        },
+      },
+      { $unwind: "$category" },
+      {
+        $group: {
+          _id: "$category.name",
+          totalRevenue: {
+            $sum: { $multiply: ["$items.quantity", "$items.sellingPrice"] },
+          },
+        },
+      },
+      { $sort: { totalRevenue: -1 } },
+      { $limit: 5 }
+    ]);
+    
+    const totalCatRevenue = salesByCategoryRaw.reduce((sum, item) => sum + item.totalRevenue, 0);
+    const salesByCategory = salesByCategoryRaw.map(item => ({
+      category: item._id,
+      revenue: Math.round(item.totalRevenue),
+      percentage: totalCatRevenue > 0 ? Math.round((item.totalRevenue / totalCatRevenue) * 100) : 0
     }));
 
     return res.status(200).json({
@@ -188,6 +237,7 @@ export const getDashboardStats = async (req, res) => {
         recentOrders,
         topProducts,
         salesChart,
+        salesByCategory,
       },
     });
   } catch (error) {

@@ -117,7 +117,7 @@ const ProfileSection = () => {
             <Loader2 className="w-8 h-8 animate-spin text-[#4F46E5]" />
           ) : user?.profileImage?.url ? (
             <>
-              <img src={user.profileImage.url} alt="Profile" className="w-full h-full object-cover" />
+              <img src={user.profileImage.url} alt="Profile" className="w-full h-full object-cover"  loading="lazy" decoding="async" />
               <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                 <Pencil size={24} className="text-white" />
               </div>

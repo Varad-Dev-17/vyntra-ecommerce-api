@@ -9,57 +9,63 @@ import { Toaster } from "react-hot-toast";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import Navbar from "./components/common/Navbar";
 import Footer from "./components/common/Footer";
-import Home from "./pages/home/Home";
-import SignIn from "./pages/user/SignIn";
-import SignUp from "./pages/user/SignUp";
-import AdminSignInPage from "./pages/admin/auth/AdminSignInPage";
 import PageNotFound from "./components/common/PageNotFound";
-import ChangePasswordPage from "./pages/user/ChangePasswordPage";
-import ForgotPasswordPage from "./pages/user/ForgotPasswordPage";
-import Products from "./pages/shop-now/ProductsPage";
-import ProductDetailsPage from "./pages/product-details/ProductDetailsPage";
-import Bag from "./pages/bag/Bag";
-import Address from "./pages/checkout/Address";
-import Payment from "./pages/checkout/Payment";
-import WishlistPage from "./pages/wishlist/WishlistPage";
-import MyAccount from "./pages/account/MyAccount";
-import OrderDetails from "./components/account/orders/orderdetails/OrderDetails";
+import PageLoader from "./components/common/PageLoader";
+
 import { CartProvider } from "./context/CartContext";
 import { WishlistProvider } from "./context/WishlistContext";
 
 import SmoothScrollProvider from "./animation/globalanimation/scroll/SmoothScrollProvider";
 import SmoothScrollbar from "./animation/globalanimation/scroll/SmoothScrollbar";
 
+import { lazy, Suspense } from "react";
+
+// Dynamic imports for pages
+const Home = lazy(() => import("./pages/home/Home"));
+const SignIn = lazy(() => import("./pages/user/SignIn"));
+const SignUp = lazy(() => import("./pages/user/SignUp"));
+const AdminSignInPage = lazy(() => import("./pages/admin/auth/AdminSignInPage"));
+const ChangePasswordPage = lazy(() => import("./pages/user/ChangePasswordPage"));
+const ForgotPasswordPage = lazy(() => import("./pages/user/ForgotPasswordPage"));
+const Products = lazy(() => import("./pages/shop-now/ProductsPage"));
+const ProductDetailsPage = lazy(() => import("./pages/product-details/ProductDetailsPage"));
+const Bag = lazy(() => import("./pages/bag/Bag"));
+const Address = lazy(() => import("./pages/checkout/Address"));
+const Payment = lazy(() => import("./pages/checkout/Payment"));
+const WishlistPage = lazy(() => import("./pages/wishlist/WishlistPage"));
+const MyAccount = lazy(() => import("./pages/account/MyAccount"));
+const OrderDetails = lazy(() => import("./components/account/orders/orderdetails/OrderDetails"));
+const ReturnExchangeRequest = lazy(() => import("./components/account/orders/returnexchange/ReturnExchangeRequest"));
+
 // Admin Layout & Pages
-import AdminLayout from "./layouts/AdminLayout";
-import Dashboard from "./pages/admin/Dashboard/Dashboard";
-import CatalogLayout from "./pages/admin/Catalog/CatalogLayout";
-import DepartmentsList from "./pages/admin/Catalog/DepartmentsModule/DepartmentsList";
-import AddDepartment from "./pages/admin/Catalog/DepartmentsModule/AddDepartment";
-import EditDepartment from "./pages/admin/Catalog/DepartmentsModule/EditDepartment";
-import CategoriesList from "./pages/admin/Catalog/CategoriesModule/CategoriesList";
-import AddCategory from "./pages/admin/Catalog/CategoriesModule/AddCategory";
-import EditCategory from "./pages/admin/Catalog/CategoriesModule/EditCategory";
+const AdminLayout = lazy(() => import("./layouts/AdminLayout"));
+const Dashboard = lazy(() => import("./pages/admin/Dashboard/Dashboard"));
+const CatalogLayout = lazy(() => import("./pages/admin/Catalog/CatalogLayout"));
+const DepartmentsList = lazy(() => import("./pages/admin/Catalog/DepartmentsModule/DepartmentsList"));
+const AddDepartment = lazy(() => import("./pages/admin/Catalog/DepartmentsModule/AddDepartment"));
+const EditDepartment = lazy(() => import("./pages/admin/Catalog/DepartmentsModule/EditDepartment"));
+const CategoriesList = lazy(() => import("./pages/admin/Catalog/CategoriesModule/CategoriesList"));
+const AddCategory = lazy(() => import("./pages/admin/Catalog/CategoriesModule/AddCategory"));
+const EditCategory = lazy(() => import("./pages/admin/Catalog/CategoriesModule/EditCategory"));
 
-import BrandsList from "./pages/admin/Catalog/BrandsModule/BrandsList";
-import AddBrand from "./pages/admin/Catalog/BrandsModule/AddBrand";
-import EditBrand from "./pages/admin/Catalog/BrandsModule/EditBrand";
-import AttributesList from "./pages/admin/Catalog/AttributesModule/AttributesList";
-import AddAttribute from "./pages/admin/Catalog/AttributesModule/AddAttribute";
-import EditAttribute from "./pages/admin/Catalog/AttributesModule/EditAttribute";
-import ProductsList from "./pages/admin/Catalog/ProductsModule/ProductsList";
-import AddProduct from "./pages/admin/Catalog/ProductsModule/AddProduct";
-import EditProduct from "./pages/admin/Catalog/ProductsModule/EditProduct";
-import ProductVariants from "./pages/admin/Catalog/ProductsModule/ProductVariants";
+const BrandsList = lazy(() => import("./pages/admin/Catalog/BrandsModule/BrandsList"));
+const AddBrand = lazy(() => import("./pages/admin/Catalog/BrandsModule/AddBrand"));
+const EditBrand = lazy(() => import("./pages/admin/Catalog/BrandsModule/EditBrand"));
+const AttributesList = lazy(() => import("./pages/admin/Catalog/AttributesModule/AttributesList"));
+const AddAttribute = lazy(() => import("./pages/admin/Catalog/AttributesModule/AddAttribute"));
+const EditAttribute = lazy(() => import("./pages/admin/Catalog/AttributesModule/EditAttribute"));
+const ProductsList = lazy(() => import("./pages/admin/Catalog/ProductsModule/ProductsList"));
+const AddProduct = lazy(() => import("./pages/admin/Catalog/ProductsModule/AddProduct"));
+const EditProduct = lazy(() => import("./pages/admin/Catalog/ProductsModule/EditProduct"));
+const ProductVariants = lazy(() => import("./pages/admin/Catalog/ProductsModule/ProductVariants"));
 
-import ReturnExchangeRequest from "./components/account/orders/returnexchange/ReturnExchangeRequest";
-import StockManagement from "./pages/admin/StockManagement/StockManagement";
-import Orders from "./pages/admin/Orders/Orders";
-import Users from "./pages/admin/Users/Users";
-import Coupons from "./pages/admin/Coupons/Coupons";
-import Reviews from "./pages/admin/Reviews/Reviews";
-import Returns from "./pages/admin/Returns/Returns";
-import AdminCaseDetailsPage from "./pages/admin/CaseDetails/AdminCaseDetailsPage";
+const StockManagement = lazy(() => import("./pages/admin/StockManagement/StockManagement"));
+const Orders = lazy(() => import("./pages/admin/Orders/Orders"));
+const Users = lazy(() => import("./pages/admin/Users/Users"));
+const Coupons = lazy(() => import("./pages/admin/Coupons/Coupons"));
+const Reviews = lazy(() => import("./pages/admin/Reviews/Reviews"));
+const Returns = lazy(() => import("./pages/admin/Returns/Returns"));
+const AdminCaseDetailsPage = lazy(() => import("./pages/admin/CaseDetails/AdminCaseDetailsPage"));
 
 const ProtectedRoute = ({ children, adminOnly = false }) => {
   const { user, loading } = useAuth();
@@ -103,7 +109,8 @@ const UserLayout = ({ children }) => {
 // ============================================
 const AppRoutes = () => {
   return (
-    <Routes>
+    <Suspense fallback={<PageLoader />}>
+      <Routes>
       {/* Public Routes */}
       <Route
         path="/"
@@ -309,7 +316,8 @@ const AppRoutes = () => {
 
       {/* 404 */}
       <Route path="*" element={<PageNotFound />} />
-    </Routes>
+      </Routes>
+    </Suspense>
   );
 };
 

@@ -213,7 +213,7 @@ const ReturnExchangeSection = ({ returnRequest = null, onUpdateRequestStatus = n
                           src={images[slotIdx]}
                           alt={`Proof ${slotIdx + 1}`}
                           className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-                        />
+                         loading="lazy" decoding="async" />
 
                         {isThirdSlotWithMore ? (
                           <div className="absolute inset-0 bg-[#282c3f]/80 backdrop-blur-[2px] flex flex-col items-center justify-center text-white p-2 text-center transition-opacity hover:opacity-95 z-10">
