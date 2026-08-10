@@ -46,7 +46,7 @@ const Home = () => {
   }, []);
 
   return (
-    <div className="bg-[#FAFBFF]" style={{ fontFamily: "'Poppins', sans-serif" }}>
+    <div className="bg-white" style={{ fontFamily: "'Poppins', sans-serif" }}>
       {/* PINNED APPLE-STYLE HERO CONTAINER */}
       <div ref={heroSectionRef} className="relative w-full h-screen z-0">
         <div 
@@ -63,7 +63,7 @@ const Home = () => {
       </div>
 
       {/* RISING PAGE-COVER CONTENT */}
-      <div className="relative z-10 bg-[#FAFBFF] rounded-t-[32px] sm:rounded-t-[40px] md:rounded-t-[52px] shadow-[0_-25px_60px_-15px_rgba(15,23,42,0.35)] border-t border-white/60 overflow-hidden -mt-4 md:-mt-6">
+      <div className="relative z-10 bg-white rounded-t-[32px] sm:rounded-t-[40px] md:rounded-t-[52px] shadow-[0_-25px_60px_-15px_rgba(15,23,42,0.35)] border-t border-white/60 overflow-hidden -mt-4 md:-mt-6">
         <PopularCategories />
         <CuratedCollections />
         <PromoBanners />

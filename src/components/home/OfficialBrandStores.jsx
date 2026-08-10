@@ -2,14 +2,14 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 
 const brands = [
-  { name: "Levi's", logo: "https://upload.wikimedia.org/wikipedia/commons/1/11/Levi%27s_logo.svg" },
+  { name: "Levi's", logo: "https://imgs.search.brave.com/8kiNH7CIJ1NRztFAyHbkJ1rgkUAtGNxPXkWyG-UGYkE/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly91cGxv/YWQud2lraW1lZGlh/Lm9yZy93aWtpcGVk/aWEvY29tbW9ucy8w/LzAyL0xldmknc19s/b2dvXygyMDExKS5z/dmc" },
   { name: "H&M", logo: "https://upload.wikimedia.org/wikipedia/commons/5/53/H%26M-Logo.svg" },
-  { name: "Tommy Hilfiger", logo: "https://upload.wikimedia.org/wikipedia/commons/9/91/Tommy_Hilfiger_Logo.svg" },
-  { name: "Nivea", logo: "https://upload.wikimedia.org/wikipedia/commons/8/81/Nivea_logo.svg" },
+  { name: "Tommy Hilfiger", logo: "https://cdn.brandfetch.io/idXzJSRLEO/theme/dark/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" },
+  { name: "Nivea", logo: "https://images.seeklogo.com/logo-png/9/1/nivea-logo-png_seeklogo-99840.png" },
   { name: "Garnier", logo: "https://upload.wikimedia.org/wikipedia/commons/2/23/Garnier_logo.svg" },
   { name: "Samsung", logo: "https://upload.wikimedia.org/wikipedia/commons/2/24/Samsung_Logo.svg" },
-  { name: "Panasonic", logo: "https://upload.wikimedia.org/wikipedia/commons/a/a2/Panasonic_logo_%28Blue%29.svg" },
-  { name: "Nintendo", logo: "https://upload.wikimedia.org/wikipedia/commons/0/0d/Nintendo.svg" }
+  { name: "Panasonic", logo: "https://imgs.search.brave.com/Fmc1Jxc71V33DkJye_zC9M4xKloH_yuXl_20Iw_wE18/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9pLnBp/bmltZy5jb20vb3Jp/Z2luYWxzLzdmLzk5/LzM0LzdmOTkzNDhl/ZGJlMmQ4YjllYjRl/NjBiYmIxY2VlZjFj/LmpwZw" },
+  { name: "Chanel", logo: "https://imgs.search.brave.com/yx-6F1CthG9gBAQKkwKAxEg60ifSvkT6d2v3Ws97nmM/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9zdmdr/aXR0eS5jb20vd3At/Y29udGVudC91cGxv/YWRzLzIwMjQvMDMv/Q2hhbmVsLUxvZ28u/d2VicA" }
 ];
 
 const BrandCard = ({ brand }) => (
