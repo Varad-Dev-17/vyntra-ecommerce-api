@@ -91,8 +91,9 @@ export const getDashboardStats = async (req, res) => {
           _id: "$items.product",
           totalSold: { $sum: "$items.quantity" },
           totalRevenue: {
-            $sum: { $multiply: ["$items.quantity", "$items.price"] },
+            $sum: { $multiply: ["$items.quantity", "$items.sellingPrice"] },
           },
+          firstVariantId: { $first: "$items.variant" },
         },
       },
       { $sort: { totalSold: -1 } },
@@ -107,10 +108,25 @@ export const getDashboardStats = async (req, res) => {
       },
       { $unwind: "$product" },
       {
+        $lookup: {
+          from: "variants",
+          localField: "firstVariantId",
+          foreignField: "_id",
+          as: "variantInfo",
+        },
+      },
+      { $unwind: { path: "$variantInfo", preserveNullAndEmptyArrays: true } },
+      {
         $project: {
           _id: 1,
           title: "$product.title",
-          images: "$product.images",
+          images: {
+            $cond: {
+              if: { $and: ["$variantInfo", "$variantInfo.mainImage"] },
+              then: ["$variantInfo.mainImage"],
+              else: [],
+            },
+          },
           totalSold: 1,
           totalRevenue: 1,
         },

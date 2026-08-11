@@ -22,6 +22,17 @@ const DepartmentSchema = new mongoose.Schema(
       enum: ["Active", "Inactive"],
       default: "Active",
     },
+
+    description: {
+      type: String,
+      trim: true,
+    },
+
+    iconName: {
+      type: String,
+      trim: true,
+      default: "Box",
+    },
   },
   { timestamps: true }
 );

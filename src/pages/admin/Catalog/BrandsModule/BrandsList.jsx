@@ -14,15 +14,15 @@ import SearchableSelect from '../../../../components/admin/ui/SearchableSelect';
 
 const BrandsList = () => {
   const navigate = useNavigate();
-  
+
   const [brands, setBrands] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  
+
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
   const limit = 10;
-  
+
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
@@ -53,7 +53,7 @@ const BrandsList = () => {
           status: statusFilter
         }
       });
-      
+
       if (response.data.success) {
         setBrands(response.data.brands || []);
         setTotalPages(response.data.totalPages || 1);
@@ -106,10 +106,10 @@ const BrandsList = () => {
       const response = await axios.put(`${(import.meta.env.PROD ? '' : 'http://localhost:8000')}/admin/brands/${brand._id}`, {
         status: newStatus
       }, { withCredentials: true });
-      
+
       if (response.data.success) {
         toast.success(`Brand marked as ${newStatus}`);
-        setBrands(prev => 
+        setBrands(prev =>
           prev.map(b => b._id === brand._id ? { ...b, status: newStatus } : b)
         );
       }
@@ -134,7 +134,7 @@ const BrandsList = () => {
       header: 'Brand',
       accessor: 'name',
       render: (row) => (
-        <button 
+        <button
           onClick={() => { setSelectedItem(row); setIsModalOpen(true); }}
           className="font-medium text-[#4648d4] hover:underline text-left focus:outline-none"
         >
@@ -179,52 +179,52 @@ const BrandsList = () => {
 
   return (
     <div className="bg-white rounded-[20px] shadow-sm border border-gray-100 flex flex-col w-full h-full">
-        <SearchToolbar 
-          leftSlot={<h2 className="text-lg font-semibold text-[#4648d4] px-2">Brands</h2>}
-          searchQuery={search}
-          onSearchChange={setSearch}
-          searchPlaceholder="Search brands by name or slug..."
-          extraFilters={
-            <SearchableSelect
-              className="w-[140px]"
-              size="sm"
-              value={statusFilter}
-              onChange={setStatusFilter}
-              options={[
-                { value: '', label: 'All Status' },
-                { value: 'Active', label: 'Active' },
-                { value: 'Inactive', label: 'Inactive' }
-              ]}
-            />
-          }
-          actionButton={
-            <button 
-              onClick={() => navigate('/admin/catalog/brands/add')}
-              className="bg-[#4648d4] hover:bg-[#3b3db0] text-white px-4 py-2 rounded-xl flex items-center justify-center gap-2 transition-colors font-medium text-sm whitespace-nowrap"
-            >
-              <Plus size={18} />
-              Add Brand
-            </button>
-          }
-        />
-        
-        <div className="w-full flex-1 min-h-0">
-          <DataTable 
-            columns={columns}
-            data={brands}
-            isLoading={isLoading}
-            emptyMessage={search || statusFilter ? "No brands found matching your filters." : "No brands created yet."}
+      <SearchToolbar
+        leftSlot={<h2 className="text-lg font-semibold text-[#4648d4] px-2">Brands</h2>}
+        searchQuery={search}
+        onSearchChange={setSearch}
+        searchPlaceholder="Search brands by name or slug..."
+        extraFilters={
+          <SearchableSelect
+            className="w-[140px]"
+            size="sm"
+            value={statusFilter}
+            onChange={setStatusFilter}
+            options={[
+              { value: '', label: 'All Status' },
+              { value: 'Active', label: 'Active' },
+              { value: 'Inactive', label: 'Inactive' }
+            ]}
           />
-        </div>
+        }
+        actionButton={
+          <button
+            onClick={() => navigate('/admin/catalog/brands/add')}
+            className="bg-[#4648d4] hover:bg-[#3b3db0] text-white px-4 py-2 rounded-xl flex items-center justify-center gap-2 transition-colors font-medium text-sm whitespace-nowrap"
+          >
+            <Plus size={18} />
+            Add Brand
+          </button>
+        }
+      />
 
-        <Pagination 
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={setCurrentPage}
-          totalItems={totalItems}
-          itemsPerPage={limit}
+      <div className="w-full flex-1 min-h-0">
+        <DataTable
+          columns={columns}
+          data={brands}
+          isLoading={isLoading}
+          emptyMessage={search || statusFilter ? "No brands found matching your filters." : "No brands created yet."}
         />
-      <ConfirmDialog 
+      </div>
+
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
+        totalItems={totalItems}
+        itemsPerPage={limit}
+      />
+      <ConfirmDialog
         isOpen={isDeleteDialogOpen}
         onClose={() => setIsDeleteDialogOpen(false)}
         onConfirm={confirmDelete}

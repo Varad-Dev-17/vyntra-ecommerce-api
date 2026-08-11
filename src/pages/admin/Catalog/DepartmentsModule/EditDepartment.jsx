@@ -38,7 +38,7 @@ const EditDepartment = () => {
   }
 
   return (
-    <div className="p-6 max-w-5xl mx-auto w-full">
+    <div className="w-full">
       <div className="mb-6">
         <Breadcrumbs items={[
           { label: 'Catalog', path: '/admin/catalog' },
@@ -46,7 +46,9 @@ const EditDepartment = () => {
           { label: 'Edit Department' }
         ]} />
       </div>
-      <DepartmentForm initialData={department} isEdit={true} />
+      <div className="max-w-5xl mx-auto">
+        <DepartmentForm initialData={department} isEdit={true} />
+      </div>
     </div>
   );
 };

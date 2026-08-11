@@ -3,7 +3,7 @@ import DepartmentForm from './DepartmentForm';
 
 const AddDepartment = () => {
   return (
-    <div className="p-6 max-w-5xl mx-auto w-full">
+    <div className="w-full">
       <div className="mb-6">
         <Breadcrumbs items={[
           { label: 'Catalog', path: '/admin/catalog' },
@@ -11,7 +11,9 @@ const AddDepartment = () => {
           { label: 'Add Department' }
         ]} />
       </div>
-      <DepartmentForm />
+      <div className="max-w-5xl mx-auto">
+        <DepartmentForm />
+      </div>
     </div>
   );
 };

@@ -341,7 +341,7 @@ const Navbar = () => {
 
                             return (
                               <div
-                                className={`hidden lg:block absolute top-[75px] ${getPositionClass(numCols)} ${getWidthClass(numCols)} max-w-[95vw] bg-white rounded-none border border-[#E5E7EB] shadow-[0_25px_50px_-12px_rgba(17,24,39,0.18)] transition-all duration-200 z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-150`}
+                                className={`hidden lg:block fixed top-[75px] ${getPositionClass(numCols)} ${getWidthClass(numCols)} max-w-[95vw] bg-white rounded-none border border-[#E5E7EB] shadow-[0_25px_50px_-12px_rgba(17,24,39,0.18)] transition-all duration-200 z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-150`}
                               >
                                 {/* Dynamic Height Grid with Vertical Column Dividers */}
                                 <div className={`grid ${getGridColsClass(numCols)} divide-x divide-[#E5E7EB] h-auto max-h-[75vh] overflow-y-auto`}>
@@ -352,7 +352,7 @@ const Navbar = () => {
                                           <div key={sec.title} className={secIdx > 0 ? "border-t border-[#E5E7EB]/70 pt-5" : ""}>
                                             {/* Section Header */}
                                             <h4
-                                              className="text-[13px] font-extrabold tracking-wide uppercase text-[#4F46E5] mb-3 select-none"
+                                              className="text-[13px] font-extrabold tracking-wide uppercase text-[#4F46E5] mb-3 select-none text-center"
                                               style={{ fontFamily: "'Poppins', sans-serif" }}
                                             >
                                               {sec.title}
@@ -367,9 +367,9 @@ const Navbar = () => {
                                                     <Link
                                                       to={`/products?department=${encodeURIComponent(dept.name)}&category=${encodeURIComponent(cat.name)}`}
                                                       onClick={() => setActiveHoverDept(null)}
-                                                      className={`text-[13px] transition-all block duration-150 py-0.5 truncate ${isCatSelected
-                                                          ? "text-[#4F46E5] font-bold pl-2 border-l-2 border-[#4F46E5]"
-                                                          : "text-[#4B5563] font-medium hover:text-[#111827] hover:font-bold hover:translate-x-0.5"
+                                                      className={`text-[13px] transition-all block duration-150 py-0.5 truncate text-center ${isCatSelected
+                                                          ? "text-[#4F46E5] font-bold"
+                                                          : "text-[#4B5563] font-medium hover:text-[#111827] hover:font-bold scale-100 hover:scale-105"
                                                         }`}
                                                       style={{ fontFamily: "'Poppins', sans-serif" }}
                                                     >

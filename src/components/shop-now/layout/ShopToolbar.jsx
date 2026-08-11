@@ -16,6 +16,7 @@ const ShopToolbar = ({ totalProducts, showingCount, sort, onSortChange }) => {
             <option value="newest">Newest</option>
             <option value="priceAsc">Price: Low to High</option>
             <option value="priceDesc">Price: High to Low</option>
+            <option value="ratingDesc">Highest Rating</option>
           </select>
         </div>
       </div>

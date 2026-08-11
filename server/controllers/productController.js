@@ -161,6 +161,9 @@ export const getAllProducts = async (req, res) => {
         }
       });
       sortStage.sortPrice = -1;
+    } else if (sort === "ratingDesc") {
+      sortStage.ratingAverage = -1;
+      sortStage.ratingCount = -1;
     } else if (sort === "newest") {
       sortStage.createdAt = -1;
     } else if (sortBy) {

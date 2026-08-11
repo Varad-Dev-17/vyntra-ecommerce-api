@@ -672,10 +672,10 @@ const ProductForm = ({ isEdit = false }) => {
           {isSubmitting ? (
             <>
               <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-              {isEdit ? 'Saving...' : 'Saving...'}
+              {isEdit ? 'Updating...' : 'Saving...'}
             </>
           ) : (
-            'Save Product & Add Variants →'
+            isEdit ? 'Update Product →' : 'Save Product & Add Variants →'
           )}
         </button>
       </div>

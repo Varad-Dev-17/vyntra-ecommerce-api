@@ -53,17 +53,27 @@ const Sidebar = ({ onClose, isCollapsed, toggleCollapse }) => {
       className="min-h-screen bg-white border-r border-gray-100 flex flex-col fixed left-0 top-0 z-40 overflow-hidden"
     >
       {/* Logo & Toggle */}
-      <div className={`pt-6 pb-4 flex items-center overflow-hidden ${isCollapsed ? "justify-center px-0" : "px-6 justify-between"}`}>
-        <div className="flex items-center gap-2 overflow-hidden">
-          <div className="w-8 h-8 rounded-lg bg-linear-to-br from-[#4648d4] to-[#6b38d4] flex items-center justify-center shrink-0">
-            <span className="text-white font-bold text-sm">V</span>
-          </div>
-          {!isCollapsed && (
+      <div className={`pt-6 pb-4 flex overflow-hidden ${isCollapsed ? "flex-col items-center justify-center gap-4 px-0" : "items-center px-6 justify-between"}`}>
+        {!isCollapsed && (
+          <div className="flex items-center gap-2 overflow-hidden">
+            <div className="w-8 h-8 rounded-lg bg-linear-to-br from-[#4648d4] to-[#6b38d4] flex items-center justify-center shrink-0">
+              <span className="text-white font-bold text-sm">V</span>
+            </div>
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
               <h1 className="text-xl font-extrabold text-[#4648d4] mt-0.5 tracking-tight">Vyntra Admin</h1>
             </motion.div>
-          )}
-        </div>
+          </div>
+        )}
+
+        {toggleCollapse && (
+          <button 
+            onClick={toggleCollapse}
+            className="hidden lg:flex items-center justify-center p-1.5 rounded-lg text-slate-400 hover:text-[#4648d4] hover:bg-slate-50 transition-colors"
+            title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
+          >
+            {isCollapsed ? <PanelLeftOpen size={20} /> : <PanelLeftClose size={20} />}
+          </button>
+        )}
       </div>
 
       {/* Navigation */}
@@ -89,7 +99,7 @@ const Sidebar = ({ onClose, isCollapsed, toggleCollapse }) => {
               >
                 {({ isActive }) => (
                   <>
-                    <Icon size={isCollapsed ? 24 : 20} strokeWidth={isActive ? 2.5 : 2} className="shrink-0" />
+                    <Icon size={20} strokeWidth={isActive ? 2.5 : 2} className="shrink-0" />
                     {!isCollapsed && <span>{item.label}</span>}
                   </>
                 )}

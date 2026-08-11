@@ -12,17 +12,17 @@ import ConfirmDialog from '../../../../components/admin/ui/ConfirmDialog';
 import Pagination from '../../../../components/admin/ui/Pagination';
 const CategoriesList = () => {
   const navigate = useNavigate();
-  
+
   // Data State
   const [categories, setCategories] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  
+
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
   const limit = 10;
-  
+
   // Filter/Search State
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -61,7 +61,7 @@ const CategoriesList = () => {
           status: statusFilter,
         }
       });
-      
+
       if (response.data.success) {
         setCategories(response.data.categories || []);
         setTotalPages(response.data.totalPages || 1);
@@ -115,10 +115,10 @@ const CategoriesList = () => {
       const response = await axios.put(`${(import.meta.env.PROD ? '' : 'http://localhost:8000')}/admin/categories/${category._id}`, {
         status: newStatus
       }, { withCredentials: true });
-      
+
       if (response.data.success) {
         toast.success(`Category marked as ${newStatus}`);
-        setCategories(prev => 
+        setCategories(prev =>
           prev.map(c => c._id === category._id ? { ...c, status: newStatus } : c)
         );
       }
@@ -164,7 +164,7 @@ const CategoriesList = () => {
       header: 'Category',
       accessor: 'name',
       render: (row) => (
-        <button 
+        <button
           onClick={() => handleNameClick(row)}
           className="font-medium text-[#4648d4] hover:underline text-left focus:outline-none"
         >
@@ -210,51 +210,51 @@ const CategoriesList = () => {
 
   return (
     <div className="bg-white rounded-[20px] shadow-sm border border-gray-100 flex flex-col w-full h-full">
-        <SearchToolbar 
-          leftSlot={<h2 className="text-lg font-semibold text-[#4648d4] px-2">Categories</h2>}
-          searchQuery={search}
-          onSearchChange={setSearch}
-          searchPlaceholder="Search categories..."
-          extraFilters={
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-[130px] px-4 py-2 border border-gray-200 rounded-lg outline-none focus:border-[#4648d4] focus:ring-1 focus:ring-[#4648d4] transition-colors text-sm bg-white cursor-pointer"
-            >
-              <option value="">All Status</option>
-              <option value="Active">Active</option>
-              <option value="Inactive">Inactive</option>
-            </select>
-          }
-          actionButton={
-            <button 
-              onClick={() => navigate('/admin/catalog/categories/add')}
-              className="bg-[#4648d4] hover:bg-[#3b3db0] text-white px-4 py-2 rounded-xl flex items-center justify-center gap-2 transition-colors font-medium text-sm whitespace-nowrap"
-            >
-              <Plus size={18} />
-              Add Category
-            </button>
-          }
-        />
-        
-        <div className="w-full flex-1 min-h-0">
-          <DataTable 
-            columns={columns}
-            data={categories}
-            isLoading={isLoading}
-            emptyMessage={search || statusFilter ? "No categories found matching your filters." : "No categories created yet."}
-          />
-        </div>
+      <SearchToolbar
+        leftSlot={<h2 className="text-lg font-semibold text-[#4648d4] px-2">Categories</h2>}
+        searchQuery={search}
+        onSearchChange={setSearch}
+        searchPlaceholder="Search categories..."
+        extraFilters={
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="w-[130px] px-4 py-2 border border-gray-200 rounded-lg outline-none focus:border-[#4648d4] focus:ring-1 focus:ring-[#4648d4] transition-colors text-sm bg-white cursor-pointer"
+          >
+            <option value="">All Status</option>
+            <option value="Active">Active</option>
+            <option value="Inactive">Inactive</option>
+          </select>
+        }
+        actionButton={
+          <button
+            onClick={() => navigate('/admin/catalog/categories/add')}
+            className="bg-[#4648d4] hover:bg-[#3b3db0] text-white px-4 py-2 rounded-xl flex items-center justify-center gap-2 transition-colors font-medium text-sm whitespace-nowrap"
+          >
+            <Plus size={18} />
+            Add Category
+          </button>
+        }
+      />
 
-        <Pagination 
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={setCurrentPage}
-          totalItems={totalItems}
-          itemsPerPage={limit}
+      <div className="w-full flex-1 min-h-0">
+        <DataTable
+          columns={columns}
+          data={categories}
+          isLoading={isLoading}
+          emptyMessage={search || statusFilter ? "No categories found matching your filters." : "No categories created yet."}
         />
-        
-      <ConfirmDialog 
+      </div>
+
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
+        totalItems={totalItems}
+        itemsPerPage={limit}
+      />
+
+      <ConfirmDialog
         isOpen={isDeleteDialogOpen}
         onClose={() => setIsDeleteDialogOpen(false)}
         onConfirm={confirmDelete}
@@ -299,7 +299,7 @@ const CategoriesList = () => {
                 <div className="w-4 h-4 border-2 border-[#4648d4] border-t-transparent rounded-full animate-spin" />
               )}
             </h3>
-            
+
             {!isModalLoading && (
               mappedAttributes.length > 0 ? (
                 <div className="space-y-2">

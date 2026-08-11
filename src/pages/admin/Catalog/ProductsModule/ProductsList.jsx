@@ -227,7 +227,8 @@ const ProductsList = () => {
   ];
 
   return (
-    <div className="flex flex-col flex-1 overflow-hidden">
+    <div className="flex flex-col flex-1 overflow-hidden p-4 lg:pl-7 lg-pr-7">
+      <div className="bg-white rounded-[20px] shadow-sm border border-gray-100 flex flex-col flex-1 overflow-hidden">
         <SearchToolbar 
           leftSlot={<h2 className="text-xl font-bold text-[#4648d4] pr-4 border-r border-gray-200 mr-2">Products</h2>}
           searchQuery={search}
@@ -320,6 +321,7 @@ const ProductsList = () => {
           totalItems={totalItems}
           itemsPerPage={limit}
         />
+      </div>
 
       <ConfirmDialog 
         isOpen={isDeleteDialogOpen}

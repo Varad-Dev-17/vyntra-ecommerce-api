@@ -10,6 +10,7 @@ import {
   CalendarDays,
   ChevronDown,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import {
   AreaChart,
   Area,
@@ -28,6 +29,7 @@ import {
 import api from "../../api/axiosConfig";
 
 const DashboardSection = () => {
+  const navigate = useNavigate();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -160,9 +162,9 @@ const DashboardSection = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-white font-sans text-slate-800 selection:bg-purple-100 p-6 md:p-10 lg:p-12">
+    <div className="min-h-screen bg-white font-sans text-slate-800 selection:bg-purple-100 p-4 lg:pl-17 lg:pr-17 lg:pt-6">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between mb-12">
+      <div className="flex flex-col md:flex-row md:items-end justify-between mb-8">
         <div className="space-y-2">
           <h2 className="text-2xl md:text-3xl font-bold text-slate-700 tracking-tight">Dashboard Overview</h2>
           <p className="text-base text-slate-500 font-medium">
@@ -171,7 +173,14 @@ const DashboardSection = () => {
         </div>
         <div className="mt-6 md:mt-0 flex items-center gap-3 bg-slate-50 border border-slate-100 px-5 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer">
           <CalendarDays size={18} className="text-purple-500" />
-          <span>May 1 - May 7, 2025</span>
+          <span>
+            {(() => {
+              const today = new Date();
+              const lastWeek = new Date(today);
+              lastWeek.setDate(today.getDate() - 6);
+              return `${lastWeek.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${today.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
+            })()}
+          </span>
         </div>
       </div>
 
@@ -304,23 +313,23 @@ const DashboardSection = () => {
       {/* Lists Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-10 mb-10 border-t border-slate-100 pt-10">
         {/* Top Selling Products */}
-        <div>
+        <div className="lg:border-r lg:border-slate-400 lg:pr-8">
           <div className="flex justify-between items-end mb-8">
             <h3 className="text-xl font-bold text-slate-700 tracking-tight">Top Products</h3>
-            <span className="text-sm font-bold text-purple-600 hover:text-purple-700 cursor-pointer">View All</span>
+            <span onClick={() => navigate('/admin/products')} className="text-sm font-bold text-purple-600 hover:text-purple-700 cursor-pointer">View All</span>
           </div>
-          <div className="space-y-6">
+          <div className="flex flex-col gap-4">
             <div className="flex justify-between text-xs font-bold text-slate-400 uppercase tracking-wider pb-3 border-b border-slate-100">
               <span>Product</span>
-              <div className="flex gap-10 text-right">
-                <span className="w-10">Sold</span>
-                <span className="w-16">Revenue</span>
+              <div className="flex gap-6 text-right">
+                <span className="w-12">Sold</span>
+                <span className="w-20">Revenue</span>
               </div>
             </div>
             {topProducts.slice(0, 4).map((product, index) => (
-              <div key={index} className="flex items-center justify-between">
+              <div key={index} className="flex items-center justify-between border-b border-slate-100 pb-4 last:border-0 last:pb-0">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-slate-100 overflow-hidden flex-shrink-0">
+                  <div className="w-12 h-12 bg-slate-100 rounded-md overflow-hidden flex-shrink-0">
                     {product.images && product.images[0] ? (
                       <img src={product.images[0].url} alt={product.title} className="w-full h-full object-cover"  loading="lazy" decoding="async" />
                     ) : (
@@ -332,9 +341,9 @@ const DashboardSection = () => {
                     <p className="text-xs text-slate-500">Popular</p>
                   </div>
                 </div>
-                <div className="flex gap-8 text-right text-sm">
-                  <span className="font-medium text-slate-600 w-10">{product.totalSold}</span>
-                  <span className="font-bold text-slate-800 w-16">₹{(product.totalRevenue/1000).toFixed(1)}k</span>
+                <div className="flex gap-6 text-right text-sm">
+                  <span className="font-medium text-slate-600 w-12">{product.totalSold}</span>
+                  <span className="font-bold text-slate-800 w-20">₹{Math.round(product.totalRevenue).toLocaleString('en-IN')}</span>
                 </div>
               </div>
             ))}
@@ -342,10 +351,10 @@ const DashboardSection = () => {
         </div>
 
         {/* Recent Orders */}
-        <div className="overflow-hidden">
+        <div className="overflow-hidden lg:border-r lg:border-slate-300 lg:pr-8">
           <div className="flex justify-between items-end mb-8">
             <h3 className="text-xl font-bold text-slate-700 tracking-tight">Recent Orders</h3>
-            <span className="text-sm font-bold text-purple-600 hover:text-purple-700 cursor-pointer">View All</span>
+            <span onClick={() => navigate('/admin/orders')} className="text-sm font-bold text-purple-600 hover:text-purple-700 cursor-pointer">View All</span>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-left">
@@ -353,18 +362,18 @@ const DashboardSection = () => {
                 <tr className="text-xs font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">
                   <th className="pb-3 font-medium">Order ID</th>
                   <th className="pb-3 font-medium">Customer</th>
-                  <th className="pb-3 font-medium">Amount</th>
+                  <th className="pb-3 font-medium text-right pr-6">Amount</th>
                   <th className="pb-3 font-medium text-right">Status</th>
                 </tr>
               </thead>
               <tbody>
                 {recentOrders.slice(0, 4).map((order) => (
-                  <tr key={order._id} className="border-b border-slate-50 last:border-0">
+                  <tr key={order._id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50/50 transition-colors">
                     <td className="py-3 font-medium text-slate-800">#{order.orderId || order._id.toString().substring(0,6)}</td>
                     <td className="py-3 text-slate-600">{order.user?.username || 'Guest'}</td>
-                    <td className="py-3 font-semibold text-slate-800">₹{order.totalAmount.toLocaleString()}</td>
+                    <td className="py-3 font-semibold text-slate-800 text-right pr-6">₹{Math.round(order.totalAmount).toLocaleString('en-IN')}</td>
                     <td className="py-3 text-right">
-                      <span className={`px-2.5 py-1 text-xs font-semibold capitalize ${statusColors[order.status] || "text-slate-600 bg-slate-100"}`}>
+                      <span className={`px-3 py-1.5 rounded-full text-[11px] font-bold tracking-wide uppercase ${statusColors[order.status] || "text-slate-600 bg-slate-100"}`}>
                         {order.status}
                       </span>
                     </td>
@@ -376,10 +385,10 @@ const DashboardSection = () => {
         </div>
 
         {/* Sales by Category */}
-        <div>
+        <div className="lg:pr-8">
           <div className="flex justify-between items-end mb-8">
             <h3 className="text-xl font-bold text-slate-700 tracking-tight">Sales by Category</h3>
-            <span className="text-sm font-bold text-purple-600 hover:text-purple-700 cursor-pointer">View All</span>
+            <span onClick={() => navigate('/admin/catalog')} className="text-sm font-bold text-purple-600 hover:text-purple-700 cursor-pointer">View All</span>
           </div>
           <div className="space-y-6">
             {salesByCategory.slice(0, 5).map((item, index) => (
@@ -393,7 +402,7 @@ const DashboardSection = () => {
                   </div>
                   <div className="flex items-center gap-3">
                     <span className="font-medium text-slate-500">{item.percentage}%</span>
-                    <span className="font-bold text-slate-800 w-16 text-right">₹{(item.revenue/1000).toFixed(1)}k</span>
+                    <span className="font-bold text-slate-800 w-20 text-right">₹{Math.round(item.revenue).toLocaleString('en-IN')}</span>
                   </div>
                 </div>
                 <div className="w-full bg-slate-100 h-1.5">

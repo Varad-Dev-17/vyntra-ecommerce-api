@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import * as LucideIcons from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 
@@ -8,9 +9,39 @@ const DepartmentForm = ({ initialData = null, isEdit = false }) => {
   const [formData, setFormData] = useState({
     name: '',
     slug: '',
-    status: 'Active'
+    status: 'Active',
+    description: '',
+    iconName: 'Box'
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [isIconDropdownOpen, setIsIconDropdownOpen] = useState(false);
+
+  const ICONS_LIST = [
+    { name: 'Box', label: 'Box (Default)' },
+    { name: 'User', label: 'User / Person' },
+    { name: 'Users', label: 'People / Group' },
+    { name: 'Shirt', label: 'Shirt / Apparel' },
+    { name: 'Baby', label: 'Baby / Kids' },
+    { name: 'Armchair', label: 'Furniture' },
+    { name: 'Sparkles', label: 'Beauty / Sparkles' },
+    { name: 'ShoppingBag', label: 'Shopping Bag' },
+    { name: 'Tag', label: 'Price Tag' },
+    { name: 'Laptop', label: 'Laptop' },
+    { name: 'Smartphone', label: 'Smartphone' },
+    { name: 'Monitor', label: 'Monitor' },
+    { name: 'Watch', label: 'Watch' },
+    { name: 'Headphones', label: 'Headphones' },
+    { name: 'Camera', label: 'Camera' },
+    { name: 'Gamepad', label: 'Gaming' },
+    { name: 'Heart', label: 'Heart' },
+    { name: 'Dribbble', label: 'Sports Ball' },
+    { name: 'Activity', label: 'Health / Activity' },
+    { name: 'Plane', label: 'Travel / Plane' },
+    { name: 'Car', label: 'Automotive' },
+    { name: 'Book', label: 'Books / Reading' },
+    { name: 'Music', label: 'Music' },
+    { name: 'Coffee', label: 'Food & Beverage' },
+  ];
   const [slugModified, setSlugModified] = useState(false);
 
   useEffect(() => {
@@ -18,6 +49,8 @@ const DepartmentForm = ({ initialData = null, isEdit = false }) => {
       setFormData({
         name: initialData.name || '',
         slug: initialData.slug || '',
+        description: initialData.description || '',
+        iconName: initialData.iconName || 'Box',
         status: initialData.status || 'Active'
       });
       if (initialData.slug) {
@@ -71,14 +104,15 @@ const DepartmentForm = ({ initialData = null, isEdit = false }) => {
   };
 
   return (
-    <div className="bg-white rounded-[20px] shadow-sm border border-gray-100 p-8 w-full">
-      <div className="mb-6">
-        <h2 className="text-xl font-bold text-[#4648d4]">{isEdit ? 'Edit Department' : 'Add Department'}</h2>
-      </div>
+    <div className="w-full">
+      <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-8 w-full">
+        <div className="mb-6">
+          <h2 className="text-xl font-bold text-[#4648d4]">{isEdit ? 'Edit Department' : 'Add Department'}</h2>
+        </div>
       <form onSubmit={handleSubmit} className="space-y-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div>
-            <label className="block text-sm font-medium text-[#4648d4] mb-2">Department Name *</label>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Department Name *</label>
             <input
               type="text"
               value={formData.name}
@@ -90,7 +124,7 @@ const DepartmentForm = ({ initialData = null, isEdit = false }) => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-[#4648d4] mb-2">Status</label>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Status</label>
             <select
               value={formData.status}
               onChange={(e) => setFormData({ ...formData, status: e.target.value })}
@@ -100,6 +134,60 @@ const DepartmentForm = ({ initialData = null, isEdit = false }) => {
               <option value="Inactive">Inactive</option>
             </select>
           </div>
+
+          <div className="relative">
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Icon</label>
+            <button
+              type="button"
+              onClick={() => setIsIconDropdownOpen(!isIconDropdownOpen)}
+              className="w-full px-4 h-12 border border-gray-200 rounded-xl outline-none focus:border-[#4648d4] focus:ring-1 focus:ring-[#4648d4] transition-colors bg-white flex items-center justify-between"
+            >
+              <div className="flex items-center gap-3 text-gray-700">
+                {(() => {
+                  const IconComponent = LucideIcons[formData.iconName] || LucideIcons.Box;
+                  return <IconComponent size={20} className="text-[#4648d4]" />;
+                })()}
+                <span>{ICONS_LIST.find(i => i.name === formData.iconName)?.label || formData.iconName}</span>
+              </div>
+              <LucideIcons.ChevronDown size={18} className="text-gray-400" />
+            </button>
+            
+            {isIconDropdownOpen && (
+              <div className="absolute z-10 w-full mt-2 bg-white border border-gray-100 rounded-xl shadow-lg max-h-60 overflow-y-auto">
+                <div className="p-2 grid grid-cols-1 gap-1">
+                  {ICONS_LIST.filter(iconOption => LucideIcons[iconOption.name]).map((iconOption) => {
+                    const IconComp = LucideIcons[iconOption.name];
+                    return (
+                      <button
+                        key={iconOption.name}
+                        type="button"
+                        onClick={() => {
+                          setFormData({ ...formData, iconName: iconOption.name });
+                          setIsIconDropdownOpen(false);
+                        }}
+                        className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors w-full text-left ${
+                          formData.iconName === iconOption.name ? 'bg-[#4648d4]/10 text-[#4648d4]' : 'hover:bg-gray-50 text-gray-700'
+                        }`}
+                      >
+                        <IconComp size={18} className={formData.iconName === iconOption.name ? 'text-[#4648d4]' : 'text-gray-500'} />
+                        <span className="text-sm">{iconOption.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="mt-6">
+          <label className="block text-sm font-semibold text-gray-700 mb-2">Description</label>
+          <textarea
+            value={formData.description}
+            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+            placeholder="e.g. Clothing and accessories for men"
+            className="w-full px-4 py-3 min-h-[120px] border border-gray-200 rounded-xl outline-none focus:border-[#4648d4] focus:ring-1 focus:ring-[#4648d4] transition-colors resize-y"
+          />
         </div>
 
         <div className="flex justify-end gap-4 pt-6 mt-2 border-t border-gray-100">
@@ -126,6 +214,7 @@ const DepartmentForm = ({ initialData = null, isEdit = false }) => {
           </button>
         </div>
       </form>
+      </div>
     </div>
   );
 };

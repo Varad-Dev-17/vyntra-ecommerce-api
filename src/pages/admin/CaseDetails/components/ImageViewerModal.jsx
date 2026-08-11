@@ -81,10 +81,11 @@ const ImageViewerModal = ({ isOpen, onClose, images = [], initialIndex = 0 }) =>
             className={`max-h-[70vh] w-auto rounded-lg transition-transform duration-300 ${
               isZoomed ? "scale-150 cursor-zoom-out" : "scale-100 cursor-zoom-in object-contain"
             }`}
-            onClick={() = loading="lazy" decoding="async"> setIsZoomed(!isZoomed)}
+            onClick={() => setIsZoomed(!isZoomed)}
+            loading="lazy" decoding="async"
           />
 
-          {/* Navigation controls for multi-image sets */}
+          {/* Navigation controls */}
           {images.length > 1 && (
             <>
               <button

@@ -81,7 +81,7 @@ export const getDepartment = async (req, res) => {
 // Create Department
 export const createDepartment = async (req, res) => {
   try {
-    const { name, slug, status } = req.body;
+    const { name, slug, status, description, iconName } = req.body;
 
     if (!name || !slug) {
       return res.status(400).json({
@@ -105,6 +105,8 @@ export const createDepartment = async (req, res) => {
       name: name.trim(),
       slug: slug.trim().toLowerCase(),
       status: status || "Active",
+      description,
+      iconName,
     });
 
     res.status(201).json({
@@ -125,7 +127,7 @@ export const createDepartment = async (req, res) => {
 export const updateDepartment = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, slug, status } = req.body;
+    const { name, slug, status, description, iconName } = req.body;
 
     const department = await Department.findById(id);
 
@@ -155,6 +157,8 @@ export const updateDepartment = async (req, res) => {
     if (name) department.name = name.trim();
     if (slug) department.slug = slug.trim().toLowerCase();
     if (status) department.status = status;
+    if (description !== undefined) department.description = description;
+    if (iconName !== undefined) department.iconName = iconName;
 
     await department.save();
 
