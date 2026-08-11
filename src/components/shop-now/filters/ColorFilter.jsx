@@ -40,8 +40,27 @@ const ColorFilter = ({ colors = [], activeColors = [], onChange }) => {
                   }
                 };
 
-                // Fallback basic CSS color if the backend doesn't provide a hex code
-                const bgColor = color.hex || colorName.toLowerCase().replace(/\s+/g, '');
+                const fallbackColors = {
+                  "space gray": "#4A4A4C",
+                  "spacegray": "#4A4A4C",
+                  "silver": "#C0C0C0",
+                  "starlight": "#F8F9EC",
+                  "midnight": "#191924",
+                  "natural silver": "#D4D4D4",
+                  "quiet blue": "#4A5A70",
+                  "indie black": "#1A1A1A",
+                  "midnight blue": "#191970",
+                  "mustard yellow": "#E1AD01",
+                  "rose pink": "#FF66CC",
+                  "powder blue": "#B0E0E6",
+                  "mint green": "#98FF98",
+                  "pastel green": "#77DD77",
+                  "sky blue": "#87CEEB",
+                  "olive green": "#556B2F",
+                };
+                
+                const normalizedColor = colorName.toLowerCase().trim();
+                const bgColor = color.hex || fallbackColors[normalizedColor] || normalizedColor.replace(/\s+/g, '');
 
 
                 return (

@@ -77,8 +77,8 @@ const ProductVariants = () => {
     const groups = new Map();
     
     variants.forEach(v => {
-      const pAttr = v.attributes.find(a => (typeof a.attribute === 'object' ? a.attribute._id : a.attribute) === primaryAttribute._id);
-      const pOptId = pAttr ? (typeof pAttr.option === 'object' ? pAttr.option._id : pAttr.option) : 'unknown';
+      const pAttr = v.attributes.find(a => String(a.attribute?._id || a.attribute) === String(primaryAttribute._id));
+      const pOptId = pAttr ? String(pAttr.option?._id || pAttr.option) : 'unknown';
       
       if (!groups.has(pOptId)) {
         groups.set(pOptId, {
@@ -91,8 +91,8 @@ const ProductVariants = () => {
       
       const secOpts = {};
       secondaryAttributes.forEach(sa => {
-        const sAttr = v.attributes.find(a => (typeof a.attribute === 'object' ? a.attribute._id : a.attribute) === sa._id);
-        secOpts[sa._id] = sAttr ? (typeof sAttr.option === 'object' ? sAttr.option._id : sAttr.option) : '';
+        const sAttr = v.attributes.find(a => String(a.attribute?._id || a.attribute) === String(sa._id));
+        secOpts[sa._id] = sAttr ? String(sAttr.option?._id || sAttr.option) : '';
       });
       
       groups.get(pOptId).items.push({
@@ -239,7 +239,7 @@ const ProductVariants = () => {
     }
   }, [groupedVariants, previewPrimaryOption]);
 
-  const generateSkuString = (pOptId, sOptId) => {
+  const generateSkuString = (pOptId, secondaryOptionsObj) => {
     const brandCode = (product?.brand?.name || 'VYN').substring(0,3).toUpperCase();
     const titleCode = (product?.title || 'PROD').split(' ')[0].toUpperCase();
     
@@ -249,13 +249,18 @@ const ProductVariants = () => {
       pCode = pOptName.split(' ')[0].toUpperCase();
     }
 
-    let sCode = '';
-    if (secondaryAttributes.length > 0 && sOptId) {
-      const sOptName = attributeOptionsMap[secondaryAttributes[0]._id]?.find(o => o._id === sOptId)?.displayName || '';
-      sCode = sOptName.split(' ')[0].toUpperCase();
+    let sCodes = [];
+    if (secondaryAttributes.length > 0 && secondaryOptionsObj) {
+      secondaryAttributes.forEach(attr => {
+        const optId = secondaryOptionsObj[attr._id];
+        if (optId) {
+          const sOptName = attributeOptionsMap[attr._id]?.find(o => o._id === optId)?.displayName || '';
+          sCodes.push(sOptName.split(' ')[0].toUpperCase().replace(/[^A-Z0-9]/g, ''));
+        }
+      });
     }
 
-    const parts = [brandCode, titleCode, pCode, sCode].filter(Boolean);
+    const parts = [brandCode, titleCode, pCode, ...sCodes].filter(Boolean);
     return parts.join('-');
   };
 
@@ -268,11 +273,7 @@ const ProductVariants = () => {
         
         // Auto-update SKUs based on new primary option
         updated.items = updated.items.map(item => {
-          let sOptId = null;
-          if (secondaryAttributes.length > 0) {
-            sOptId = item.secondaryOptions[secondaryAttributes[0]._id];
-          }
-          return { ...item, sku: generateSkuString(value, sOptId) };
+          return { ...item, sku: generateSkuString(value, item.secondaryOptions) };
         });
       }
       return updated;
@@ -292,11 +293,7 @@ const ProductVariants = () => {
       const newItems = [...prev.items];
       const newSecondary = { ...newItems[itemIndex].secondaryOptions, [attributeId]: optionId };
       
-      let sku = newItems[itemIndex].sku;
-      // Auto generate SKU for the first secondary attribute
-      if (secondaryAttributes.length > 0 && attributeId === secondaryAttributes[0]._id) {
-        sku = generateSkuString(prev.primaryOption, optionId);
-      }
+      const sku = generateSkuString(prev.primaryOption, newSecondary);
       
       newItems[itemIndex] = { ...newItems[itemIndex], secondaryOptions: newSecondary, sku };
       return { ...prev, items: newItems };
@@ -488,16 +485,16 @@ const ProductVariants = () => {
     });
 
     let otherVariants = variants.filter(v => {
-      const pAttr = v.attributes.find(a => (typeof a.attribute === 'object' ? a.attribute._id : a.attribute) === primaryAttribute._id);
-      const pOptId = pAttr ? (typeof pAttr.option === 'object' ? pAttr.option._id : pAttr.option) : '';
-      return pOptId !== editingPrimaryOption;
+      const pAttr = v.attributes.find(a => String(a.attribute?._id || a.attribute) === String(primaryAttribute._id));
+      const pOptId = pAttr ? String(pAttr.option?._id || pAttr.option) : 'unknown';
+      return String(pOptId) !== String(editingPrimaryOption);
     });
 
     if (editingPrimaryOption !== currentGroup.primaryOption) {
        const alreadyExists = otherVariants.some(v => {
-         const pAttr = v.attributes.find(a => (typeof a.attribute === 'object' ? a.attribute._id : a.attribute) === primaryAttribute._id);
-         const pOptId = pAttr ? (typeof pAttr.option === 'object' ? pAttr.option._id : pAttr.option) : '';
-         return pOptId === currentGroup.primaryOption;
+         const pAttr = v.attributes.find(a => String(a.attribute?._id || a.attribute) === String(primaryAttribute._id));
+         const pOptId = pAttr ? String(pAttr.option?._id || pAttr.option) : 'unknown';
+         return String(pOptId) === String(currentGroup.primaryOption);
        });
        if (alreadyExists) {
          return toast.error(`A group for ${attributeOptionsMap[primaryAttribute._id]?.find(o => o._id === currentGroup.primaryOption)?.displayName || 'this option'} already exists. Please edit that group directly.`);
@@ -556,12 +553,24 @@ const ProductVariants = () => {
     try {
       setIsDeleting(true);
       const newVariants = variants.filter(v => {
-        const pAttr = v.attributes.find(a => (typeof a.attribute === 'object' ? a.attribute._id : a.attribute) === primaryAttribute._id);
-        const pOptId = pAttr ? (typeof pAttr.option === 'object' ? pAttr.option._id : pAttr.option) : '';
-        return pOptId !== group.primaryOption;
+        const pAttr = v.attributes.find(a => String(a.attribute?._id || a.attribute) === String(primaryAttribute._id));
+        const pOptId = pAttr ? String(pAttr.option?._id || pAttr.option) : 'unknown';
+        return String(pOptId) !== String(group.primaryOption);
       });
-      await saveVariantsToBackend(newVariants);
-      setVariants(newVariants);
+      const res = await saveVariantsToBackend(newVariants);
+      
+      if (res.success && res.data) {
+         const savedVariants = res.data.map(v => ({
+          ...v,
+          attributes: v.attributes.map(a => ({
+            attribute: a.attribute?._id || a.attribute,
+            option: a.option?._id || a.option
+          }))
+        }));
+        setVariants(savedVariants);
+      } else {
+        setVariants(newVariants);
+      }
       toast.success("Group deleted.");
       
       if (editingPrimaryOption === group.primaryOption) {
@@ -643,9 +652,9 @@ const ProductVariants = () => {
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 mb-8">
         
         {/* Left Column: Variant Form Card */}
-        <div className="xl:col-span-8 bg-white rounded-[20px] shadow-sm border border-gray-100 p-8 flex flex-col">
-           <div className="flex justify-between items-center mb-8">
-              <h2 className="text-xl font-bold text-[#4648d4]">
+        <div className="xl:col-span-7 bg-white rounded-[20px] shadow-sm border border-gray-100 p-8 flex flex-col">
+           <div className="pb-4 border-b border-gray-100 mb-6">
+              <h2 className="text-lg font-bold text-[#221B59]">
                 {editingPrimaryOption !== null ? (isColorGroup ? 'Edit Color' : 'Edit Group') : (isColorGroup ? 'Add Color' : 'Add Group')}
               </h2>
            </div>
@@ -655,14 +664,14 @@ const ProductVariants = () => {
                
                {/* Primary Group Details */}
                <div>
-                 <h3 className="text-lg font-bold text-[#4648d4] mb-4">Group Details</h3>
+                 <h3 className="text-base font-bold text-[#221B59] mb-4">Group Details</h3>
                  <div className="grid grid-cols-1 gap-6 max-w-sm">
                     <div>
-                      <label className="block text-sm font-medium text-[#4648d4] mb-2">{primaryAttribute.name} *</label>
+                      <label className="block text-sm font-medium text-[#221B59] mb-2">{primaryAttribute.name} *</label>
                       <select
                         value={currentGroup.primaryOption}
                         onChange={(e) => updateCurrentGroup('primaryOption', e.target.value)}
-                        className="w-full px-4 h-12 border border-gray-200 rounded-xl outline-none focus:border-[#4648d4] focus:ring-1 focus:ring-[#4648d4] bg-white transition-colors text-gray-900"
+                        className="w-full px-4 h-12 border border-gray-200 rounded-xl outline-none focus:border-[#3A36DB] focus:ring-1 focus:ring-[#3A36DB] bg-white transition-colors text-gray-900"
                       >
                         <option value="">Select {primaryAttribute.name}</option>
                         {(attributeOptionsMap[primaryAttribute._id] || []).map(opt => (
@@ -674,48 +683,48 @@ const ProductVariants = () => {
                </div>
 
                {/* Variant Images */}
-               <div className="pt-8 border-t border-gray-100">
-                 <h3 className="text-lg font-bold text-[#4648d4] mb-4">Group Images</h3>
-                 <div className="grid grid-cols-1 sm:grid-cols-4 gap-6">
-                   <div className="sm:col-span-1 flex flex-col">
-                     <label className="block text-sm font-medium text-[#4648d4] mb-2">Main Image *</label>
+               <div className="pt-6 border-t border-gray-100">
+                 <h3 className="text-base font-bold text-[#221B59] mb-4">Group Images</h3>
+                 <div className="flex flex-wrap sm:flex-nowrap gap-8">
+                   <div className="flex flex-col shrink-0">
+                     <label className="block text-sm font-medium text-[#221B59] mb-2">Main Image *</label>
                      {currentGroup.mainImage ? (
-                       <div className="relative aspect-[3/4] border border-gray-200 rounded-xl overflow-hidden group">
+                       <div className="relative w-32 h-32 border border-gray-200 rounded-xl overflow-hidden group">
                          <img src={currentGroup.mainImage.url} className="w-full h-full object-cover" alt="Main"  loading="lazy" decoding="async" />
                          <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex flex-col justify-center items-center gap-2 transition-opacity">
-                           <label className="bg-white px-4 py-2 rounded-lg text-sm font-medium cursor-pointer shadow-sm text-gray-900">
+                           <label className="bg-white px-3 py-1.5 rounded-lg text-xs font-medium cursor-pointer shadow-sm text-gray-900">
                              Replace
                              <input type="file" className="hidden" accept="image/*" onChange={(e) => handleMainImageUpload(e.target.files[0])} />
                            </label>
                          </div>
                        </div>
                      ) : (
-                       <label className="flex flex-col items-center justify-center aspect-[3/4] border-2 border-dashed border-gray-300 rounded-xl cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
+                       <label className="flex flex-col items-center justify-center w-32 h-32 border border-dashed border-gray-300 rounded-xl cursor-pointer bg-gray-50/50 hover:bg-gray-50 transition-colors">
                          <UploadCloud className="w-6 h-6 text-gray-400 mb-2" />
-                         <span className="text-sm font-medium text-gray-600">Upload</span>
+                         <span className="text-xs font-medium text-gray-700">Upload</span>
+                         <span className="text-[10px] text-gray-400 mt-1">JPG, PNG</span>
                          <input type="file" className="hidden" accept="image/*" onChange={(e) => handleMainImageUpload(e.target.files[0])} />
                        </label>
                      )}
                    </div>
 
-                   <div className="sm:col-span-3 flex flex-col">
+                   <div className="flex flex-col flex-1">
                      <div className="flex justify-between items-center mb-2">
-                       <label className="block text-sm font-medium text-[#4648d4]">Gallery Images</label>
-                       <span className="text-sm text-gray-500">{currentGroup.galleryImages?.length || 0}/5</span>
+                       <label className="block text-sm font-medium text-[#221B59]">Gallery Images ({currentGroup.galleryImages?.length || 0}/5)</label>
                      </div>
-                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                     <div className="flex gap-4 flex-wrap">
                        {currentGroup.galleryImages?.map((img, gIndex) => (
-                         <div key={img.publicId || gIndex} className="relative aspect-square border border-gray-200 rounded-xl overflow-hidden group">
+                         <div key={img.publicId || gIndex} className="relative w-32 h-32 border border-gray-200 rounded-xl overflow-hidden group shrink-0">
                            <img src={img.url} className="w-full h-full object-cover" alt="Gallery"  loading="lazy" decoding="async" />
                            <button type="button" onClick={() => removeGalleryImage(gIndex)} className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white transition-opacity">
-                             <Trash2 size={20} />
+                             <Trash2 size={16} />
                            </button>
                          </div>
                        ))}
                        {(currentGroup.galleryImages?.length || 0) < 5 && (
-                         <label className="aspect-square border-2 border-dashed border-gray-300 rounded-xl flex flex-col items-center justify-center cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
-                           <Plus className="w-6 h-6 text-gray-400 mb-2" />
-                           <span className="text-sm font-medium text-gray-600">Add Image</span>
+                         <label className="w-32 h-32 border border-dashed border-gray-300 rounded-xl flex flex-col items-center justify-center cursor-pointer bg-gray-50/50 hover:bg-gray-50 transition-colors shrink-0">
+                           <Plus className="w-5 h-5 text-gray-400 mb-1" />
+                           <span className="text-xs font-medium text-gray-700">Add Image</span>
                            <input type="file" multiple className="hidden" accept="image/*" onChange={(e) => handleGalleryUpload(e.target.files)} />
                          </label>
                        )}
@@ -723,169 +732,24 @@ const ProductVariants = () => {
                    </div>
                  </div>
                </div>
-
-               {/* Inventory Table */}
-               <div className="pt-8 border-t border-gray-100">
-                 <div className="flex justify-between items-center mb-4">
-                   <h3 className="text-lg font-bold text-[#4648d4]">Inventory Configurations</h3>
-                   {secondaryAttributes.length > 0 && (
-                     <button 
-                       type="button" 
-                       onClick={addRow}
-                       className="text-sm font-medium text-[#4648d4] bg-[#4648d4]/10 hover:bg-[#4648d4]/20 px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-colors"
-                     >
-                       <Plus size={16} /> {isColorGroup && secondaryAttributes[0].name.toLowerCase() === 'size' ? 'Add Size' : 'Add Option'}
-                     </button>
-                   )}
-                 </div>
-                 
-                 <div className="overflow-x-auto border border-gray-100 rounded-xl bg-gray-50/50 p-2">
-                   <table className="w-full text-left border-collapse min-w-[700px]">
-                     <thead>
-                       <tr className="border-b border-gray-200">
-                         {secondaryAttributes.map(sa => (
-                           <th key={sa._id} className="py-3 px-3 text-xs font-semibold text-[#4648d4] uppercase tracking-wider">{sa.name}</th>
-                         ))}
-                         <th className="py-3 px-3 text-xs font-semibold text-[#4648d4] uppercase tracking-wider">SKU</th>
-                         <th className="py-3 px-3 text-xs font-semibold text-[#4648d4] uppercase tracking-wider">Stock</th>
-                         <th className="py-3 px-3 text-xs font-semibold text-[#4648d4] uppercase tracking-wider">MRP</th>
-                         <th className="py-3 px-3 text-xs font-semibold text-[#4648d4] uppercase tracking-wider">Price</th>
-                         <th className="py-3 px-3 text-xs font-semibold text-[#4648d4] uppercase tracking-wider w-24">GST</th>
-                         <th className="py-3 px-3 text-xs font-semibold text-[#4648d4] uppercase tracking-wider w-24">Status</th>
-                         {secondaryAttributes.length > 0 && (
-                           <th className="py-3 px-3 text-xs font-semibold text-[#4648d4] uppercase tracking-wider w-12 text-center">Act</th>
-                         )}
-                       </tr>
-                     </thead>
-                     <tbody className="divide-y divide-gray-100">
-                       {currentGroup.items.map((item, index) => {
-                         const priceError = Number(item.price) > Number(item.mrp);
-                         return (
-                           <tr key={item.id} className="bg-white">
-                             {secondaryAttributes.map(sa => (
-                               <td key={sa._id} className="p-2">
-                                 <select
-                                   value={item.secondaryOptions[sa._id]}
-                                   onChange={(e) => updateItemSecondaryOption(index, sa._id, e.target.value)}
-                                   className="w-full px-2 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-[#4648d4] focus:ring-1 focus:ring-[#4648d4] bg-white transition-colors text-gray-900"
-                                 >
-                                   <option value="">Select</option>
-                                   {(attributeOptionsMap[sa._id] || []).map(opt => (
-                                     <option key={opt._id} value={opt._id}>{opt.displayName}</option>
-                                   ))}
-                                 </select>
-                               </td>
-                             ))}
-                             <td className="p-2">
-                               <input type="text" value={item.sku} onChange={e => updateItem(index, 'sku', e.target.value)} className="w-full px-2 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-[#4648d4] text-gray-900" placeholder="SKU" />
-                             </td>
-                             <td className="p-2 w-20">
-                               <input type="number" value={item.stock} onChange={e => updateItem(index, 'stock', e.target.value)} className="w-full px-2 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-[#4648d4] text-gray-900" />
-                             </td>
-                             <td className="p-2 w-24">
-                               <input type="number" value={item.mrp} onChange={e => updateItem(index, 'mrp', e.target.value)} className="w-full px-2 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-[#4648d4] text-gray-900" />
-                             </td>
-                             <td className="p-2 w-24 relative">
-                               <input type="number" value={item.price} onChange={e => updateItem(index, 'price', e.target.value)} className={`w-full px-2 py-2 text-sm border rounded-lg outline-none focus:ring-1 text-gray-900 ${priceError ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-gray-200 focus:border-[#4648d4] focus:ring-[#4648d4]'}`} />
-                             </td>
-                             <td className="p-2 w-24">
-                               <select value={item.gstRate} onChange={e => updateItem(index, 'gstRate', e.target.value)} className="w-full px-2 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-[#4648d4] bg-white text-gray-900">
-                                 <option value="">Select</option>
-                                 <option value="0">0%</option>
-                                 <option value="5">5%</option>
-                                 <option value="12">12%</option>
-                                 <option value="18">18%</option>
-                                 <option value="28">28%</option>
-                               </select>
-                             </td>
-                             <td className="p-2">
-                               <select value={item.status} onChange={e => updateItem(index, 'status', e.target.value)} className="w-full px-2 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-[#4648d4] bg-white text-gray-900">
-                                 <option value="Active">Active</option>
-                                 <option value="Inactive">Inactive</option>
-                               </select>
-                             </td>
-                             {secondaryAttributes.length > 0 && (
-                               <td className="p-2 text-center">
-                                 <button type="button" onClick={() => removeRow(index)} className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
-                                   <Trash2 size={16} />
-                                 </button>
-                               </td>
-                             )}
-                           </tr>
-                         );
-                       })}
-                     </tbody>
-                   </table>
-                 </div>
-               </div>
-               
-               {/* Form Actions */}
-               <div className="flex flex-wrap items-center justify-end gap-4 pt-8 border-t border-gray-100 mt-auto">
-                 {editingPrimaryOption !== null ? (
-                   <>
-                     <button 
-                       type="button"
-                       onClick={handleCancelEdit}
-                       className="h-12 px-6 border border-gray-200 text-gray-700 rounded-xl font-medium hover:bg-gray-50 transition-colors"
-                     >
-                       Cancel
-                     </button>
-                     <button 
-                       type="button"
-                       onClick={() => handleSave(false)}
-                       disabled={isSubmitting}
-                       className="h-12 px-6 bg-[#4648d4] hover:bg-[#3b3db0] text-white rounded-xl font-medium transition-colors disabled:opacity-50 flex items-center justify-center min-w-[140px]"
-                     >
-                       {isSubmitting ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div> : (isColorGroup ? 'Update Color' : 'Update Group')}
-                     </button>
-                   </>
-                 ) : (
-                   <>
-                     <button 
-                       type="button"
-                       onClick={() => setCurrentGroup(getEmptyGroup())}
-                       className="h-12 px-6 border border-gray-200 text-gray-700 rounded-xl font-medium hover:bg-gray-50 transition-colors"
-                     >
-                       Clear
-                     </button>
-                     <button 
-                       type="button"
-                       onClick={() => handleSave(true)}
-                       disabled={isSubmitting}
-                       className="h-12 px-6 border border-[#4648d4] text-[#4648d4] hover:bg-blue-50 rounded-xl font-medium transition-colors flex items-center justify-center min-w-[160px]"
-                     >
-                       Save & Add Another
-                     </button>
-                     <button 
-                       type="button"
-                       onClick={() => handleSave(false)}
-                       disabled={isSubmitting}
-                       className="h-12 px-6 bg-[#4648d4] hover:bg-[#3b3db0] text-white rounded-xl font-medium transition-colors disabled:opacity-50 flex items-center justify-center min-w-[140px]"
-                     >
-                       {isSubmitting ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div> : (isColorGroup ? 'Save Color' : 'Save Group')}
-                     </button>
-                   </>
-                 )}
-               </div>
-
              </div>
            )}
         </div>
 
+
         {/* Right Column: Live Preview Card */}
-        <div className="xl:col-span-4 bg-white rounded-[20px] shadow-sm border border-gray-100 p-8 flex flex-col h-full min-h-[500px]">
-           <h2 className="text-xl font-bold text-[#4648d4] mb-8">Live Preview</h2>
+        <div className="xl:col-span-5 bg-white rounded-[20px] shadow-sm border border-gray-100 p-8 flex flex-col">
+           <h2 className="text-lg font-bold text-[#221B59] mb-8">Live Preview</h2>
            
            {variants.length === 0 && (!currentGroup?.mainImage) ? (
-             <div className="flex-1 flex flex-col items-center justify-center bg-gray-50 border border-dashed border-gray-200 rounded-[20px] p-8 text-center min-h-[400px]">
-               <ImageIcon className="w-12 h-12 text-gray-300 mb-4" />
-               <h3 className="text-lg font-bold text-[#4648d4] mb-2">No Images</h3>
-               <p className="text-sm text-gray-500 max-w-[250px]">Upload a main image to preview.</p>
+             <div className="flex-1 flex flex-col items-center justify-center bg-gray-50/50 border border-gray-100 rounded-[20px] p-8 text-center h-[280px]">
+               <Package className="w-12 h-12 text-gray-300 mb-4" />
+               <p className="text-sm font-medium text-gray-400">No preview available</p>
              </div>
            ) : (
              <div className="flex flex-col items-center">
                 {/* Large Carousel */}
-                <div className="w-full aspect-[3/4] rounded-[20px] bg-gray-50 border border-gray-100 relative flex items-center justify-center mb-6 overflow-hidden group">
+                <div className="w-full h-[280px] rounded-[20px] bg-gray-50 border border-gray-100 relative flex items-center justify-center mb-6 overflow-hidden group">
                   {(() => {
                     let images = [];
                     if (editingPrimaryOption !== null && currentGroup && previewPrimaryOption === editingPrimaryOption) {
@@ -953,7 +817,7 @@ const ProductVariants = () => {
                         <button
                           key={g.primaryOption || idx}
                           onClick={() => { setPreviewPrimaryOption(g.primaryOption); setPreviewImageIndex(0); }}
-                          className={`relative w-16 h-16 rounded-xl overflow-hidden shrink-0 border-2 transition-all ${isSelected ? 'border-[#4648d4] p-0.5' : 'border-transparent opacity-70 hover:opacity-100'}`}
+                          className={`relative w-16 h-16 rounded-xl overflow-hidden shrink-0 border-2 transition-all ${isSelected ? 'border-[#3A36DB] p-0.5' : 'border-transparent opacity-70 hover:opacity-100'}`}
                           title={optName}
                         >
                           {g.mainImage ? (
@@ -971,15 +835,166 @@ const ProductVariants = () => {
         </div>
       </div>
 
+      {currentGroup && primaryAttribute && (
+        <div className="bg-white rounded-[20px] shadow-sm border border-gray-100 p-8 w-full mb-8">
+               {/* Inventory Table */}
+               <div>
+                 <div className="flex justify-between items-center mb-6">
+                   <h3 className="text-lg font-bold text-[#221B59]">Inventory Configurations</h3>
+                   {secondaryAttributes.length > 0 && (
+                     <button 
+                       type="button" 
+                       onClick={addRow}
+                       className="text-sm font-medium text-[#3A36DB] bg-[#3A36DB]/10 hover:bg-[#3A36DB]/20 px-4 py-2 rounded-lg flex items-center gap-1.5 transition-colors"
+                     >
+                       <Plus size={16} /> {isColorGroup && secondaryAttributes[0].name.toLowerCase() === 'size' ? 'Add Size' : 'Add Option'}
+                     </button>
+                   )}
+                 </div>
+                 
+                 <div className="overflow-x-auto">
+                   <table className="w-full text-left border-collapse min-w-[700px]">
+                     <thead>
+                       <tr className="border-b border-gray-100">
+                         {secondaryAttributes.map(sa => (
+                           <th key={sa._id} className="py-4 px-3 text-xs font-bold text-[#221B59] uppercase tracking-wider">{sa.name}</th>
+                         ))}
+                         <th className="py-4 px-3 text-xs font-bold text-[#221B59] uppercase tracking-wider">SKU</th>
+                         <th className="py-4 px-3 text-xs font-bold text-[#221B59] uppercase tracking-wider">Stock</th>
+                         <th className="py-4 px-3 text-xs font-bold text-[#221B59] uppercase tracking-wider">MRP</th>
+                         <th className="py-4 px-3 text-xs font-bold text-[#221B59] uppercase tracking-wider">Price</th>
+                         <th className="py-4 px-3 text-xs font-bold text-[#221B59] uppercase tracking-wider w-24">GST</th>
+                         <th className="py-4 px-3 text-xs font-bold text-[#221B59] uppercase tracking-wider w-24">Status</th>
+                         {secondaryAttributes.length > 0 && (
+                           <th className="py-4 px-3 text-xs font-bold text-[#221B59] uppercase tracking-wider w-12 text-center">Act</th>
+                         )}
+                       </tr>
+                     </thead>
+                     <tbody className="divide-y divide-gray-100">
+                       {currentGroup.items.map((item, index) => {
+                         const priceError = Number(item.price) > Number(item.mrp);
+                         return (
+                           <tr key={item.id} className="bg-white hover:bg-gray-50/50 transition-colors">
+                             {secondaryAttributes.map(sa => (
+                               <td key={sa._id} className="p-2">
+                                 <select
+                                   value={item.secondaryOptions[sa._id]}
+                                   onChange={(e) => updateItemSecondaryOption(index, sa._id, e.target.value)}
+                                   className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-[#4648d4] focus:ring-1 focus:ring-[#4648d4] bg-white transition-colors text-gray-900"
+                                 >
+                                   <option value="">Select</option>
+                                   {(attributeOptionsMap[sa._id] || []).map(opt => (
+                                     <option key={opt._id} value={opt._id}>{opt.displayName}</option>
+                                   ))}
+                                 </select>
+                               </td>
+                             ))}
+                             <td className="p-2">
+                               <input type="text" value={item.sku} onChange={e => updateItem(index, 'sku', e.target.value)} className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-[#4648d4] text-gray-900" placeholder="SKU" />
+                             </td>
+                             <td className="p-2 w-24">
+                               <input type="number" value={item.stock} onChange={e => updateItem(index, 'stock', e.target.value)} className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-[#4648d4] text-gray-900" />
+                             </td>
+                             <td className="p-2 w-28">
+                               <input type="number" value={item.mrp} onChange={e => updateItem(index, 'mrp', e.target.value)} className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-[#4648d4] text-gray-900" />
+                             </td>
+                             <td className="p-2 w-28 relative">
+                               <input type="number" value={item.price} onChange={e => updateItem(index, 'price', e.target.value)} className={`w-full px-3 py-2 text-sm border rounded-lg outline-none focus:ring-1 text-gray-900 ${priceError ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-gray-200 focus:border-[#4648d4] focus:ring-[#4648d4]'}`} />
+                             </td>
+                             <td className="p-2 w-24">
+                               <select value={item.gstRate} onChange={e => updateItem(index, 'gstRate', e.target.value)} className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-[#4648d4] bg-white text-gray-900">
+                                 <option value="">Select</option>
+                                 <option value="0">0%</option>
+                                 <option value="5">5%</option>
+                                 <option value="12">12%</option>
+                                 <option value="18">18%</option>
+                                 <option value="28">28%</option>
+                               </select>
+                             </td>
+                             <td className="p-2">
+                               <button 
+                                 type="button"
+                                 onClick={() => updateItem(index, 'status', item.status === 'Active' ? 'Inactive' : 'Active')}
+                                 className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${item.status === 'Active' ? 'bg-[#3A36DB]' : 'bg-gray-200'}`}
+                               >
+                                 <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${item.status === 'Active' ? 'translate-x-5' : 'translate-x-0'}`} />
+                               </button>
+                             </td>
+                             {secondaryAttributes.length > 0 && (
+                               <td className="p-2 text-center">
+                                 <button type="button" onClick={() => removeRow(index)} className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
+                                   <Trash2 size={18} />
+                                 </button>
+                               </td>
+                             )}
+                           </tr>
+                         );
+                       })}
+                     </tbody>
+                   </table>
+                 </div>
+               </div>
+               
+               {/* Form Actions */}
+               <div className="flex flex-wrap items-center justify-end gap-4 pt-6 mt-4">
+                 {editingPrimaryOption !== null ? (
+                   <>
+                     <button 
+                       type="button"
+                       onClick={handleCancelEdit}
+                       className="h-10 px-6 border border-gray-200 text-gray-700 rounded-xl font-medium hover:bg-gray-50 transition-colors text-sm"
+                     >
+                       Cancel
+                     </button>
+                     <button 
+                       type="button"
+                       onClick={() => handleSave(false)}
+                       disabled={isSubmitting}
+                       className="h-10 px-8 bg-[#3A36DB] hover:bg-[#322fc2] text-white rounded-xl font-medium transition-colors disabled:opacity-50 flex items-center justify-center min-w-[140px] text-sm"
+                     >
+                       {isSubmitting ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div> : (isColorGroup ? 'Update Color' : 'Update Group')}
+                     </button>
+                   </>
+                 ) : (
+                   <>
+                     <button 
+                       type="button"
+                       onClick={() => setCurrentGroup(getEmptyGroup())}
+                       className="h-10 px-6 border border-gray-200 text-gray-700 rounded-xl font-medium hover:bg-gray-50 transition-colors text-sm"
+                     >
+                       Clear
+                     </button>
+                     <button 
+                       type="button"
+                       onClick={() => handleSave(true)}
+                       disabled={isSubmitting}
+                       className="h-10 px-6 border border-[#3A36DB] text-[#3A36DB] hover:bg-[#f0f0fb] rounded-xl font-medium transition-colors flex items-center justify-center min-w-[160px] text-sm"
+                     >
+                       Save & Add Another
+                     </button>
+                     <button 
+                       type="button"
+                       onClick={() => handleSave(false)}
+                       disabled={isSubmitting}
+                       className="h-10 px-8 bg-[#3A36DB] hover:bg-[#322fc2] text-white rounded-xl font-medium transition-colors disabled:opacity-50 flex items-center justify-center min-w-[140px] text-sm"
+                     >
+                       {isSubmitting ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div> : (isColorGroup ? 'Save Color' : 'Save Group')}
+                     </button>
+                   </>
+                 )}
+               </div>
+        </div>
+      )}
+
       {/* Bottom Section: Variants Group Cards */}
       <div className="bg-white rounded-[20px] shadow-sm border border-gray-100 p-8 w-full">
         <div className="mb-6 flex justify-between items-center">
-           <h2 className="text-xl font-bold text-[#4648d4]">Saved Groups</h2>
+           <h2 className="text-xl font-bold text-[#221B59]">Saved Groups</h2>
            <div className="flex gap-4">
-             <div className="bg-blue-50 text-[#4648d4] px-4 py-1.5 rounded-lg font-medium text-sm border border-blue-100">
+             <div className="bg-[#f0f0fb] text-[#3A36DB] px-4 py-1.5 rounded-lg font-medium text-sm border border-[#e0e0f5]">
                Groups: {groupedVariants.length}
              </div>
-             <div className="bg-blue-50 text-[#4648d4] px-4 py-1.5 rounded-lg font-medium text-sm border border-blue-100">
+             <div className="bg-[#f0f0fb] text-[#3A36DB] px-4 py-1.5 rounded-lg font-medium text-sm border border-[#e0e0f5]">
                Variants: {variants.length}
              </div>
            </div>
@@ -1008,7 +1023,7 @@ const ProductVariants = () => {
               const displaySec = secStrings.join(' • ');
 
               return (
-                <div key={group.primaryOption || index} className="border border-gray-200 rounded-[16px] overflow-hidden hover:border-[#4648d4] transition-colors flex flex-col bg-white">
+                <div key={group.primaryOption || index} className="border border-gray-200 rounded-[16px] overflow-hidden hover:border-[#3A36DB] transition-colors flex flex-col bg-white">
                   <div className="p-4 flex gap-4 items-center border-b border-gray-100">
                     <div className="w-16 h-20 rounded-lg overflow-hidden bg-gray-50 shrink-0 border border-gray-100">
                       {group.mainImage ? (
@@ -1018,7 +1033,7 @@ const ProductVariants = () => {
                       )}
                     </div>
                     <div>
-                      <h3 className="font-bold text-[#4648d4] text-lg mb-1 flex items-center">
+                      <h3 className="font-bold text-[#221B59] text-lg mb-1 flex items-center">
                         {isColorGroup && (
                           <span className="inline-block w-3.5 h-3.5 rounded-full mr-2 shadow-sm border border-gray-200" style={{ backgroundColor: optName.toLowerCase().replace(' ', '') }}></span>
                         )}
@@ -1052,7 +1067,7 @@ const ProductVariants = () => {
                   <div className="flex border-t border-gray-100 bg-gray-50/50">
                     <button 
                       onClick={() => handleEditGroup(group)}
-                      className="flex-1 py-3 text-sm font-medium text-[#4648d4] hover:bg-blue-50 transition-colors flex items-center justify-center gap-2 border-r border-gray-100"
+                      className="flex-1 py-3 text-sm font-medium text-[#3A36DB] hover:bg-[#f0f0fb] transition-colors flex items-center justify-center gap-2 border-r border-gray-100"
                     >
                       <Edit2 size={16} /> Edit
                     </button>

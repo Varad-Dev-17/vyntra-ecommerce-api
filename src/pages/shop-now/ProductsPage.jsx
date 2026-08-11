@@ -112,7 +112,7 @@ const ProductsPage = () => {
 
   const fetchBrands = async () => {
     try {
-      let url = "/brands";
+      let url = "/brands?limit=1000";
       if (activeDepartment !== "all" && departmentsList.length > 0) {
         const dept = departmentsList.find(d => d.name.toLowerCase() === activeDepartment.toLowerCase());
         if (dept) url = `/brands/department/${dept._id}`;
