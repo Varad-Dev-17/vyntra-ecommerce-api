@@ -1,208 +1,16 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { Star, ArrowUpRight } from "lucide-react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import axios from "axios";
 
 gsap.registerPlugin(ScrollTrigger);
 
-const staticNewArrivals = [
-  {
-    id: "static-1",
-    brand: "Biba",
-    title: "Women Printed Cotton Kurta",
-    slug: "biba-women-printed-kurta",
-    price: 600,
-    mrp: 650,
-    discountPercentage: 8,
-    images: [{ url: "/home/cat_fashion_1785433098747.png" }],
-    availableSizes: ["S", "M", "L"],
-    rating: 4.5,
-    ratingCount: 24,
-  },
-  {
-    id: "static-2",
-    brand: "Peter England",
-    title: "Men's Polo Collar T-Shirt",
-    slug: "peter-england-polo-tshirt",
-    price: 1499,
-    mrp: 1999,
-    discountPercentage: 25,
-    images: [{ url: "/home/cat_fashion_1785433098747.png" }],
-    availableSizes: ["M", "L", "XL"],
-    rating: 4.3,
-    ratingCount: 18,
-  },
-  {
-    id: "static-3",
-    brand: "Apple",
-    title: "MacBook Air M2 13-inch",
-    slug: "apple-macbook-air-m2",
-    price: 80000,
-    mrp: 90000,
-    discountPercentage: 11,
-    images: [{ url: "/home/cat_electronics_1785433088900.png" }],
-    availableSizes: ["Standard"],
-    rating: 4.9,
-    ratingCount: 112,
-  },
-  {
-    id: "static-4",
-    brand: "Nike",
-    title: "Men Dri-FIT Polo T-Shirt",
-    slug: "nike-polo-tshirt",
-    price: 1259,
-    mrp: 1999,
-    discountPercentage: 37,
-    images: [{ url: "/home/cat_sneakers_1785433154388.png" }],
-    availableSizes: ["S", "M", "L", "XL"],
-    rating: 4.7,
-    ratingCount: 45,
-  },
-  {
-    id: "static-5",
-    brand: "Louis Philippe",
-    title: "Men Formal Cotton Shirt",
-    slug: "louis-philippe-mens-shirt",
-    price: 1999,
-    mrp: 2499,
-    discountPercentage: 20,
-    images: [{ url: "/home/cat_fashion_1785433098747.png" }],
-    availableSizes: ["M", "L", "XXL"],
-    rating: 4.4,
-    ratingCount: 31,
-  },
-  {
-    id: "static-6",
-    brand: "Raymond",
-    title: "Men Slim Fit Casual T-Shirt",
-    slug: "raymond-mens-tshirt",
-    price: 999,
-    mrp: 1499,
-    discountPercentage: 33,
-    images: [{ url: "/home/cat_fashion_1785433098747.png" }],
-    availableSizes: ["M", "L"],
-    rating: 4.2,
-    ratingCount: 14,
-  },
-  {
-    id: "static-7",
-    brand: "Peter England",
-    title: "Men Blue Cotton Formal Shirt",
-    slug: "peter-england-mens-shirt",
-    price: 1199,
-    mrp: 1699,
-    discountPercentage: 29,
-    images: [{ url: "/home/cat_fashion_1785433098747.png" }],
-    availableSizes: ["38", "40", "42"],
-    rating: 4.6,
-    ratingCount: 29,
-  },
-  {
-    id: "static-8",
-    brand: "Manyavar",
-    title: "Men Black Casual Button-Down",
-    slug: "manyavar-mens-casual-shirt",
-    price: 1799,
-    mrp: 2299,
-    discountPercentage: 22,
-    images: [{ url: "/home/cat_fashion_1785433098747.png" }],
-    availableSizes: ["M", "L", "XL"],
-    rating: 4.5,
-    ratingCount: 19,
-  },
-  {
-    id: "static-9",
-    brand: "Raymond",
-    title: "Men Pure Cotton Formal Shirt",
-    slug: "raymond-formal-shirt-white",
-    price: 2499,
-    mrp: 2999,
-    discountPercentage: 17,
-    images: [{ url: "/home/cat_fashion_1785433098747.png" }],
-    availableSizes: ["40", "42", "44"],
-    rating: 4.8,
-    ratingCount: 52,
-  },
-  {
-    id: "static-10",
-    brand: "Vyntra Luxe",
-    title: "Limited Edition Designer Watch",
-    slug: "vyntra-luxe-watch",
-    price: 4999,
-    mrp: 7999,
-    discountPercentage: 38,
-    images: [{ url: "/home/cat_luxury_1785433108279.png" }],
-    availableSizes: ["One Size"],
-    rating: 5.0,
-    ratingCount: 16,
-  },
-  {
-    id: "static-11",
-    brand: "Titan",
-    title: "Analog Men's Watch",
-    slug: "titan-analog-watch",
-    price: 2499,
-    mrp: 3999,
-    discountPercentage: 37,
-    images: [{ url: "/home/cat_luxury_1785433108279.png" }],
-    availableSizes: ["One Size"],
-    rating: 4.6,
-    ratingCount: 58,
-  },
-  {
-    id: "static-12",
-    brand: "Puma",
-    title: "Men's Running Shoes",
-    slug: "puma-running-shoes",
-    price: 2999,
-    mrp: 4999,
-    discountPercentage: 40,
-    images: [{ url: "/home/cat_sneakers_1785433154388.png" }],
-    availableSizes: ["7", "8", "9", "10"],
-    rating: 4.5,
-    ratingCount: 89,
-  },
-  {
-    id: "static-13",
-    brand: "H&M",
-    title: "Women Relaxed Fit Jeans",
-    slug: "hm-women-jeans",
-    price: 1499,
-    mrp: 2299,
-    discountPercentage: 34,
-    images: [{ url: "/home/cat_fashion_1785433098747.png" }],
-    availableSizes: ["28", "30", "32"],
-    rating: 4.3,
-    ratingCount: 42,
-  },
-  {
-    id: "static-14",
-    brand: "Philips",
-    title: "Multi Grooming Kit",
-    slug: "philips-grooming-kit",
-    price: 1199,
-    mrp: 1599,
-    discountPercentage: 25,
-    images: [{ url: "/home/cat_electronics_1785433088900.png" }],
-    availableSizes: ["Standard"],
-    rating: 4.8,
-    ratingCount: 210,
-  },
-  {
-    id: "static-15",
-    brand: "L'Oreal",
-    title: "Revitalift Night Cream",
-    slug: "loreal-night-cream",
-    price: 899,
-    mrp: 1299,
-    discountPercentage: 30,
-    images: [{ url: "/home/cat_beauty_1785433130784.png" }],
-    availableSizes: ["50ml"],
-    rating: 4.4,
-    ratingCount: 150,
-  },
-];
+const api = axios.create({
+  baseURL: "",
+  withCredentials: true,
+});
 
 const HomeArrivalCard = ({ product }) => {
   const formatPrice = (price) =>
@@ -212,16 +20,21 @@ const HomeArrivalCard = ({ product }) => {
       maximumFractionDigits: 0,
     }).format(price);
 
+  const displayPrice = product.price || product.variants?.[0]?.price || 0;
+  const displayMrp = product.mrp || product.variants?.[0]?.mrp || 0;
+  const displayImages = product.images || (product.variants?.[0]?.mainImage ? [product.variants[0].mainImage, ...(product.variants[0].galleryImages || [])] : []);
+  const discountPercentage = product.discountPercentage || (displayMrp > 0 && displayMrp > displayPrice ? Math.round(((displayMrp - displayPrice) / displayMrp) * 100) : 0);
+
   return (
     <Link
       to={`/product/${product.slug}`}
       className="group flex flex-col h-full bg-white cursor-pointer transition-transform duration-300 ease-out hover:-translate-y-1 block rounded-sm shadow-sm hover:shadow-md overflow-hidden"
     >
       <div className="relative w-full aspect-[4/5] overflow-hidden bg-gray-50">
-        {product.images?.[0]?.url && (
+        {displayImages?.[0]?.url && (
           <img
-            src={product.images[0].url}
-            alt={product.title}
+            src={displayImages[0].url}
+            alt={product.name || product.title}
             className="w-full h-full object-cover transition-transform duration-[600ms] ease-out group-hover:scale-105"
             loading="lazy"
             decoding="async"
@@ -251,23 +64,23 @@ const HomeArrivalCard = ({ product }) => {
       <div className="p-3 bg-white flex flex-col flex-grow justify-between">
         <div>
           <h3 className="text-[12px] font-bold uppercase tracking-wider text-[#4F46E5] mb-1 line-clamp-1">
-            {product.brand}
+            {product.brand?.name || product.brand}
           </h3>
           <p className="text-[14px] font-semibold text-[#111827] mb-2 line-clamp-1 group-hover:text-[#4F46E5] transition-colors">
-            {product.title}
+            {product.name || product.title}
           </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap pt-1 border-t border-gray-100">
           <span className="text-[15px] font-extrabold text-[#111827]">
-            {formatPrice(product.price)}
+            {formatPrice(displayPrice)}
           </span>
-          {product.mrp > product.price && (
+          {displayMrp > displayPrice && (
             <>
               <span className="text-[13px] text-[#6B7280] line-through font-normal">
-                {formatPrice(product.mrp)}
+                {formatPrice(displayMrp)}
               </span>
               <span className="text-[12px] font-bold text-[#ff905a]">
-                ({product.discountPercentage}% OFF)
+                ({discountPercentage}% OFF)
               </span>
             </>
           )}
@@ -280,8 +93,26 @@ const HomeArrivalCard = ({ product }) => {
 const HomeNewArrivalsSection = ({ title, subtitle }) => {
   const sectionRef = useRef(null);
   const trackRef = useRef(null);
+  const [products, setProducts] = useState([]);
 
   useEffect(() => {
+    const fetchRandomProducts = async () => {
+      try {
+        const res = await api.get("/products?limit=15&sort=random");
+        if (res.data.success) {
+          setProducts(res.data.data.products || []);
+        }
+      } catch (error) {
+        console.error("Failed to fetch random products:", error);
+      }
+    };
+    fetchRandomProducts();
+  }, []);
+
+  useEffect(() => {
+    // Only initialize GSAP if we have products to scroll
+    if (products.length === 0) return;
+
     let ctx = gsap.context(() => {
       const track = trackRef.current;
       const container = track.parentElement;
@@ -307,7 +138,7 @@ const HomeNewArrivalsSection = ({ title, subtitle }) => {
     }, sectionRef);
 
     return () => ctx.revert();
-  }, []);
+  }, [products]); // Re-run GSAP when products load
 
   return (
     <section
@@ -334,9 +165,9 @@ const HomeNewArrivalsSection = ({ title, subtitle }) => {
           ref={trackRef}
           className="flex gap-4 sm:gap-5 md:gap-6 w-max will-change-transform"
         >
-          {staticNewArrivals.map((product) => (
+          {products.map((product) => (
             <div
-              key={product.id}
+              key={product._id}
               className="w-[160px] sm:w-[180px] md:w-[200px] lg:w-[220px] shrink-0"
             >
               <HomeArrivalCard product={product} />

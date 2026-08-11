@@ -133,7 +133,11 @@ export const getAllProducts = async (req, res) => {
       pipeline.push({ $match: postLookupMatch });
     }
 
-    // Sorting
+    const pageNum = Math.max(1, Number(page));
+    const limitNum = Math.max(1, Number(limit));
+    const skip = (pageNum - 1) * limitNum;
+
+    // Price sorting support
     const sortStage = {};
     if (sort === "priceAsc") {
       pipeline.push({
@@ -166,13 +170,19 @@ export const getAllProducts = async (req, res) => {
       sortStage.ratingCount = -1;
     } else if (sort === "newest") {
       sortStage.createdAt = -1;
+    } else if (sort === "random") {
+      // Handled as $sample stage later
     } else if (sortBy) {
       sortStage[sortBy] = sortOrder === "asc" ? 1 : -1;
     } else {
       sortStage.createdAt = -1;
     }
 
-    pipeline.push({ $sort: sortStage });
+    if (sort === "random") {
+      pipeline.push({ $sample: { size: limitNum } });
+    } else if (Object.keys(sortStage).length > 0) {
+      pipeline.push({ $sort: sortStage });
+    }
 
     // Format population shape
     pipeline.push({
@@ -193,11 +203,8 @@ export const getAllProducts = async (req, res) => {
       $project: { departmentDoc: 0, categoryDoc: 0, brandDoc: 0, sortPrice: 0 }
     });
 
-    const pageNum = Math.max(1, Number(page));
-    const limitNum = Math.max(1, Number(limit));
-    const skip = (pageNum - 1) * limitNum;
-
     // Execute with facet for pagination
+
     pipeline.push({
       $facet: {
         metadata: [{ $count: "total" }],
