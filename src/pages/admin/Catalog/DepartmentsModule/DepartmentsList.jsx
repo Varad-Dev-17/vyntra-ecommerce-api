@@ -44,7 +44,6 @@ const DepartmentsList = () => {
   // Filter/Search State
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
 
   // Delete State
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -69,8 +68,7 @@ const DepartmentsList = () => {
         params: {
           page: currentPage,
           limit,
-          search: debouncedSearch,
-          status: statusFilter
+          search: debouncedSearch
         }
       });
 
@@ -85,7 +83,7 @@ const DepartmentsList = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [currentPage, debouncedSearch, statusFilter]);
+  }, [currentPage, debouncedSearch]);
 
   useEffect(() => {
     fetchDepartments();
@@ -94,7 +92,7 @@ const DepartmentsList = () => {
   // Reset page to 1 when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [debouncedSearch, statusFilter]);
+  }, [debouncedSearch]);
 
   // Delete Handler
   const handleDeleteClick = (department) => {
@@ -122,25 +120,6 @@ const DepartmentsList = () => {
     }
   };
 
-  const handleToggleStatus = async (department) => {
-    const newStatus = department.status === 'Active' ? 'Inactive' : 'Active';
-    try {
-      const response = await axios.put(`${(import.meta.env.PROD ? '' : 'http://localhost:8000')}/admin/departments/${department._id}`, {
-        status: newStatus
-      }, { withCredentials: true });
-
-      if (response.data.success) {
-        toast.success(`Department marked as ${newStatus}`);
-        setDepartments(prev =>
-          prev.map(d => d._id === department._id ? { ...d, status: newStatus } : d)
-        );
-      }
-    } catch (error) {
-      console.error(error);
-      toast.error('Failed to update status');
-    }
-  };
-
 
 
   const columns = [
@@ -157,13 +136,13 @@ const DepartmentsList = () => {
     {
       header: 'Department',
       accessor: 'name',
-      align: 'left',
+      align: 'center',
       width: '25%',
       render: (row, rowIndex) => {
         const IconComponent = getIcon(row.iconName);
         const colors = getColors(rowIndex);
         return (
-          <div className="flex items-center gap-4">
+          <div className="flex items-center justify-center gap-4">
             <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${colors.bg} ${colors.text} shrink-0`}>
               <IconComponent size={20} />
             </div>
@@ -176,29 +155,11 @@ const DepartmentsList = () => {
       header: 'Description',
       accessor: 'description',
       align: 'left',
-      width: '35%',
+      width: '40%',
       render: (row) => (
         <span className="text-gray-500 text-[13px]">
           {row.description || 'No description provided'}
         </span>
-      )
-    },
-    {
-      header: 'Status',
-      accessor: 'status',
-      align: 'center',
-      width: '15%',
-      render: (row) => (
-        <div className="flex justify-center">
-          <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${
-            row.status === 'Active' 
-              ? 'bg-green-50 text-green-700 border border-green-100' 
-              : 'bg-gray-50 text-gray-600 border border-gray-200'
-          }`}>
-            <div className={`w-1.5 h-1.5 rounded-full ${row.status === 'Active' ? 'bg-green-500' : 'bg-gray-400'}`} />
-            {row.status}
-          </div>
-        </div>
       )
     },
     {
@@ -207,13 +168,6 @@ const DepartmentsList = () => {
       width: '15%',
       render: (row) => (
         <div className="flex items-center justify-center gap-2">
-          <button
-            onClick={() => handleToggleStatus(row)}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-gray-600 hover:text-gray-900 border border-gray-200 hover:bg-gray-50 rounded-lg transition-colors"
-          >
-            <Power size={14} />
-            {row.status === 'Active' ? 'Disable' : 'Enable'}
-          </button>
           <button
             onClick={() => navigate(`/admin/catalog/departments/${row._id}/edit`)}
             className="p-2 text-gray-400 hover:text-gray-900 border border-gray-200 hover:bg-gray-50 rounded-lg transition-colors"
@@ -234,7 +188,7 @@ const DepartmentsList = () => {
   ];
 
   return (
-    <div className="bg-white rounded-[20px] shadow-sm border border-gray-100 flex flex-col w-full h-full">
+    <div className="bg-white flex-1 flex flex-col h-full">
         <SearchToolbar 
           leftSlot={
             <div className="flex items-center gap-3 px-2">
@@ -250,19 +204,6 @@ const DepartmentsList = () => {
           searchQuery={search}
         onSearchChange={setSearch}
         searchPlaceholder="Search departments..."
-        extraFilters={
-          <SearchableSelect
-            className="w-[140px]"
-            size="sm"
-            value={statusFilter}
-            onChange={setStatusFilter}
-            options={[
-              { value: '', label: 'All Status' },
-              { value: 'Active', label: 'Active' },
-              { value: 'Inactive', label: 'Inactive' }
-            ]}
-          />
-        }
         actionButton={
           <button
             onClick={() => navigate('/admin/catalog/departments/add')}

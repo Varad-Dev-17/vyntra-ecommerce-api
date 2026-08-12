@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "concurrently \"npm run server:dev\" \"npm run client:dev\"",
-    "client:dev": "vite",
+    "client:dev": "wait-on tcp:127.0.0.1:8000 && vite",
     "server:dev": "nodemon server/index.js",
     "build": "vite build",
     "start": "npm run build && node server/index.js",
@@ -56,6 +56,7 @@
     "nodemon": "^3.1.14",
     "postcss": "^8.5.15",
     "tailwindcss": "^4.3.1",
-    "vite": "^8.0.12"
+    "vite": "^8.0.12",
+    "wait-on": "^9.1.0"
   }
 }

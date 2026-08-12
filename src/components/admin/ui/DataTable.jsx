@@ -22,8 +22,7 @@ const DataTable = ({
             {columns.map((col, index) => (
               <th
                 key={index}
-                className={`px-3.5 py-3 text-xs font-bold text-slate-600 uppercase tracking-wider ${borderClass} align-middle ${col.align === 'left' ? 'text-left' : col.align === 'right' ? 'text-right' : 'text-center'
-                  }`}
+                className={`px-3.5 py-4 text-sm font-bold text-slate-600 uppercase tracking-wider text-center ${borderClass} align-middle`}
               >
                 {col.header}
               </th>
@@ -59,8 +58,7 @@ const DataTable = ({
                 {columns.map((col, colIndex) => (
                   <td
                     key={colIndex}
-                    className={`px-3.5 py-3 text-xs ${borderClass} align-middle ${col.align === 'left' ? 'text-left' : col.align === 'right' ? 'text-right' : 'text-center'
-                      }`}
+                    className={`px-3.5 py-3 text-sm ${borderClass} align-middle text-center`}
                   >
                     {col.render ? col.render(row, rowIndex) : row[col.accessor]}
                   </td>

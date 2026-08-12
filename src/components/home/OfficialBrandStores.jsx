@@ -13,8 +13,8 @@ const brands = [
 ];
 
 const BrandCard = ({ brand }) => (
-  <Link to={`/brand/${brand.name.toLowerCase()}`} className="bg-transparent rounded-xl p-4 flex items-center gap-4 transition-colors duration-300 min-w-[260px] mx-2 shrink-0 group hover:opacity-80">
-    <div className="w-[50px] h-[50px] rounded-full bg-white flex items-center justify-center p-2.5 shadow-sm shrink-0 border border-gray-100">
+  <Link to={`/brand/${brand.name.toLowerCase()}`} className="bg-transparent rounded-xl p-4 flex items-center gap-5 transition-colors duration-300 min-w-[280px] mx-2 shrink-0 group hover:opacity-80">
+    <div className="w-[60px] h-[60px] rounded-full bg-white flex items-center justify-center p-4 shadow-sm shrink-0 border border-gray-100">
       <img 
         src={brand.logo} 
         alt={brand.name} 
@@ -76,7 +76,7 @@ const OfficialBrandStores = () => {
         
         <MarqueeRow items={row1Brands} direction="left" speed={60} />
         <MarqueeRow items={row2Brands} direction="right" speed={75} />
-        <MarqueeRow items={row3Brands} direction="left" speed={65} />
+        <MarqueeRow items={row3Brands} direction="left" speed={60} />
       </div>
     </section>
   );

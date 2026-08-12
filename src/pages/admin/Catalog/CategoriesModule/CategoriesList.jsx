@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import toast from 'react-hot-toast';
-import { Plus, Edit2, Trash2, Check } from 'lucide-react';
+import { Plus, Edit2, Trash2, Check, Image as ImageIcon, Folder } from 'lucide-react';
 import DataTable from '../../../../components/admin/ui/DataTable';
 import CatalogDetailsModal from '../../../../components/admin/ui/CatalogDetailsModal';
 
@@ -154,6 +154,7 @@ const CategoriesList = () => {
       header: 'Sr. No.',
       accessor: 'srNo',
       align: 'center',
+      width: '10%',
       render: (_, rowIndex) => (
         <span className="text-gray-500 font-medium">
           {(currentPage - 1) * limit + rowIndex + 1}
@@ -161,12 +162,28 @@ const CategoriesList = () => {
       )
     },
     {
+      header: 'Image',
+      accessor: 'image',
+      align: 'center',
+      width: '10%',
+      render: (row) => (
+        <div className="w-[50px] h-[60px] rounded-xl bg-white flex items-center justify-center shrink-0 overflow-hidden border border-gray-100 shadow-sm mx-auto">
+          {row.image?.url ? (
+            <img src={row.image.url} alt={row.name} className="w-full h-full object-cover" />
+          ) : (
+            <ImageIcon className="w-5 h-5 text-gray-400" />
+          )}
+        </div>
+      )
+    },
+    {
       header: 'Category',
       accessor: 'name',
+      width: '30%',
       render: (row) => (
         <button
           onClick={() => handleNameClick(row)}
-          className="font-medium text-[#4648d4] hover:underline text-left focus:outline-none"
+          className="font-bold text-[#1a1a2e] hover:text-[#4648d4] transition-colors text-left focus:outline-none"
         >
           {row.name}
         </button>
@@ -175,30 +192,52 @@ const CategoriesList = () => {
     {
       header: 'Status',
       accessor: 'status',
-      render: (row) => <StatusBadge status={row.status} />
+      align: 'center',
+      width: '15%',
+      render: (row) => <div className="flex justify-center"><StatusBadge status={row.status} /></div>
+    },
+    {
+      header: 'Created At',
+      accessor: 'createdAt',
+      align: 'center',
+      width: '20%',
+      render: (row) => {
+        const date = new Date(row.createdAt);
+        return (
+          <span className="text-gray-500 font-medium text-sm">
+            {date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}, {date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })}
+          </span>
+        );
+      }
     },
     {
       header: 'Actions',
       align: 'center',
+      width: '15%',
       render: (row) => (
         <div className="flex items-center justify-center gap-2">
-          <button
-            onClick={() => handleToggleStatus(row)}
-            className="text-xs font-medium text-gray-500 hover:text-[#4648d4] bg-gray-50 hover:bg-[#4648d4]/10 px-2 py-1 rounded transition-colors"
-          >
-            {row.status === 'Active' ? 'Disable' : 'Enable'}
-          </button>
+          <div className="flex items-center gap-2 mr-1">
+            <button 
+              onClick={() => handleToggleStatus(row)}
+              className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none ${row.status === 'Active' ? 'bg-[#4648d4]' : 'bg-gray-300'}`}
+            >
+              <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${row.status === 'Active' ? 'translate-x-4' : 'translate-x-1'}`} />
+            </button>
+            <span className="text-sm font-medium text-gray-700 w-12 text-left select-none">
+              {row.status === 'Active' ? 'Enable' : 'Disable'}
+            </span>
+          </div>
 
           <button
             onClick={() => navigate(`/admin/catalog/categories/${row._id}/edit`)}
-            className="p-1.5 text-gray-400 hover:text-[#4648d4] hover:bg-[#4648d4]/10 rounded-lg transition-colors"
+            className="w-9 h-9 flex items-center justify-center text-[#4648d4] border border-gray-200 hover:border-[#4648d4] hover:bg-[#4648d4]/5 rounded-xl transition-colors shadow-sm"
             title="Edit"
           >
             <Edit2 size={16} />
           </button>
           <button
             onClick={() => handleDeleteClick(row)}
-            className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+            className="w-9 h-9 flex items-center justify-center text-red-500 border border-gray-200 hover:border-red-500 hover:bg-red-50 rounded-xl transition-colors shadow-sm"
             title="Delete"
           >
             <Trash2 size={16} />
@@ -211,7 +250,17 @@ const CategoriesList = () => {
   return (
     <div className="bg-white rounded-[20px] shadow-sm border border-gray-100 flex flex-col w-full h-full">
       <SearchToolbar
-        leftSlot={<h2 className="text-lg font-semibold text-[#4648d4] px-2">Categories</h2>}
+        leftSlot={
+          <div className="flex items-center gap-3 px-2 py-1">
+            <div className="w-10 h-10 rounded-xl bg-[#4648d4]/10 flex items-center justify-center text-[#4648d4]">
+              <Folder size={20} />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-gray-900">Categories</h2>
+              <p className="text-xs text-gray-500">Manage your product categories</p>
+            </div>
+          </div>
+        }
         searchQuery={search}
         onSearchChange={setSearch}
         searchPlaceholder="Search categories..."

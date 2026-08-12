@@ -14,9 +14,9 @@ const CatalogLayout = () => {
   const isFormPage = location.pathname.includes('/add') || location.pathname.includes('/edit');
 
   return (
-    <div className="flex-1 overflow-x-hidden flex flex-col gap-6 lg:p-7">
+    <div className="flex-1 overflow-x-hidden flex flex-col">
       {!isFormPage && (
-        <div className="flex items-center gap-4 bg-white px-6 py-3 rounded-xl shadow-sm border border-gray-100 mb-2">
+        <div className="flex items-center gap-4 bg-white px-6 py-4 border-b border-gray-200">
           <h1 className="text-lg font-bold text-[#4648d4] mr-4 border-r border-gray-200 pr-6">Catalog</h1>
           <div className="flex gap-2">
             {tabs.map((tab) => {

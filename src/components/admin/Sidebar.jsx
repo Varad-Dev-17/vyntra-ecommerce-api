@@ -47,8 +47,8 @@ const Sidebar = ({ onClose, isCollapsed, toggleCollapse }) => {
 
   return (
     <motion.aside
-      initial={{ x: -240 }}
-      animate={{ x: 0, width: isCollapsed ? 72 : 240 }}
+      initial={{ x: -256 }}
+      animate={{ x: 0, width: isCollapsed ? 72 : 256 }}
       transition={{ duration: 0.3, ease: "easeInOut" }}
       className="min-h-screen bg-white border-r border-gray-100 flex flex-col fixed left-0 top-0 z-40 overflow-hidden"
     >
@@ -66,7 +66,7 @@ const Sidebar = ({ onClose, isCollapsed, toggleCollapse }) => {
         )}
 
         {toggleCollapse && (
-          <button 
+          <button
             onClick={toggleCollapse}
             className="hidden lg:flex items-center justify-center p-1.5 rounded-lg text-slate-400 hover:text-[#4648d4] hover:bg-slate-50 transition-colors"
             title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
@@ -88,12 +88,10 @@ const Sidebar = ({ onClose, isCollapsed, toggleCollapse }) => {
                 title={isCollapsed ? item.label : undefined}
                 onClick={() => onClose?.()}
                 className={({ isActive }) =>
-                  `w-full flex items-center gap-3 py-3.5 rounded-xl text-base transition-all duration-200 ${
-                    isCollapsed ? "justify-center px-0" : "px-5"
-                  } ${
-                    isActive
-                      ? "bg-[#4648d4] text-white font-semibold shadow-sm"
-                      : "text-gray-600 font-medium hover:bg-[#4648d4]/5 hover:text-[#4648d4]"
+                  `w-full flex items-center gap-3 py-3.5 rounded-xl text-base transition-all duration-200 ${isCollapsed ? "justify-center px-0" : "px-5"
+                  } ${isActive
+                    ? "bg-[#4648d4] text-white font-semibold shadow-sm"
+                    : "text-gray-600 font-medium hover:bg-[#4648d4]/5 hover:text-[#4648d4]"
                   }`
                 }
               >
@@ -159,9 +157,8 @@ const Sidebar = ({ onClose, isCollapsed, toggleCollapse }) => {
               setIsProfileOpen(!isProfileOpen);
             }
           }}
-          className={`w-full flex items-center rounded-xl transition-all duration-200 ${
-            isProfileOpen && !isCollapsed ? "bg-gray-50" : "hover:bg-gray-50"
-          } ${isCollapsed ? "justify-center p-2" : "justify-between p-3"}`}
+          className={`w-full flex items-center rounded-xl transition-all duration-200 ${isProfileOpen && !isCollapsed ? "bg-gray-50" : "hover:bg-gray-50"
+            } ${isCollapsed ? "justify-center p-2" : "justify-between p-3"}`}
           title={isCollapsed ? (user?.username || "Admin") : undefined}
         >
           <div className={`flex items-center gap-3 ${isCollapsed ? "justify-center" : "overflow-hidden"}`}>

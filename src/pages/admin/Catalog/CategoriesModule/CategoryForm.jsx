@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import { UploadCloud, X } from 'lucide-react';
 
 const CategoryForm = ({ initialData = null, isEdit = false }) => {
   const navigate = useNavigate();
@@ -10,7 +11,8 @@ const CategoryForm = ({ initialData = null, isEdit = false }) => {
     departmentIds: [],
     name: '',
     slug: '',
-    status: 'Active'
+    status: 'Active',
+    image: null
   });
   
   const [departments, setDepartments] = useState([]);
@@ -42,7 +44,8 @@ const CategoryForm = ({ initialData = null, isEdit = false }) => {
         departmentIds: initialData.departmentIds?.map(d => d._id || d) || [],
         name: initialData.name || '',
         slug: initialData.slug || '',
-        status: initialData.status || 'Active'
+        status: initialData.status || 'Active',
+        image: initialData.image || null
       });
       if (initialData.slug) {
         setSlugModified(true);
@@ -72,6 +75,35 @@ const CategoryForm = ({ initialData = null, isEdit = false }) => {
         return { ...prev, departmentIds: [...prev.departmentIds, departmentId] };
       }
     });
+  };
+
+  const handleImageUpload = async (file) => {
+    if (!file) return;
+    try {
+      setIsLoading(true);
+      const data = new FormData();
+      data.append("image", file);
+      const res = await axios.post(`${(import.meta.env.PROD ? '' : 'http://localhost:8000')}/admin/upload/image`, data, {
+        withCredentials: true
+      });
+      if (res.data.success) {
+        toast.success("Image uploaded successfully");
+        setFormData(prev => ({ 
+          ...prev, 
+          image: {
+            url: res.data.data.url,
+            public_id: res.data.data.publicId
+          }
+        }));
+      } else {
+        toast.error("Failed to upload image");
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to upload image");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -165,6 +197,31 @@ const CategoryForm = ({ initialData = null, isEdit = false }) => {
               <option value="Inactive">Inactive</option>
             </select>
           </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-[#4648d4] mb-2">Category Image</label>
+          {formData.image ? (
+            <div className="relative w-32 h-32 border border-gray-200 rounded-xl overflow-hidden group">
+              <img src={formData.image.url} alt="Category" className="w-full h-full object-cover" />
+              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                <button
+                  type="button"
+                  onClick={() => setFormData(prev => ({ ...prev, image: null }))}
+                  className="w-8 h-8 bg-white text-red-500 rounded-full flex items-center justify-center hover:bg-red-50 transition-colors shadow-sm"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+            </div>
+          ) : (
+            <label className="flex flex-col items-center justify-center w-32 h-32 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:bg-gray-50 hover:border-[#4648d4] transition-colors">
+              <input type="file" className="hidden" accept="image/*" onChange={(e) => handleImageUpload(e.target.files[0])} />
+              <UploadCloud className="w-8 h-8 text-gray-400 mb-2" />
+              <span className="text-xs font-medium text-gray-600">Upload</span>
+            </label>
+          )}
+          <p className="mt-2 text-xs text-gray-500">Recommended size: 400x400px. PNG, JPG or WEBP.</p>
         </div>
 
         <div className="flex justify-end gap-4 pt-6 mt-2 border-t border-gray-100">

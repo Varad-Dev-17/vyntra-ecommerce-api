@@ -9,7 +9,7 @@ const SearchToolbar = ({
   leftSlot = null
 }) => {
   return (
-    <div className="flex flex-row items-center gap-4 p-4 border-b border-gray-100 bg-white">
+    <div className="flex flex-row items-center gap-4 pl-4 pr-12 py-4 border-b border-gray-100 bg-white rounded-t-[20px]">
       {/* Left Navigation / Tabs - takes available space and pushes right side elements */}
       {leftSlot && (
         <div className="shrink-0 flex-1 mr-2 min-w-max">

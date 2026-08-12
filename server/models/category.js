@@ -23,6 +23,11 @@ const CategorySchema = new mongoose.Schema(
       trim: true,
     },
 
+    image: {
+      url: String,
+      public_id: String
+    },
+
     status: {
       type: String,
       enum: ["Active", "Inactive"],

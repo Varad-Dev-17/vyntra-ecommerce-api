@@ -105,7 +105,7 @@ export const getCategoriesByDepartment = async (req, res) => {
 // CREATE CATEGORY
 export const createCategory = async (req, res) => {
   try {
-    const { departmentIds, name, slug, status } = req.body;
+    const { departmentIds, name, slug, status, image } = req.body;
 
     if (!departmentIds || departmentIds.length === 0 || !name || !slug) {
       return res.status(400).json({
@@ -139,6 +139,7 @@ export const createCategory = async (req, res) => {
       name: name.trim(),
       slug: slug.trim().toLowerCase(),
       status: status || "Active",
+      image: image || undefined,
     });
 
     res.status(201).json({
@@ -159,7 +160,7 @@ export const createCategory = async (req, res) => {
 export const updateCategory = async (req, res) => {
   try {
     const { id } = req.params;
-    const { departmentIds, name, slug, status } = req.body;
+    const { departmentIds, name, slug, status, image } = req.body;
 
     const category = await Category.findById(id);
     if (!category) {
@@ -203,6 +204,7 @@ export const updateCategory = async (req, res) => {
     if (name) category.name = name.trim();
     if (slug) category.slug = slug.trim().toLowerCase();
     if (status) category.status = status;
+    if (image !== undefined) category.image = image;
 
     await category.save();
 

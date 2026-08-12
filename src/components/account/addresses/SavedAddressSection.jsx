@@ -119,7 +119,7 @@ const SavedAddressSection = () => {
   }
 
   return (
-    <div className="w-full max-w-5xl">
+    <div className="w-full">
       <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
         <h2 className="text-2xl md:text-3xl font-extrabold text-slate-700 tracking-tight">Saved Addresses</h2>
         <button 
@@ -155,9 +155,9 @@ const SavedAddressSection = () => {
                 }`}
               >
                 {/* Main Content Area */}
-                <div className="p-6 md:p-8">
+                <div className="p-4 md:p-5">
                   {/* Header Row: Name & Badge */}
-                  <div className="flex justify-between items-start mb-4">
+                  <div className="flex justify-between items-start mb-3">
                     <div className="flex items-center gap-3">
                       <h4 className="text-[17px] font-extrabold text-slate-700 tracking-tight">
                         {address.fullName}
@@ -190,20 +190,20 @@ const SavedAddressSection = () => {
                 <div className="border-t border-gray-100 flex items-center divide-x divide-gray-100 bg-gray-50/50">
                   <button 
                     onClick={() => handleEditClick(address)}
-                    className="flex-1 py-3.5 text-[13px] font-bold text-[#4F46E5] hover:bg-gray-50 transition-colors uppercase tracking-wide"
+                    className="flex-1 py-2.5 text-[13px] font-bold text-[#4F46E5] hover:bg-gray-50 transition-colors uppercase tracking-wide"
                   >
                     Edit
                   </button>
                   <button 
                     onClick={() => handleDeleteClick(address)}
-                    className="flex-1 py-3.5 text-[13px] font-bold text-[#4F46E5] hover:bg-gray-50 transition-colors uppercase tracking-wide"
+                    className="flex-1 py-2.5 text-[13px] font-bold text-[#4F46E5] hover:bg-gray-50 transition-colors uppercase tracking-wide"
                   >
                     Remove
                   </button>
                   {!address.isDefault && (
                     <button 
                       onClick={() => handleSetDefault(address._id)}
-                      className="flex-1 py-3.5 text-[13px] font-bold text-[#4F46E5] hover:bg-gray-50 transition-colors uppercase tracking-wide"
+                      className="flex-1 py-2.5 text-[13px] font-bold text-[#4F46E5] hover:bg-gray-50 transition-colors uppercase tracking-wide"
                     >
                       Set as Default
                     </button>
