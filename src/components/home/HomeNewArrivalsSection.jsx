@@ -22,7 +22,8 @@ const HomeArrivalCard = ({ product }) => {
 
   const displayPrice = product.price || product.variants?.[0]?.price || 0;
   const displayMrp = product.mrp || product.variants?.[0]?.mrp || 0;
-  const displayImages = product.images || (product.variants?.[0]?.mainImage ? [product.variants[0].mainImage, ...(product.variants[0].galleryImages || [])] : []);
+  const firstVariantWithImage = product.variants?.find(v => v.mainImage?.url);
+  const displayImages = product.images || (firstVariantWithImage ? [firstVariantWithImage.mainImage, ...(firstVariantWithImage.galleryImages || [])] : []);
   const discountPercentage = product.discountPercentage || (displayMrp > 0 && displayMrp > displayPrice ? Math.round(((displayMrp - displayPrice) / displayMrp) * 100) : 0);
 
   return (

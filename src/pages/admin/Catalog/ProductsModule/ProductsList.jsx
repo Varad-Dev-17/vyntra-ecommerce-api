@@ -2,14 +2,14 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import toast from 'react-hot-toast';
-import { Plus, Edit2, Trash2, PackageSearch } from 'lucide-react';
+import { Plus, Edit2, Trash2, PackageSearch, Eye } from 'lucide-react';
 import DataTable from '../../../../components/admin/ui/DataTable';
 import SearchToolbar from '../../../../components/admin/ui/SearchToolbar';
 import StatusBadge from '../../../../components/admin/ui/StatusBadge';
 import ConfirmDialog from '../../../../components/admin/ui/ConfirmDialog';
 import Pagination from '../../../../components/admin/ui/Pagination';
 import SearchableSelect from '../../../../components/admin/ui/SearchableSelect';
-import ProductDetailsDrawer from '../../../../components/admin/ui/ProductDetailsDrawer';
+
 
 const ProductsList = () => {
   const navigate = useNavigate();
@@ -42,9 +42,6 @@ const ProductsList = () => {
   const [productToDelete, setProductToDelete] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // Variant Modal State
-  const [isVariantModalOpen, setIsVariantModalOpen] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState(null);
 
   // Debounce search
   useEffect(() => {
@@ -54,7 +51,6 @@ const ProductsList = () => {
     return () => clearTimeout(timer);
   }, [search]);
 
-  // Fetch Filter Options
   useEffect(() => {
     const fetchFilterOptions = async () => {
       try {
@@ -144,10 +140,7 @@ const ProductsList = () => {
       header: 'Product Name',
       accessor: 'title',
       render: (row) => (
-        <span 
-          onClick={() => { setSelectedProduct(row); setIsVariantModalOpen(true); }}
-          className="font-medium text-[#4648d4] hover:underline cursor-pointer line-clamp-1"
-        >
+        <span className="font-medium text-[#4648d4] line-clamp-1">
           {row.title}
         </span>
       )
@@ -167,36 +160,7 @@ const ProductsList = () => {
       accessor: 'category',
       render: (row) => <span className="text-sm text-gray-600">{row.category?.name || 'N/A'}</span>
     },
-    {
-      header: 'Variants',
-      accessor: 'variants',
-      render: (row) => {
-        const count = row.variants?.length || 0;
-        let groupCount = 0;
-        if (count > 0) {
-           // Find the 'Color' attribute to group by, fallback to first attribute
-           const firstVariantAttrs = row.variants[0].attributes || [];
-           const colorAttr = firstVariantAttrs.find(a => a.attribute?.name?.toLowerCase() === 'color');
-           
-           const pAttrId = colorAttr 
-             ? (colorAttr.attribute?._id || colorAttr.attribute)
-             : (firstVariantAttrs[0]?.attribute?._id || firstVariantAttrs[0]?.attribute);
-             
-           const uniqueGroups = new Set();
-           row.variants.forEach(v => {
-             const pAttr = v.attributes.find(a => (a.attribute?._id || a.attribute) === pAttrId);
-             if (pAttr) uniqueGroups.add(pAttr.option?._id || pAttr.option);
-           });
-           groupCount = uniqueGroups.size;
-        }
 
-        return (
-          <span className="text-sm text-gray-600">
-            {groupCount} Option{groupCount !== 1 ? 's' : ''}
-          </span>
-        );
-      }
-    },
     {
       header: 'Status',
       accessor: 'status',
@@ -207,6 +171,13 @@ const ProductsList = () => {
       align: 'right',
       render: (row) => (
         <div className="flex items-center justify-end gap-2">
+          <button
+            onClick={() => navigate(`/admin/products/${row._id}/view`)}
+            className="p-1.5 text-gray-400 hover:text-green-500 hover:bg-green-50 rounded-lg transition-colors"
+            title="View Details"
+          >
+            <Eye size={16} />
+          </button>
           <button
             onClick={() => navigate(`/admin/products/${row._id}/edit`)}
             className="p-1.5 text-gray-400 hover:text-[#4648d4] hover:bg-[#4648d4]/10 rounded-lg transition-colors"
@@ -333,11 +304,7 @@ const ProductsList = () => {
         isLoading={isDeleting}
       />
 
-      <ProductDetailsDrawer
-        isOpen={isVariantModalOpen}
-        onClose={() => setIsVariantModalOpen(false)}
-        product={selectedProduct}
-      />
+
     </div>
   );
 };
