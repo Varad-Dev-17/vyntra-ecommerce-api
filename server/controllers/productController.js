@@ -10,6 +10,244 @@ import Variant from "../models/variant.js";
 import { v2 as cloudinary } from "cloudinary";
 import { getNextSequence } from "../utils/counterHelper.js";
 
+// GET ALL VARIANT GROUPS (Paginated at the group level)
+export const getAllVariantGroups = async (req, res) => {
+  try {
+    const {
+      page = 1,
+      limit = 10,
+      search = "",
+      sort = "newest",
+      departments,
+      categories,
+      brands,
+      minPrice,
+      maxPrice,
+      colors,
+      status,
+    } = req.query;
+
+    const pipeline = [];
+    const matchStage1 = {};
+
+    if (status) matchStage1.status = status;
+
+    pipeline.push({ $match: matchStage1 });
+
+    pipeline.push(
+      { $lookup: { from: "departments", localField: "department", foreignField: "_id", as: "departmentDoc" } },
+      { $unwind: { path: "$departmentDoc", preserveNullAndEmptyArrays: true } },
+      { $lookup: { from: "categories", localField: "category", foreignField: "_id", as: "categoryDoc" } },
+      { $unwind: { path: "$categoryDoc", preserveNullAndEmptyArrays: true } },
+      { $lookup: { from: "brands", localField: "brand", foreignField: "_id", as: "brandDoc" } },
+      { $unwind: { path: "$brandDoc", preserveNullAndEmptyArrays: true } }
+    );
+
+    const matchStage2 = {};
+    if (departments) matchStage2["departmentDoc.name"] = { $in: departments.split(",").map(d => d.trim()) };
+    if (categories) matchStage2["categoryDoc.name"] = { $in: categories.split(",").map(c => c.trim()) };
+    if (brands) matchStage2["brandDoc.name"] = { $in: brands.split(",").map(b => b.trim()) };
+    
+    if (Object.keys(matchStage2).length > 0) pipeline.push({ $match: matchStage2 });
+
+    pipeline.push({
+      $lookup: { from: "variants", localField: "_id", foreignField: "product", as: "variants" }
+    });
+
+    let colorOptionIds = [];
+    if (colors) {
+      const colorNames = colors.split(',').map(s => s.trim());
+      const colorAttr = await Attribute.findOne({ name: { $regex: /^color$/i } }).lean();
+      if (colorAttr) {
+        const opts = await AttributeOption.find({
+          attribute: colorAttr._id,
+          $or: [
+            { storedValue: { $in: colorNames } },
+            { displayName: { $in: colorNames } }
+          ]
+        }).lean();
+        colorOptionIds = opts.map(o => o._id);
+      } else {
+        colorOptionIds = [new mongoose.Types.ObjectId()]; 
+      }
+    }
+
+    const postLookupMatch = {};
+    if (search.trim()) {
+      const searchRegex = new RegExp(search.trim().replace(/\s+/g, "[-\\s]*"), "i");
+      postLookupMatch.$or = [
+        { title: searchRegex },
+        { shortDescription: searchRegex },
+        { slug: searchRegex },
+        { "variants.sku": searchRegex }
+      ];
+    }
+
+    const variantElemMatch = {};
+    if (minPrice !== undefined || maxPrice !== undefined) {
+      variantElemMatch.price = {};
+      if (minPrice !== undefined) variantElemMatch.price.$gte = Number(minPrice);
+      if (maxPrice !== undefined) variantElemMatch.price.$lte = Number(maxPrice);
+    }
+    if (colors) {
+      variantElemMatch["attributes.option"] = { $in: colorOptionIds };
+    }
+
+    if (Object.keys(variantElemMatch).length > 0) {
+      postLookupMatch.variants = { $elemMatch: variantElemMatch };
+    }
+
+    if (Object.keys(postLookupMatch).length > 0) {
+      pipeline.push({ $match: postLookupMatch });
+    }
+
+    // Sort products first
+    const sortStage = {};
+    if (sort === "newest") sortStage.createdAt = -1;
+    else if (sort === "ratingDesc") { sortStage.ratingAverage = -1; sortStage.ratingCount = -1; }
+    else sortStage.createdAt = -1;
+    pipeline.push({ $sort: sortStage });
+
+    // Format population shape
+    pipeline.push({
+      $addFields: {
+        department: {
+          $cond: { if: "$departmentDoc._id", then: { _id: "$departmentDoc._id", name: "$departmentDoc.name" }, else: "$department" }
+        },
+        category: {
+          $cond: { if: "$categoryDoc._id", then: { _id: "$categoryDoc._id", name: "$categoryDoc.name" }, else: "$category" }
+        },
+        brand: {
+          $cond: { if: "$brandDoc._id", then: { _id: "$brandDoc._id", name: "$brandDoc.name" }, else: "$brand" }
+        }
+      }
+    });
+
+    pipeline.push({
+      $project: { departmentDoc: 0, categoryDoc: 0, brandDoc: 0, sortPrice: 0 }
+    });
+
+    // Execute pipeline to get ALL matching products (since we need to group variants accurately across pages)
+    // Note: For massive catalogs, this should be done purely via a complex Mongo $unwind and $group aggregation.
+    // For now, in-memory grouping of filtered products provides 100% accuracy matching the frontend behavior.
+    const allMatchingProducts = await Product.aggregate(pipeline);
+
+    if (allMatchingProducts.length > 0) {
+      await Product.populate(allMatchingProducts, [
+        { path: "variants.attributes.attribute", model: "Attribute", select: "name fieldType" },
+        { path: "variants.attributes.option", model: "AttributeOption", select: "displayName storedValue" }
+      ]);
+    }
+
+    const groupMap = {};
+    const groupOrder = [];
+
+    allMatchingProducts.forEach(product => {
+      if (!product.variants || product.variants.length === 0) return;
+      
+      let primaryAttrId = null;
+      const firstVariant = product.variants[0];
+      if (firstVariant && firstVariant.attributes) {
+        const colorAttr = firstVariant.attributes.find(
+          a => a.attribute && a.attribute.name && a.attribute.name.toLowerCase() === 'color'
+        );
+        if (colorAttr && colorAttr.attribute) {
+          primaryAttrId = colorAttr.attribute._id;
+        } else if (firstVariant.attributes[0] && firstVariant.attributes[0].attribute) {
+          primaryAttrId = firstVariant.attributes[0].attribute._id;
+        }
+      }
+
+      product.variants.forEach(variant => {
+        let primaryOption = null;
+        let secondaryOptionsList = [];
+
+        if (variant.attributes) {
+          variant.attributes.forEach(attr => {
+            if (attr.attribute && attr.attribute._id.toString() === (primaryAttrId ? primaryAttrId.toString() : null)) {
+              primaryOption = attr.option;
+            } else if (attr.option && attr.option.displayName) {
+              secondaryOptionsList.push(attr.option.displayName);
+            }
+          });
+        }
+
+        const primaryOptionId = primaryOption ? primaryOption._id.toString() : 'default';
+        const primaryOptionName = primaryOption ? primaryOption.displayName : 'Standard';
+        
+        const groupId = `${product._id}-${primaryOptionId}`;
+
+        if (!groupMap[groupId]) {
+          groupMap[groupId] = {
+            id: groupId,
+            productId: product._id,
+            productDisplayId: product.productId,
+            productTitle: product.title,
+            productImage: variant.mainImage?.url || null,
+            primaryOptionId: primaryOptionId,
+            primaryOptionName: primaryOptionName,
+            secondaryOptions: new Set(),
+            prices: [],
+            stock: 0,
+            gstRates: new Set(),
+            ratingAverage: product.ratingAverage || 0,
+            ratingCount: product.ratingCount || 0
+          };
+          groupOrder.push(groupId);
+        }
+
+        const group = groupMap[groupId];
+        secondaryOptionsList.forEach(opt => group.secondaryOptions.add(opt));
+        if (variant.price) group.prices.push(Number(variant.price));
+        if (variant.stock) group.stock += Number(variant.stock);
+        if (variant.gstRate) group.gstRates.add(Number(variant.gstRate));
+      });
+    });
+
+    const allVariantGroups = groupOrder.map(id => {
+      const g = groupMap[id];
+      const validPrices = g.prices.filter(p => !isNaN(p) && p > 0);
+      return {
+        ...g,
+        secondaryOptions: Array.from(g.secondaryOptions),
+        minPrice: validPrices.length > 0 ? Math.min(...validPrices) : 0,
+        maxPrice: validPrices.length > 0 ? Math.max(...validPrices) : 0,
+        gstRates: Array.from(g.gstRates).sort((a, b) => a - b),
+        prices: undefined // clean up memory
+      };
+    });
+
+    // Pagination
+    const pageNum = Math.max(1, Number(page));
+    const limitNum = Math.max(1, Number(limit));
+    const skip = (pageNum - 1) * limitNum;
+    
+    const paginatedGroups = allVariantGroups.slice(skip, skip + limitNum);
+    const total = allVariantGroups.length;
+
+    return res.status(200).json({
+      success: true,
+      message: "Variant groups fetched successfully",
+      data: {
+        variantGroups: paginatedGroups,
+        pagination: {
+          page: pageNum,
+          limit: limitNum,
+          total,
+          pages: Math.ceil(total / limitNum),
+        },
+      },
+    });
+  } catch (error) {
+    console.error("[Get All Variant Groups Error]:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch variant groups",
+      data: null,
+    });
+  }
+};
+
 // GET ALL PRODUCTS (with pagination, search, sort, filter)
 export const getAllProducts = async (req, res) => {
   try {

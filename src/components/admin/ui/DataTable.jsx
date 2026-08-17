@@ -17,19 +17,23 @@ const DataTable = ({
   return (
     <div className="overflow-x-auto overflow-y-auto max-h-full">
       <table className="w-full whitespace-nowrap border-collapse">
-        <thead className="bg-gray-50 sticky top-0 z-10 border-b border-gray-200">
+        <thead className="bg-white sticky top-0 z-10 border-b border-gray-100">
           <tr>
-            {columns.map((col, index) => (
-              <th
-                key={index}
-                className={`px-3.5 py-4 text-sm font-bold text-slate-600 uppercase tracking-wider text-center ${borderClass} align-middle`}
-              >
-                {col.header}
-              </th>
-            ))}
+            {columns.map((col, index) => {
+              const alignClass = col.align === 'left' ? 'text-left' : col.align === 'right' ? 'text-right' : 'text-center';
+              return (
+                <th
+                  key={index}
+                  className={`px-3.5 py-4 text-xs font-extrabold text-slate-500 uppercase tracking-widest ${alignClass} ${borderClass} align-middle`}
+                  style={{ width: col.width }}
+                >
+                  {col.header}
+                </th>
+              );
+            })}
           </tr>
         </thead>
-        <tbody className="divide-y divide-gray-200 bg-white">
+        <tbody className="divide-y divide-gray-100 bg-white">
           {isLoading ? (
             <tr>
               <td colSpan={columns.length} className="text-center py-12">
@@ -55,14 +59,18 @@ const DataTable = ({
               <tr
                 key={row[keyField] || rowIndex}
               >
-                {columns.map((col, colIndex) => (
-                  <td
-                    key={colIndex}
-                    className={`px-3.5 py-3 text-sm ${borderClass} align-middle text-center`}
-                  >
-                    {col.render ? col.render(row, rowIndex) : row[col.accessor]}
-                  </td>
-                ))}
+                {columns.map((col, colIndex) => {
+                  const alignClass = col.align === 'left' ? 'text-left' : col.align === 'right' ? 'text-right' : 'text-center';
+                  return (
+                    <td
+                      key={colIndex}
+                      className={`px-3.5 py-3 text-sm ${borderClass} align-middle ${alignClass}`}
+                      style={{ width: col.width }}
+                    >
+                      {col.render ? col.render(row, rowIndex) : row[col.accessor]}
+                    </td>
+                  );
+                })}
               </tr>
             ))
           )}

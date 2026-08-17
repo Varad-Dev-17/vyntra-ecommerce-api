@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import toast from 'react-hot-toast';
-import { Plus, Edit2, Trash2, PackageSearch, Eye } from 'lucide-react';
+import { Plus, Edit2, Trash2, PackageSearch, Eye, Star } from 'lucide-react';
 import DataTable from '../../../../components/admin/ui/DataTable';
 import SearchToolbar from '../../../../components/admin/ui/SearchToolbar';
 import StatusBadge from '../../../../components/admin/ui/StatusBadge';
@@ -17,6 +17,9 @@ const ProductsList = () => {
   // Data State
   const [products, setProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  
+  const [viewMode, setViewMode] = useState('products');
+  const [variantGroups, setVariantGroups] = useState([]);
   
   // Filter Options State
   const [departments, setDepartments] = useState([]);
@@ -42,6 +45,7 @@ const ProductsList = () => {
   const [productToDelete, setProductToDelete] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  // Removed client-side variant grouping logic as it is now handled by the backend API
 
   // Debounce search
   useEffect(() => {
@@ -74,7 +78,8 @@ const ProductsList = () => {
   const fetchProducts = useCallback(async () => {
     setIsLoading(true);
     try {
-      const response = await axios.get(`${(import.meta.env.PROD ? '' : 'http://localhost:8000')}/admin/products`, {
+      const endpoint = viewMode === 'variants' ? '/admin/products/variants/groups' : '/admin/products';
+      const response = await axios.get(`${(import.meta.env.PROD ? '' : 'http://localhost:8000')}${endpoint}`, {
         params: {
           page: currentPage,
           limit,
@@ -88,26 +93,32 @@ const ProductsList = () => {
       });
       
       if (response.data.success) {
-        setProducts(response.data.data.products);
+        if (viewMode === 'variants') {
+          setVariantGroups(response.data.data.variantGroups || []);
+          setProducts([]);
+        } else {
+          setProducts(response.data.data.products || []);
+          setVariantGroups([]);
+        }
         setTotalPages(response.data.data.pagination.pages);
         setTotalItems(response.data.data.pagination.total);
       }
     } catch (error) {
-      console.error('Failed to fetch products:', error);
-      toast.error('Failed to load products');
+      console.error('Failed to fetch data:', error);
+      toast.error('Failed to load data');
     } finally {
       setIsLoading(false);
     }
-  }, [currentPage, debouncedSearch, statusFilter, departmentFilter, categoryFilter, brandFilter]);
+  }, [currentPage, debouncedSearch, statusFilter, departmentFilter, categoryFilter, brandFilter, viewMode]);
 
   useEffect(() => {
     fetchProducts();
   }, [fetchProducts]);
 
-  // Reset page to 1 when filters change
+  // Reset page to 1 when filters or viewMode changes
   useEffect(() => {
     setCurrentPage(1);
-  }, [debouncedSearch, statusFilter, departmentFilter, categoryFilter, brandFilter]);
+  }, [debouncedSearch, statusFilter, departmentFilter, categoryFilter, brandFilter, viewMode]);
 
   // Delete Handler
   const handleDeleteClick = (product) => {
@@ -197,11 +208,121 @@ const ProductsList = () => {
     }
   ];
 
+  const variantColumns = [
+    {
+      header: 'ID',
+      accessor: 'productDisplayId',
+      render: (row) => (
+        <span className="text-xs font-medium text-gray-500">{row.productDisplayId || row.productId}</span>
+      )
+    },
+    {
+      header: 'Product',
+      accessor: 'product',
+      render: (row) => (
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-lg bg-gray-50 flex items-center justify-center shrink-0 border border-gray-100 overflow-hidden">
+            {row.productImage ? (
+              <img src={row.productImage} alt={row.productTitle} className="w-full h-full object-cover" loading="lazy" decoding="async" />
+            ) : (
+              <PackageSearch className="w-5 h-5 text-gray-400" />
+            )}
+          </div>
+          <div className="flex flex-col justify-center">
+            <span className="text-xs font-medium text-[#4648d4] line-clamp-1">{row.productTitle}</span>
+          </div>
+        </div>
+      )
+    },
+    {
+      header: 'Group',
+      accessor: 'primaryOptionName',
+      render: (row) => (
+        <span className="text-xs font-medium text-gray-900">{row.primaryOptionName}</span>
+      )
+    },
+    {
+      header: 'Options',
+      accessor: 'secondaryOptions',
+      render: (row) => (
+        <span className="text-xs text-gray-600 line-clamp-1" title={row.secondaryOptions.join(' · ')}>
+          {row.secondaryOptions.length > 0 ? row.secondaryOptions.join(' · ') : '-'}
+        </span>
+      )
+    },
+    {
+      header: 'Price Range',
+      accessor: 'price',
+      render: (row) => {
+        const p = row.minPrice === row.maxPrice ? `₹${row.minPrice}` : `₹${row.minPrice} - ₹${row.maxPrice}`;
+        return <span className="text-xs font-medium text-gray-900">{p}</span>;
+      }
+    },
+    {
+      header: 'Total Stock',
+      accessor: 'stock',
+      render: (row) => <span className="text-xs font-medium text-gray-900">{row.stock}</span>
+    },
+    {
+      header: 'GST',
+      accessor: 'gst',
+      render: (row) => {
+        const gstStr = row.gstRates.length === 0 ? '-' : (row.gstRates.length === 1 ? `${row.gstRates[0]}%` : `${row.gstRates[0]}% - ${row.gstRates[row.gstRates.length - 1]}%`);
+        return <span className="text-xs text-gray-600">{gstStr}</span>;
+      }
+    },
+    {
+      header: 'Rating',
+      accessor: 'rating',
+      render: (row) => (
+        <div className="flex flex-col">
+          <div className="flex items-center gap-1 text-xs font-medium text-gray-900">
+            <Star className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400" />
+            {row.ratingAverage?.toFixed(1) || '0.0'}
+          </div>
+          <span className="text-[10px] text-gray-500">{row.ratingCount || 0} Reviews</span>
+        </div>
+      )
+    },
+    {
+      header: 'Actions',
+      align: 'right',
+      render: (row) => (
+        <div className="flex items-center justify-end gap-2">
+          <button
+            onClick={() => navigate(`/admin/products/${row.productId}/variant-group/${row.primaryOptionId}/view`)}
+            className="p-1.5 text-gray-400 hover:text-green-500 hover:bg-green-50 rounded-lg transition-colors"
+            title="View Variant Group"
+          >
+            <Eye size={16} />
+          </button>
+        </div>
+      )
+    }
+  ];
+
   return (
     <div className="flex flex-col flex-1 overflow-hidden p-4 lg:pl-7 lg-pr-7">
       <div className="bg-white rounded-[20px] shadow-sm border border-gray-100 flex flex-col flex-1 overflow-hidden">
         <SearchToolbar 
-          leftSlot={<h2 className="text-xl font-bold text-[#4648d4] pr-4 border-r border-gray-200 mr-2">Products</h2>}
+          leftSlot={
+            <div className="flex items-center gap-2 pr-4 border-r border-gray-200 mr-2">
+              <div className="flex bg-gray-100 p-1 rounded-lg">
+                <button
+                  onClick={() => setViewMode('products')}
+                  className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all ${viewMode === 'products' ? 'bg-white text-[#4648d4] shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                >
+                  Products
+                </button>
+                <button
+                  onClick={() => setViewMode('variants')}
+                  className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all ${viewMode === 'variants' ? 'bg-white text-[#4648d4] shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                >
+                  Variants
+                </button>
+              </div>
+            </div>
+          }
           searchQuery={search}
           onSearchChange={setSearch}
           searchPlaceholder="Search products by name, SKU..."
@@ -257,18 +378,18 @@ const ProductsList = () => {
         
         <div className="flex-1 overflow-y-auto">
           <DataTable 
-            columns={columns}
-            data={products}
+            columns={viewMode === 'products' ? columns : variantColumns}
+            data={viewMode === 'products' ? products : variantGroups}
             isLoading={isLoading}
             emptyMessage={
               <div className="flex flex-col items-center justify-center py-12 px-4">
                 <div className="h-16 w-16 rounded-full bg-gray-50 flex items-center justify-center mb-4">
                   <PackageSearch className="h-8 w-8 text-gray-400" />
                 </div>
-                <h3 className="text-sm font-medium text-[#4648d4] mb-1">No products found</h3>
+                <h3 className="text-sm font-medium text-[#4648d4] mb-1">No {viewMode} found</h3>
                 <p className="text-xs text-gray-500 text-center max-w-sm mb-6">
                   {search || departmentFilter || categoryFilter || brandFilter || statusFilter 
-                    ? "We couldn't find any products matching your current filters. Try adjusting them."
+                    ? `We couldn't find any ${viewMode} matching your current filters. Try adjusting them.`
                     : "Get started by adding your first product to the catalog."}
                 </p>
                 {!(search || departmentFilter || categoryFilter || brandFilter || statusFilter) && (
@@ -291,6 +412,7 @@ const ProductsList = () => {
           onPageChange={setCurrentPage}
           totalItems={totalItems}
           itemsPerPage={limit}
+          itemLabel={viewMode === 'products' ? "products" : "variant groups"}
         />
       </div>
 

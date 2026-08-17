@@ -5,7 +5,8 @@ const Pagination = ({
   totalPages, 
   onPageChange,
   totalItems = 0,
-  itemsPerPage = 10 
+  itemsPerPage = 10,
+  itemLabel = "results"
 }) => {
   const startItem = (currentPage - 1) * itemsPerPage + 1;
   const endItem = Math.min(currentPage * itemsPerPage, totalItems);
@@ -20,7 +21,7 @@ const Pagination = ({
             <>
               Showing <span className="font-medium">{startItem}</span> to{' '}
               <span className="font-medium">{endItem}</span> of{' '}
-              <span className="font-medium">{totalItems}</span> results
+              <span className="font-medium">{totalItems}</span> {itemLabel}
             </>
           )}
         </p>
@@ -36,7 +37,7 @@ const Pagination = ({
             <p className="text-sm text-gray-700">
               Showing <span className="font-medium">{startItem}</span> to{' '}
               <span className="font-medium">{endItem}</span> of{' '}
-              <span className="font-medium">{totalItems}</span> results
+              <span className="font-medium">{totalItems}</span> {itemLabel}
             </p>
           ) : (
             <p className="text-sm text-gray-700">

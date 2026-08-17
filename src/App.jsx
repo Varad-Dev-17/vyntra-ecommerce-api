@@ -59,6 +59,7 @@ const AddProduct = lazy(() => import("./pages/admin/Catalog/ProductsModule/AddPr
 const EditProduct = lazy(() => import("./pages/admin/Catalog/ProductsModule/EditProduct"));
 const ProductVariants = lazy(() => import("./pages/admin/Catalog/ProductsModule/ProductVariants"));
 const ProductView = lazy(() => import("./pages/admin/Catalog/ProductsModule/ProductView/ProductView"));
+const VariantGroupView = lazy(() => import("./pages/admin/Catalog/ProductsModule/VariantGroupView"));
 
 const StockManagement = lazy(() => import("./pages/admin/StockManagement/StockManagement"));
 const Orders = lazy(() => import("./pages/admin/Orders/Orders"));
@@ -300,6 +301,7 @@ const AppRoutes = () => {
           <Route path=":id/edit" element={<EditProduct />} />
           <Route path=":id/view" element={<ProductView />} />
           <Route path=":id/variants" element={<ProductVariants />} />
+          <Route path=":id/variant-group/:primaryOptionId/view" element={<VariantGroupView />} />
         </Route>
 
         <Route path="stock-management" element={<StockManagement />} />
