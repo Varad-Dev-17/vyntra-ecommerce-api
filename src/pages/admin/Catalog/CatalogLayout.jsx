@@ -41,7 +41,9 @@ const CatalogLayout = () => {
         </div>
       )}
 
-      <Outlet />
+      <div className="flex-1 overflow-hidden flex flex-col p-4 lg:p-6">
+        <Outlet />
+      </div>
     </div>
   );
 };

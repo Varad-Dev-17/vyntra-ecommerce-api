@@ -167,9 +167,9 @@ const CategoriesList = () => {
       align: 'center',
       width: '10%',
       render: (row) => (
-        <div className="w-[50px] h-[60px] rounded-xl bg-white flex items-center justify-center shrink-0 overflow-hidden border border-gray-100 shadow-sm mx-auto">
+        <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shrink-0 overflow-hidden border border-gray-100 shadow-sm mx-auto p-1">
           {row.image?.url ? (
-            <img src={row.image.url} alt={row.name} className="w-full h-full object-cover" />
+            <img src={row.image.url} alt={row.name} className="w-full h-full object-contain" />
           ) : (
             <ImageIcon className="w-5 h-5 text-gray-400" />
           )}
@@ -204,7 +204,7 @@ const CategoriesList = () => {
       render: (row) => {
         const date = new Date(row.createdAt);
         return (
-          <span className="text-gray-500 font-medium text-sm">
+          <span className="text-gray-500 font-medium text-xs">
             {date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}, {date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })}
           </span>
         );
@@ -223,24 +223,21 @@ const CategoriesList = () => {
             >
               <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${row.status === 'Active' ? 'translate-x-4' : 'translate-x-1'}`} />
             </button>
-            <span className="text-sm font-medium text-gray-700 w-12 text-left select-none">
-              {row.status === 'Active' ? 'Enable' : 'Disable'}
-            </span>
           </div>
 
           <button
             onClick={() => navigate(`/admin/catalog/categories/${row._id}/edit`)}
-            className="w-9 h-9 flex items-center justify-center text-[#4648d4] border border-gray-200 hover:border-[#4648d4] hover:bg-[#4648d4]/5 rounded-xl transition-colors shadow-sm"
+            className="w-8 h-8 flex items-center justify-center text-[#4648d4] border border-gray-200 hover:border-[#4648d4] hover:bg-[#4648d4]/5 rounded-xl transition-colors shadow-sm"
             title="Edit"
           >
-            <Edit2 size={16} />
+            <Edit2 size={14} />
           </button>
           <button
             onClick={() => handleDeleteClick(row)}
-            className="w-9 h-9 flex items-center justify-center text-red-500 border border-gray-200 hover:border-red-500 hover:bg-red-50 rounded-xl transition-colors shadow-sm"
+            className="w-8 h-8 flex items-center justify-center text-red-500 border border-gray-200 hover:border-red-500 hover:bg-red-50 rounded-xl transition-colors shadow-sm"
             title="Delete"
           >
-            <Trash2 size={16} />
+            <Trash2 size={14} />
           </button>
         </div>
       )

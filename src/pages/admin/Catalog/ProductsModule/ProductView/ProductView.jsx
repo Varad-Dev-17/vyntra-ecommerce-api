@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { 
   ArrowLeft, Search, Edit2, Plus, MoreVertical, CheckCircle2, 
-  AlertCircle, Package, Box, Eye, Filter, ChevronLeft, ChevronRight, Image as ImageIcon 
+  AlertCircle, Package, Box, Eye, Filter, ChevronLeft, ChevronRight, Image as ImageIcon, Star 
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import PageLoader from '../../../../../components/common/PageLoader';
@@ -13,6 +13,21 @@ import StatusBadge from '../../../../../components/admin/ui/StatusBadge';
 const ProductView = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+
+  const getVariantGroupId = (variant) => {
+    let pOptId = 'default';
+    if (variant.attributes && variant.attributes.length > 0) {
+      const colorAttr = variant.attributes.find(a => 
+        a.attribute?.name?.toLowerCase() === 'color' || a.attribute?.name?.toLowerCase() === 'colour'
+      );
+      if (colorAttr) {
+        pOptId = colorAttr.option?._id?.toString() || colorAttr.option || 'default';
+      } else {
+        pOptId = variant.attributes[0]?.option?._id?.toString() || variant.attributes[0]?.option || 'default';
+      }
+    }
+    return pOptId;
+  };
   
   const [product, setProduct] = useState(null);
   const [variants, setVariants] = useState([]);
@@ -205,8 +220,16 @@ const ProductView = () => {
       render: (row) => (
         <div className="flex items-center justify-center">
           <button 
-            onClick={() => navigate(`/admin/products/${product._id}/variants/${row._id}`)}
-            className="flex items-center gap-1.5 text-[11px] font-extrabold text-[#4648d4] border border-indigo-200 bg-white px-4 py-1.5 rounded-lg hover:bg-indigo-50 transition-colors"
+            onClick={() => {
+              const variantGroupId = getVariantGroupId(row);
+              if (!variantGroupId) {
+                console.error("Unable to determine variant group ID", row);
+                return;
+              }
+              navigate(`/admin/products/${product._id}/variant-group/${variantGroupId}/view`);
+            }}
+            className="flex items-center gap-1.5 px-3 py-1 text-sm font-semibold text-[#4648d4] border border-[#4648d4]/30 hover:bg-[#4648d4]/10 rounded-xl transition-colors"
+            title="View Variant"
           >
             <Eye size={14}/> View
           </button>
@@ -222,14 +245,70 @@ const ProductView = () => {
 
 
         {/* 2. Header & Actions */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-8">
-          <div>
-            <h1 className="text-[22px] font-extrabold text-slate-900 tracking-tight mb-2">
-              Product Details
-            </h1>
-            <p className="text-[13px] font-semibold text-slate-600">
-              {product.title}
-            </p>
+        <div className="flex flex-col mb-8">
+          <button 
+            onClick={() => navigate('/admin/products')} 
+            className="flex items-center gap-1.5 text-[13px] font-bold text-[#4648d4] hover:text-indigo-800 transition-colors w-fit mb-6"
+          >
+            <ArrowLeft size={16} /> Back to Products
+          </button>
+
+          <div className="flex flex-col md:flex-row gap-5 items-start">
+            {/* Image */}
+            {variants[0]?.mainImage?.url ? (
+              <div className="w-24 h-24 lg:w-28 lg:h-28 rounded-2xl bg-white border border-gray-200 shadow-sm flex items-center justify-center shrink-0 overflow-hidden p-2">
+                <img src={variants[0].mainImage.url} alt={product.title} className="w-full h-full object-contain" />
+              </div>
+            ) : (
+              <div className="w-24 h-24 lg:w-28 lg:h-28 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center shrink-0 p-2">
+                <ImageIcon className="w-8 h-8 text-gray-300" />
+              </div>
+            )}
+
+            {/* Content */}
+            <div className="flex flex-col flex-1 pt-1">
+              <h1 className="text-[28px] lg:text-[34px] font-[800] text-slate-900 tracking-tight leading-tight mb-2.5">
+                {product.title}
+              </h1>
+              
+              <div className="flex flex-col gap-1.5">
+                <div className="flex flex-wrap items-center gap-2 text-[13px] font-semibold text-slate-600">
+                  {product.productId && (
+                    <>
+                      <span className="text-slate-700">{product.productId}</span>
+                      <span className="text-gray-300">•</span>
+                    </>
+                  )}
+                  {product.brand?.name && (
+                    <>
+                      <span className="uppercase tracking-wider">{product.brand.name}</span>
+                      <span className="text-gray-300">•</span>
+                    </>
+                  )}
+                  <span className="flex items-center gap-1 text-amber-500">
+                    <Star size={13} className="fill-amber-500" />
+                    {product.ratingAverage?.toFixed(1) || '0.0'} 
+                    <span className="text-[#4648d4] ml-0.5">({product.ratingCount || 0} Reviews)</span>
+                  </span>
+                </div>
+                
+                <div className="flex flex-wrap items-center gap-2 text-[12px] font-medium text-slate-500">
+                  {product.department?.name && (
+                    <>
+                      <span>{product.department.name}</span>
+                      <span className="text-gray-300">•</span>
+                    </>
+                  )}
+                  {product.category?.name && (
+                    <>
+                      <span>{product.category.name}</span>
+                      <span className="text-gray-300">•</span>
+                    </>
+                  )}
+                  {product.createdAt && <span>Created {new Date(product.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 

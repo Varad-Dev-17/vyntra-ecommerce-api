@@ -21,10 +21,11 @@ const DataTable = ({
           <tr>
             {columns.map((col, index) => {
               const alignClass = col.align === 'left' ? 'text-left' : col.align === 'right' ? 'text-right' : 'text-center';
+              const headerAlignClass = col.headerAlign === 'left' ? 'text-left' : col.headerAlign === 'right' ? 'text-right' : (col.headerAlign === 'center' ? 'text-center' : alignClass);
               return (
                 <th
                   key={index}
-                  className={`px-3.5 py-4 text-xs font-extrabold text-slate-500 uppercase tracking-widest ${alignClass} ${borderClass} align-middle`}
+                  className={`px-2 py-2 text-xs font-extrabold text-slate-500 uppercase tracking-widest ${headerAlignClass} ${borderClass} align-middle`}
                   style={{ width: col.width }}
                 >
                   {col.header}
@@ -64,7 +65,7 @@ const DataTable = ({
                   return (
                     <td
                       key={colIndex}
-                      className={`px-3.5 py-3 text-sm ${borderClass} align-middle ${alignClass}`}
+                      className={`px-2 py-2 text-xs ${borderClass} align-middle ${alignClass}`}
                       style={{ width: col.width }}
                     >
                       {col.render ? col.render(row, rowIndex) : row[col.accessor]}

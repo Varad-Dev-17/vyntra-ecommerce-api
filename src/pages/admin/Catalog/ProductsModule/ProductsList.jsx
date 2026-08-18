@@ -148,28 +148,51 @@ const ProductsList = () => {
 
   const columns = [
     {
-      header: 'Product Name',
+      header: 'Product',
       accessor: 'title',
-      render: (row) => (
-        <span className="font-medium text-[#4648d4] line-clamp-1">
-          {row.title}
-        </span>
-      )
+      align: 'left',
+      headerAlign: 'center',
+      width: '1%',
+      render: (row) => {
+        let image = null;
+        if (row.variants && row.variants.length > 0) {
+          const variantWithImage = row.variants.find(v => v.mainImage?.url);
+          if (variantWithImage) {
+            image = variantWithImage.mainImage.url;
+          }
+        }
+        return (
+          <div className="flex items-center gap-3 pl-4 pr-12">
+            <div className="w-10 h-10 rounded-lg bg-gray-50 flex items-center justify-center shrink-0 border border-gray-100 overflow-hidden">
+              {image ? (
+                <img src={image} alt={row.title} className="w-full h-full object-cover" loading="lazy" decoding="async" />
+              ) : (
+                <PackageSearch className="w-5 h-5 text-gray-400" />
+              )}
+            </div>
+            <div className="flex flex-col justify-center">
+              <span className="font-medium text-slate-800">
+                {row.title}
+              </span>
+            </div>
+          </div>
+        );
+      }
     },
     {
       header: 'Brand',
       accessor: 'brand',
-      render: (row) => <span className="text-sm text-gray-600">{row.brand?.name || 'N/A'}</span>
+      render: (row) => <span className="text-xs text-gray-600">{row.brand?.name || 'N/A'}</span>
     },
     {
       header: 'Department',
       accessor: 'department',
-      render: (row) => <span className="text-sm text-gray-600">{row.department?.name || 'N/A'}</span>
+      render: (row) => <span className="text-xs text-gray-600">{row.department?.name || 'N/A'}</span>
     },
     {
       header: 'Category',
       accessor: 'category',
-      render: (row) => <span className="text-sm text-gray-600">{row.category?.name || 'N/A'}</span>
+      render: (row) => <span className="text-xs text-gray-600">{row.category?.name || 'N/A'}</span>
     },
 
     {
@@ -179,29 +202,30 @@ const ProductsList = () => {
     },
     {
       header: 'Actions',
-      align: 'right',
+      align: 'center',
       render: (row) => (
-        <div className="flex items-center justify-end gap-2">
+        <div className="flex items-center justify-center gap-2">
           <button
             onClick={() => navigate(`/admin/products/${row._id}/view`)}
-            className="p-1.5 text-gray-400 hover:text-green-500 hover:bg-green-50 rounded-lg transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1 text-sm font-semibold text-[#4648d4] border border-[#4648d4]/30 hover:bg-[#4648d4]/10 rounded-xl transition-colors"
             title="View Details"
           >
-            <Eye size={16} />
+            <Eye size={14} />
+            View
           </button>
           <button
             onClick={() => navigate(`/admin/products/${row._id}/edit`)}
             className="p-1.5 text-gray-400 hover:text-[#4648d4] hover:bg-[#4648d4]/10 rounded-lg transition-colors"
             title="Edit"
           >
-            <Edit2 size={16} />
+            <Edit2 size={14} />
           </button>
           <button
             onClick={() => handleDeleteClick(row)}
             className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
             title="Delete"
           >
-            <Trash2 size={16} />
+            <Trash2 size={14} />
           </button>
         </div>
       )
@@ -219,8 +243,11 @@ const ProductsList = () => {
     {
       header: 'Product',
       accessor: 'product',
+      align: 'left',
+      headerAlign: 'center',
+      width: '1%',
       render: (row) => (
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 pl-4 pr-12">
           <div className="w-10 h-10 rounded-lg bg-gray-50 flex items-center justify-center shrink-0 border border-gray-100 overflow-hidden">
             {row.productImage ? (
               <img src={row.productImage} alt={row.productTitle} className="w-full h-full object-cover" loading="lazy" decoding="async" />
@@ -229,7 +256,7 @@ const ProductsList = () => {
             )}
           </div>
           <div className="flex flex-col justify-center">
-            <span className="text-xs font-medium text-[#4648d4] line-clamp-1">{row.productTitle}</span>
+            <span className="text-xs font-medium text-slate-800">{row.productTitle}</span>
           </div>
         </div>
       )
@@ -286,15 +313,16 @@ const ProductsList = () => {
     },
     {
       header: 'Actions',
-      align: 'right',
+      align: 'center',
       render: (row) => (
-        <div className="flex items-center justify-end gap-2">
+        <div className="flex items-center justify-center gap-2">
           <button
             onClick={() => navigate(`/admin/products/${row.productId}/variant-group/${row.primaryOptionId}/view`)}
-            className="p-1.5 text-gray-400 hover:text-green-500 hover:bg-green-50 rounded-lg transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1 text-sm font-semibold text-[#4648d4] border border-[#4648d4]/30 hover:bg-[#4648d4]/10 rounded-xl transition-colors"
             title="View Variant Group"
           >
-            <Eye size={16} />
+            <Eye size={14} />
+            View
           </button>
         </div>
       )
