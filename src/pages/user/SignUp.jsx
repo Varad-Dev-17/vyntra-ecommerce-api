@@ -119,67 +119,36 @@ const SignUp = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 relative overflow-hidden bg-[#fcf8ff]">
-      <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
-        <div
-          className="absolute w-150 h-150 rounded-full opacity-15 blur-[80px]"
-          style={{
-            background: "rgba(96, 99, 238, 0.15)",
-            top: "-100px",
-            left: "-100px",
-            animation: "move 20s infinite alternate",
-          }}
-        />
-        <div
-          className="absolute w-150 h-150 rounded-full opacity-10 blur-[80px]"
-          style={{
-            background: "rgba(107, 56, 212, 0.1)",
-            bottom: "-200px",
-            right: "-100px",
-            animation: "move 20s infinite alternate-reverse",
-          }}
-        />
-      </div>
+    <div
+      className="min-h-screen flex items-center justify-center md:justify-end px-4 md:px-16 lg:px-32 relative overflow-hidden bg-cover bg-no-repeat"
+      style={{
+        backgroundImage: 'url("/authentication_bg/auth_bg.png")',
+        backgroundPosition: "center",
+      }}
+    >
+      {/* Mobile Light Overlay for readability */}
+      <div className="absolute inset-0 bg-white/40 md:bg-transparent z-0 pointer-events-none"></div>
 
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
+        initial={{ opacity: 0, x: 20 }}
+        animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.6, ease: "easeOut" }}
-        className="w-full max-w-120"
+        className="w-full max-w-[400px] z-10"
       >
         <div
-          className="rounded-4xl p-8 md:p-12 shadow-sm"
+          className="rounded-4xl p-6 md:p-8 shadow-[0_8px_32px_rgba(0,0,0,0.12)]"
           style={{
-            background: "rgba(255, 255, 255, 0.4)",
-            backdropFilter: "blur(12px)",
-            WebkitBackdropFilter: "blur(12px)",
-            border: "1px solid rgba(255, 255, 255, 0.4)",
+            background: "rgba(255, 255, 255, 0.85)",
+            backdropFilter: "blur(20px)",
+            WebkitBackdropFilter: "blur(20px)",
+            border: "1px solid rgba(255, 255, 255, 0.5)",
           }}
         >
           {/* Logo */}
-          <div className="flex flex-col items-center mb-8">
-            <div
-              className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4 shadow-lg"
-              style={{
-                background: "linear-gradient(135deg, #4648d4 0%, #6b38d4 100%)",
-                boxShadow: "0 10px 40px rgba(70, 72, 212, 0.2)",
-              }}
-            >
-              <Diamond className="w-8 h-8 text-white" fill="white" />
-            </div>
-            <h1
-              className="text-[32px] font-bold tracking-tight"
-              style={{
-                
-                color: "#4648d4",
-                lineHeight: 1.2,
-                letterSpacing: "-0.01em",
-              }}
-            >
-              Vyntra
-            </h1>
+          <div className="flex flex-col items-center mb-6">
+            <img src="/Logo/logo.png" alt="Vyntra Logo" className="h-16 w-auto mb-2 object-contain" />
             <p
-              className="mt-2 text-center"
+              className="mt-1 text-center"
               style={{
                 
                 fontSize: "16px",
@@ -223,7 +192,7 @@ const SignUp = () => {
                 exit={{ opacity: 0, x: 20 }}
                 transition={{ duration: 0.3 }}
                 onSubmit={handleSignUp}
-                className="space-y-5"
+                className="space-y-4"
               >
                 <div className="space-y-2">
                   <label
@@ -246,7 +215,7 @@ const SignUp = () => {
                       onChange={handleChange}
                       placeholder="johndoe"
                       required
-                      className="w-full h-14 pl-12 pr-4 rounded-xl transition-all duration-300"
+                      className="w-full h-12 pl-12 pr-4 rounded-xl transition-all duration-300"
                       style={inputStyle}
                       onFocus={handleFocus}
                       onBlur={handleBlur}
@@ -275,7 +244,7 @@ const SignUp = () => {
                       onChange={handleChange}
                       placeholder="hello@vyntra.com"
                       required
-                      className="w-full h-14 pl-12 pr-4 rounded-xl transition-all duration-300"
+                      className="w-full h-12 pl-12 pr-4 rounded-xl transition-all duration-300"
                       style={inputStyle}
                       onFocus={handleFocus}
                       onBlur={handleBlur}
@@ -304,7 +273,7 @@ const SignUp = () => {
                       onChange={handleChange}
                       placeholder="••••••••"
                       required
-                      className="w-full h-14 pl-12 pr-12 rounded-xl transition-all duration-300"
+                      className="w-full h-12 pl-12 pr-12 rounded-xl transition-all duration-300"
                       style={inputStyle}
                       onFocus={handleFocus}
                       onBlur={handleBlur}
@@ -329,7 +298,7 @@ const SignUp = () => {
                   whileTap={{ scale: 0.98 }}
                   type="submit"
                   disabled={isLoading}
-                  className="w-full h-14 rounded-xl text-white font-semibold shadow-lg flex items-center justify-center gap-2 transition-all duration-300 disabled:opacity-70"
+                  className="w-full h-12 rounded-xl text-white font-semibold shadow-lg flex items-center justify-center gap-2 transition-all duration-300 disabled:opacity-70"
                   style={{
                     background:
                       "linear-gradient(135deg, #4648d4 0%, #6b38d4 100%)",
@@ -362,7 +331,7 @@ const SignUp = () => {
                 exit={{ opacity: 0, x: -20 }}
                 transition={{ duration: 0.3 }}
                 onSubmit={handleVerify}
-                className="space-y-5"
+                className="space-y-4"
               >
                 <div className="text-center mb-6">
                   <div
@@ -405,7 +374,7 @@ const SignUp = () => {
                     placeholder="123456"
                     maxLength={6}
                     required
-                    className="w-full h-14 px-4 rounded-xl transition-all duration-300 text-center tracking-[0.5em] text-lg font-bold"
+                    className="w-full h-12 px-4 rounded-xl transition-all duration-300 text-center tracking-[0.5em] text-lg font-bold"
                     style={inputStyle}
                     onFocus={handleFocus}
                     onBlur={handleBlur}
@@ -417,7 +386,7 @@ const SignUp = () => {
                   whileTap={{ scale: 0.98 }}
                   type="submit"
                   disabled={isLoading}
-                  className="w-full h-14 rounded-xl text-white font-semibold shadow-lg flex items-center justify-center gap-2 transition-all duration-300 disabled:opacity-70"
+                  className="w-full h-12 rounded-xl text-white font-semibold shadow-lg flex items-center justify-center gap-2 transition-all duration-300 disabled:opacity-70"
                   style={{
                     background:
                       "linear-gradient(135deg, #4648d4 0%, #6b38d4 100%)",
@@ -523,12 +492,7 @@ const SignUp = () => {
         </div>
       </motion.div>
 
-      <style>{`
-        @keyframes move {
-          from { transform: translate(-10%, -10%); }
-          to { transform: translate(20%, 20%); }
-        }
-      `}</style>
+
     </div>
   );
 };

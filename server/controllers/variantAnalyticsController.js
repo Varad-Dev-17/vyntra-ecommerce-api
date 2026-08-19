@@ -1,8 +1,6 @@
-import mongoose from "mongoose";
 import Order from "../models/order.js";
 import ProductReview from "../models/productReview.js";
 import Variant from "../models/variant.js";
-import Product from "../models/product.js";
 
 export const getVariantGroupAnalytics = async (req, res) => {
   try {
@@ -32,7 +30,7 @@ export const getVariantGroupAnalytics = async (req, res) => {
 
     const variantIds = filteredVariants.map(v => v._id);
 
-    // 3. Aggregate Orders data for these variants
+    // Aggregate Orders data for these variants
     const orderItemsAggregation = await Order.aggregate([
       { $unwind: "$items" },
       { $match: { "items.variant": { $in: variantIds }, status: { $nin: ["cancelled"] } } }
@@ -125,7 +123,7 @@ export const getVariantGroupAnalytics = async (req, res) => {
     // Populate user in recent orders
     await Order.populate(recentOrders, { path: "user", select: "username email" });
 
-    // 4. Stock & Inventory Summary
+    // Stock & Inventory Summary
     const inventorySummary = {
       totalProducts: filteredVariants.length,
       available: 0,
@@ -142,7 +140,7 @@ export const getVariantGroupAnalytics = async (req, res) => {
       if (v.stock > 0 && v.stock < 10) inventorySummary.lowStock++;
     });
 
-    // 5. Customer Reviews
+    // Customer Reviews
     const reviews = await ProductReview.find({ variant: { $in: variantIds } })
       .populate("user", "username email")
       .sort({ createdAt: -1 })

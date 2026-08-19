@@ -17,7 +17,7 @@ export default defineConfig({
   server: {
     port: 3000,
     proxy: {
-      "/auth": proxyConfig,
+      "^/auth($|/)": proxyConfig,
       "/admin": proxyConfig,
       "/upload": proxyConfig,
       "/products": proxyConfig,
