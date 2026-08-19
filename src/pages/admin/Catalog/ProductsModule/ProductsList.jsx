@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import toast from 'react-hot-toast';
-import { Plus, Edit2, Trash2, PackageSearch, Eye, Star } from 'lucide-react';
+import { Plus, Edit2, Trash2, PackageSearch, Eye, Star, Package, Layers } from 'lucide-react';
 import DataTable from '../../../../components/admin/ui/DataTable';
 import SearchToolbar from '../../../../components/admin/ui/SearchToolbar';
 import StatusBadge from '../../../../components/admin/ui/StatusBadge';
@@ -334,18 +334,20 @@ const ProductsList = () => {
       <div className="bg-white rounded-[20px] shadow-sm border border-gray-100 flex flex-col flex-1 overflow-hidden">
         <SearchToolbar 
           leftSlot={
-            <div className="flex items-center gap-2 pr-4 border-r border-gray-200 mr-2">
-              <div className="flex bg-gray-100 p-1 rounded-lg">
+            <div className="flex items-center gap-2 pr-4 border-r border-slate-200 mr-2">
+              <div className="flex bg-slate-100/80 p-1.5 rounded-xl border border-slate-200/50 shadow-inner">
                 <button
                   onClick={() => setViewMode('products')}
-                  className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all ${viewMode === 'products' ? 'bg-white text-[#4648d4] shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                  className={`relative flex items-center gap-2 px-5 py-2 text-sm font-semibold rounded-lg transition-all duration-300 ${viewMode === 'products' ? 'bg-white text-[#4648d4] shadow-md shadow-indigo-100 scale-100' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50 scale-95'}`}
                 >
+                  <Package size={16} className={viewMode === 'products' ? 'text-[#4648d4]' : 'text-slate-400'} />
                   Products
                 </button>
                 <button
                   onClick={() => setViewMode('variants')}
-                  className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all ${viewMode === 'variants' ? 'bg-white text-[#4648d4] shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                  className={`relative flex items-center gap-2 px-5 py-2 text-sm font-semibold rounded-lg transition-all duration-300 ${viewMode === 'variants' ? 'bg-white text-[#4648d4] shadow-md shadow-indigo-100 scale-100' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50 scale-95'}`}
                 >
+                  <Layers size={16} className={viewMode === 'variants' ? 'text-[#4648d4]' : 'text-slate-400'} />
                   Variants
                 </button>
               </div>

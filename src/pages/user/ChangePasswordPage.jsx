@@ -41,9 +41,9 @@ const ChangePasswordPage = () => {
   const inputStyle = {
     
     fontSize: "16px",
-    color: "#1b1b23",
-    background: "rgba(255, 255, 255, 0.6)",
-    border: "1px solid rgba(30, 41, 59, 0.1)",
+    color: "#1f2937",
+    background: "rgba(255, 255, 255, 0.15)",
+    border: "1px solid rgba(255, 255, 255, 0.3)",
   };
 
   const labelStyle = {
@@ -53,35 +53,32 @@ const ChangePasswordPage = () => {
     letterSpacing: "0.1em",
     fontWeight: 600,
     textTransform: "uppercase",
-    color: "#464554",
+    color: "#334155",
   };
 
   const handleFocus = (e) => {
-    e.target.style.borderColor = "#4648d4";
-    e.target.style.background = "rgba(255, 255, 255, 0.9)";
-    e.target.style.boxShadow = "0 0 0 4px rgba(70, 72, 212, 0.1)";
+    e.target.style.borderColor = "#4338CA";
+    e.target.style.background = "rgba(255, 255, 255, 0.3)";
+    e.target.style.boxShadow = "0 0 0 4px rgba(67, 56, 202, 0.15)";
     e.target.style.outline = "none";
   };
 
   const handleBlur = (e) => {
-    e.target.style.borderColor = "rgba(30, 41, 59, 0.1)";
-    e.target.style.background = "rgba(255, 255, 255, 0.6)";
+    e.target.style.borderColor = "rgba(255, 255, 255, 0.3)";
+    e.target.style.background = "rgba(255, 255, 255, 0.15)";
     e.target.style.boxShadow = "none";
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 relative overflow-hidden bg-[#fcf8ff]">
-      <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
-        <div
-          className="absolute w-150 h-150 rounded-full opacity-15 blur-[80px]"
-          style={{
-            background: "rgba(96, 99, 238, 0.15)",
-            top: "-100px",
-            left: "-100px",
-            animation: "move 20s infinite alternate",
-          }}
-        />
-      </div>
+    <div
+      className="min-h-screen flex items-center justify-center md:justify-end px-4 md:px-16 lg:px-32 relative overflow-hidden bg-cover bg-no-repeat"
+      style={{
+        backgroundImage: 'url("/authentication_bg/auth_bg.png")',
+        backgroundPosition: "center",
+      }}
+    >
+      {/* Mobile Light Overlay for readability */}
+      <div className="absolute inset-0 bg-white/40 md:bg-transparent z-0 pointer-events-none"></div>
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -90,12 +87,13 @@ const ChangePasswordPage = () => {
         className="w-full max-w-120"
       >
         <div
-          className="rounded-4xl p-8 md:p-12 shadow-sm"
+          className="rounded-4xl p-6 md:p-8 shadow-[0_8px_32px_rgba(0,0,0,0.12)]"
           style={{
-            background: "rgba(255, 255, 255, 0.4)",
-            backdropFilter: "blur(12px)",
-            WebkitBackdropFilter: "blur(12px)",
-            border: "1px solid rgba(255, 255, 255, 0.4)",
+            background: "rgba(255, 255, 255, 0.2)",
+            backdropFilter: "blur(20px)",
+            WebkitBackdropFilter: "blur(20px)",
+            border: "1px solid rgba(255, 255, 255, 0.35)",
+            boxShadow: "0 20px 40px rgba(0, 0, 0, 0.1)",
           }}
         >
           {/* Logo */}
@@ -103,8 +101,8 @@ const ChangePasswordPage = () => {
             <div
               className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4 shadow-lg"
               style={{
-                background: "linear-gradient(135deg, #4648d4 0%, #6b38d4 100%)",
-                boxShadow: "0 10px 40px rgba(70, 72, 212, 0.2)",
+                background: "linear-gradient(135deg, #3730A3 0%, #4F46E5 100%)",
+                boxShadow: "0 10px 40px rgba(67, 56, 202, 0.2)",
               }}
             >
               <Lock className="w-8 h-8 text-white" />
@@ -113,7 +111,7 @@ const ChangePasswordPage = () => {
               className="text-[32px] font-bold tracking-tight"
               style={{
                 
-                color: "#4648d4",
+                color: "#4338CA",
                 lineHeight: 1.2,
                 letterSpacing: "-0.01em",
               }}
@@ -126,7 +124,7 @@ const ChangePasswordPage = () => {
                 
                 fontSize: "16px",
                 lineHeight: 1.5,
-                color: "#464554",
+                color: "#475569",
               }}
             >
               Change your password securely.
@@ -200,7 +198,7 @@ const ChangePasswordPage = () => {
                   onChange={(e) => setOldPassword(e.target.value)}
                   placeholder="Enter current password"
                   required
-                  className="w-full h-14 pl-12 pr-12 rounded-xl transition-all duration-300"
+                  className="w-full h-12 pl-12 pr-12 rounded-xl transition-all duration-300"
                   style={inputStyle}
                   onFocus={handleFocus}
                   onBlur={handleBlur}
@@ -252,7 +250,7 @@ const ChangePasswordPage = () => {
                   placeholder="Enter new password"
                   required
                   minLength={6}
-                  className="w-full h-14 pl-12 pr-12 rounded-xl transition-all duration-300"
+                  className="w-full h-12 pl-12 pr-12 rounded-xl transition-all duration-300"
                   style={inputStyle}
                   onFocus={handleFocus}
                   onBlur={handleBlur}
@@ -277,12 +275,12 @@ const ChangePasswordPage = () => {
               whileTap={{ scale: 0.98 }}
               type="submit"
               disabled={isLoading}
-              className="w-full h-14 rounded-xl text-white font-semibold shadow-lg flex items-center justify-center gap-2 transition-all duration-300 disabled:opacity-70"
+              className="w-full h-12 rounded-xl text-white font-semibold shadow-lg flex items-center justify-center gap-2 transition-all duration-300 disabled:opacity-70"
               style={{
-                background: "linear-gradient(135deg, #4648d4 0%, #6b38d4 100%)",
+                background: "linear-gradient(135deg, #3730A3 0%, #4F46E5 100%)",
                 
                 fontSize: "16px",
-                boxShadow: "0 10px 40px rgba(70, 72, 212, 0.25)",
+                boxShadow: "0 10px 25px rgba(67, 56, 202, 0.25)",
               }}
             >
               {isLoading ? (
@@ -314,12 +312,7 @@ const ChangePasswordPage = () => {
         </div>
       </motion.div>
 
-      <style>{`
-        @keyframes move {
-          from { transform: translate(-10%, -10%); }
-          to { transform: translate(20%, 20%); }
-        }
-      `}</style>
+
     </div>
   );
 };

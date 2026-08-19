@@ -88,33 +88,31 @@ const SignUp = () => {
   };
 
   const inputStyle = {
-    
     fontSize: "16px",
-    color: "#1b1b23",
-    background: "rgba(255, 255, 255, 0.6)",
-    border: "1px solid rgba(30, 41, 59, 0.1)",
+    color: "#1f2937",
+    background: "rgba(243, 244, 246, 0.5)",
+    border: "1px solid rgba(209, 213, 219, 0.5)",
   };
 
   const labelStyle = {
-    
     fontSize: "12px",
     lineHeight: 1,
     letterSpacing: "0.1em",
     fontWeight: 600,
     textTransform: "uppercase",
-    color: "#464554",
+    color: "#334155",
   };
 
   const handleFocus = (e) => {
-    e.target.style.borderColor = "#4648d4";
-    e.target.style.background = "rgba(255, 255, 255, 0.9)";
-    e.target.style.boxShadow = "0 0 0 4px rgba(70, 72, 212, 0.1)";
+    e.target.style.borderColor = "#4338CA";
+    e.target.style.background = "rgba(255, 255, 255, 0.8)";
+    e.target.style.boxShadow = "0 0 0 4px rgba(67, 56, 202, 0.15)";
     e.target.style.outline = "none";
   };
 
   const handleBlur = (e) => {
-    e.target.style.borderColor = "rgba(30, 41, 59, 0.1)";
-    e.target.style.background = "rgba(255, 255, 255, 0.6)";
+    e.target.style.borderColor = "rgba(209, 213, 219, 0.5)";
+    e.target.style.background = "rgba(243, 244, 246, 0.5)";
     e.target.style.boxShadow = "none";
   };
 
@@ -138,10 +136,11 @@ const SignUp = () => {
         <div
           className="rounded-4xl p-6 md:p-8 shadow-[0_8px_32px_rgba(0,0,0,0.12)]"
           style={{
-            background: "rgba(255, 255, 255, 0.85)",
+            background: "rgba(255, 255, 255, 0.2)",
             backdropFilter: "blur(20px)",
             WebkitBackdropFilter: "blur(20px)",
-            border: "1px solid rgba(255, 255, 255, 0.5)",
+            border: "1px solid rgba(255, 255, 255, 0.35)",
+            boxShadow: "0 20px 40px rgba(0, 0, 0, 0.1)",
           }}
         >
           {/* Logo */}
@@ -150,10 +149,9 @@ const SignUp = () => {
             <p
               className="mt-1 text-center"
               style={{
-                
                 fontSize: "16px",
                 lineHeight: 1.5,
-                color: "#464554",
+                color: "#475569",
               }}
             >
               {step === "form" && "Begin your premium journey"}
@@ -173,7 +171,6 @@ const SignUp = () => {
                 style={{
                   background: "#ffdad6",
                   color: "#93000a",
-                  
                   fontSize: "14px",
                 }}
               >
@@ -281,7 +278,7 @@ const SignUp = () => {
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 transition-colors hover:text-[#4648d4]"
+                      className="absolute right-4 top-1/2 -translate-y-1/2 transition-colors hover:text-[#4338CA]"
                       style={{ color: "#767586" }}
                     >
                       {showPassword ? (
@@ -301,10 +298,9 @@ const SignUp = () => {
                   className="w-full h-12 rounded-xl text-white font-semibold shadow-lg flex items-center justify-center gap-2 transition-all duration-300 disabled:opacity-70"
                   style={{
                     background:
-                      "linear-gradient(135deg, #4648d4 0%, #6b38d4 100%)",
-                    
+                      "linear-gradient(135deg, #3730A3 0%, #4F46E5 100%)",
                     fontSize: "16px",
-                    boxShadow: "0 10px 40px rgba(70, 72, 212, 0.25)",
+                    boxShadow: "0 10px 25px rgba(67, 56, 202, 0.25)",
                   }}
                 >
                   {isLoading ? (
@@ -338,11 +334,10 @@ const SignUp = () => {
                     className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4"
                     style={{ background: "#e1e0ff" }}
                   >
-                    <Mail className="w-7 h-7" style={{ color: "#4648d4" }} />
+                    <Mail className="w-7 h-7" style={{ color: "#4338CA" }} />
                   </div>
                   <p
                     style={{
-                      
                       fontSize: "14px",
                       color: "#464554",
                       lineHeight: 1.5,
@@ -389,10 +384,9 @@ const SignUp = () => {
                   className="w-full h-12 rounded-xl text-white font-semibold shadow-lg flex items-center justify-center gap-2 transition-all duration-300 disabled:opacity-70"
                   style={{
                     background:
-                      "linear-gradient(135deg, #4648d4 0%, #6b38d4 100%)",
-                    
+                      "linear-gradient(135deg, #3730A3 0%, #4F46E5 100%)",
                     fontSize: "16px",
-                    boxShadow: "0 10px 40px rgba(70, 72, 212, 0.25)",
+                    boxShadow: "0 10px 25px rgba(67, 56, 202, 0.25)",
                   }}
                 >
                   {isLoading ? (
@@ -411,11 +405,12 @@ const SignUp = () => {
                 <button
                   type="button"
                   onClick={() => setStep("form")}
-                  className="w-full text-center py-2 transition-colors hover:text-[#4648d4]"
+                  className="w-full text-center py-2 transition-colors hover:text-[#4338CA]"
                   style={{
-                    
-                    fontSize: "14px",
-                    color: "#767586",
+                    fontSize: "12px",
+                    color: "#64748b",
+                    fontWeight: 600,
+                    letterSpacing: "0.05em",
                   }}
                 >
                   Back to sign up
@@ -441,7 +436,7 @@ const SignUp = () => {
                 >
                   <CheckCircle2
                     className="w-10 h-10"
-                    style={{ color: "#4648d4" }}
+                    style={{ color: "#4338CA" }}
                   />
                 </motion.div>
                 <h2
@@ -475,14 +470,14 @@ const SignUp = () => {
                   
                   fontSize: "16px",
                   lineHeight: 1.5,
-                  color: "#464554",
+                  color: "#475569",
                 }}
               >
                 Already have an account?{" "}
                 <Link
                   to="/signin"
                   className="font-bold hover:underline transition-all"
-                  style={{ color: "#4648d4" }}
+                  style={{ color: "#4338CA" }}
                 >
                   Sign In
                 </Link>

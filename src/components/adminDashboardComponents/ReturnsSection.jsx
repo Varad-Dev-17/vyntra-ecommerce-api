@@ -287,7 +287,7 @@ const ReturnsSection = () => {
   ];
 
   return (
-    <div className="flex flex-col gap-6 p-1">
+    <div className="flex flex-col gap-6 p-6">
       
       {/* Top Stats Row */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">

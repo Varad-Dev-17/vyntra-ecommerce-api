@@ -31,11 +31,18 @@ export const signUp = async (req, res) => {
         .json({ success: false, message: error.details[0].message });
     }
 
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
+    const existingEmail = await User.findOne({ email });
+    if (existingEmail) {
       return res
         .status(409)
-        .json({ success: false, message: "User already exists." });
+        .json({ success: false, message: "Email is already registered." });
+    }
+
+    const existingUsername = await User.findOne({ username });
+    if (existingUsername) {
+      return res
+        .status(409)
+        .json({ success: false, message: "Username is already taken." });
     }
 
     const hashedPassword = await hashPassword(password, 12);

@@ -59,10 +59,11 @@ const SignIn = () => {
         <div
           className="rounded-4xl p-6 md:p-8 shadow-[0_8px_32px_rgba(0,0,0,0.12)]"
           style={{
-            background: "rgba(255, 255, 255, 0.85)",
+            background: "rgba(255, 255, 255, 0.2)",
             backdropFilter: "blur(20px)",
             WebkitBackdropFilter: "blur(20px)",
-            border: "1px solid rgba(255, 255, 255, 0.6)",
+            border: "1px solid rgba(255, 255, 255, 0.35)",
+            boxShadow: "0 20px 40px rgba(0, 0, 0, 0.1)",
           }}
         >
           {/* Logo */}
@@ -74,7 +75,7 @@ const SignIn = () => {
                 
                 fontSize: "16px",
                 lineHeight: 1.5,
-                color: "#464554",
+                color: "#475569",
               }}
             >
               Welcome back! Enjoy your shopping experience.
@@ -112,7 +113,7 @@ const SignIn = () => {
                   letterSpacing: "0.1em",
                   fontWeight: 600,
                   textTransform: "uppercase",
-                  color: "#464554",
+                  color: "#334155",
                 }}
               >
                 Email Address
@@ -143,20 +144,20 @@ const SignIn = () => {
                   style={{
                     
                     fontSize: "16px",
-                    color: "#1b1b23",
-                    background: "rgba(255, 255, 255, 0.6)",
-                    border: "1px solid rgba(30, 41, 59, 0.1)",
+                    color: "#1f2937",
+                    background: "rgba(255, 255, 255, 0.15)",
+                    border: "1px solid rgba(255, 255, 255, 0.3)",
                   }}
                   onFocus={(e) => {
-                    e.target.style.borderColor = "#4648d4";
-                    e.target.style.background = "rgba(255, 255, 255, 0.9)";
+                    e.target.style.borderColor = "#4338CA";
+                    e.target.style.background = "rgba(255, 255, 255, 0.3)";
                     e.target.style.boxShadow =
-                      "0 0 0 4px rgba(70, 72, 212, 0.1)";
+                      "0 0 0 4px rgba(67, 56, 202, 0.15)";
                     e.target.style.outline = "none";
                   }}
                   onBlur={(e) => {
-                    e.target.style.borderColor = "rgba(30, 41, 59, 0.1)";
-                    e.target.style.background = "rgba(255, 255, 255, 0.6)";
+                    e.target.style.borderColor = "rgba(255, 255, 255, 0.3)";
+                    e.target.style.background = "rgba(255, 255, 255, 0.15)";
                     e.target.style.boxShadow = "none";
                   }}
                 />
@@ -176,7 +177,7 @@ const SignIn = () => {
                   letterSpacing: "0.1em",
                   fontWeight: 600,
                   textTransform: "uppercase",
-                  color: "#464554",
+                  color: "#334155",
                 }}
               >
                 Password
@@ -207,27 +208,27 @@ const SignIn = () => {
                   style={{
                     
                     fontSize: "16px",
-                    color: "#1b1b23",
-                    background: "rgba(255, 255, 255, 0.6)",
-                    border: "1px solid rgba(30, 41, 59, 0.1)",
+                    color: "#1f2937",
+                    background: "rgba(255, 255, 255, 0.15)",
+                    border: "1px solid rgba(255, 255, 255, 0.3)",
                   }}
                   onFocus={(e) => {
-                    e.target.style.borderColor = "#4648d4";
-                    e.target.style.background = "rgba(255, 255, 255, 0.9)";
+                    e.target.style.borderColor = "#4338CA";
+                    e.target.style.background = "rgba(255, 255, 255, 0.3)";
                     e.target.style.boxShadow =
-                      "0 0 0 4px rgba(70, 72, 212, 0.1)";
+                      "0 0 0 4px rgba(67, 56, 202, 0.15)";
                     e.target.style.outline = "none";
                   }}
                   onBlur={(e) => {
-                    e.target.style.borderColor = "rgba(30, 41, 59, 0.1)";
-                    e.target.style.background = "rgba(255, 255, 255, 0.6)";
+                    e.target.style.borderColor = "rgba(255, 255, 255, 0.3)";
+                    e.target.style.background = "rgba(255, 255, 255, 0.15)";
                     e.target.style.boxShadow = "none";
                   }}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 transition-colors hover:text-[#4648d4]"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 transition-colors hover:text-[#4338CA]"
                   style={{ color: "#767586" }}
                 >
                   {showPassword ? (
@@ -246,7 +247,7 @@ const SignIn = () => {
                 className="text-sm hover:underline transition-all"
                 style={{
                   
-                  color: "#4648d4",
+                  color: "#4338CA",
                   fontWeight: 600,
                 }}
               >
@@ -262,10 +263,11 @@ const SignIn = () => {
               disabled={isLoading}
               className="w-full h-12 rounded-xl text-white font-semibold shadow-lg flex items-center justify-center gap-2 transition-all duration-300 disabled:opacity-70"
               style={{
-                background: "linear-gradient(135deg, #4648d4 0%, #6b38d4 100%)",
+                background:
+                  "linear-gradient(135deg, #3730A3 0%, #4F46E5 100%)",
                 
                 fontSize: "16px",
-                boxShadow: "0 10px 40px rgba(70, 72, 212, 0.25)",
+                boxShadow: "0 10px 25px rgba(67, 56, 202, 0.25)",
               }}
             >
               {isLoading ? (
@@ -289,9 +291,9 @@ const SignIn = () => {
               style={{
                 
                 fontSize: "12px",
-                color: "#767586",
-                letterSpacing: "0.1em",
-                textTransform: "uppercase",
+                color: "#64748b",
+                fontWeight: 600,
+                letterSpacing: "0.05em",
               }}
             >
               or
@@ -306,14 +308,14 @@ const SignIn = () => {
                 
                 fontSize: "16px",
                 lineHeight: 1.5,
-                color: "#464554",
+                color: "#475569",
               }}
             >
               Don&apos;t have an account?{" "}
               <Link
                 to="/signup"
                 className="font-bold hover:underline transition-all"
-                style={{ color: "#4648d4" }}
+                style={{ color: "#4338CA" }}
               >
                 Create Account
               </Link>
