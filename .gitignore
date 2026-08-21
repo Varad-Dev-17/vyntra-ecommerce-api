@@ -30,10 +30,8 @@ dist-ssr
 
 # Environment variables
 .env
-.env.local
-.env.development
-.env.production
-.env.test
+.env.*
+!.env.example
 
 # OS files
 Thumbs.db
