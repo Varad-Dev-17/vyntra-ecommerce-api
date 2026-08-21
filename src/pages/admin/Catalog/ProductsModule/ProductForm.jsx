@@ -2,10 +2,10 @@ import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, forwardRef, useImperativeHandle } from 'react';
 import SearchableSelect from '../../../../components/admin/ui/SearchableSelect';
 
-const ProductForm = ({ isEdit = false }) => {
+const ProductForm = forwardRef(({ isEdit = false, isUnifiedMode = false, onFormChange = () => {} }, ref) => {
   const navigate = useNavigate();
   const { id } = useParams();
 
@@ -54,6 +54,59 @@ const ProductForm = ({ isEdit = false }) => {
       fieldRefs.current[key] = el;
     }
   }, []);
+
+  // Notify parent of changes for contextual info
+  useEffect(() => {
+    if (isUnifiedMode) {
+      const brandName = brands.find(b => b._id === formData.brand)?.name || '';
+      onFormChange({
+        title: formData.title,
+        categoryId: formData.category,
+        brandName
+      });
+    }
+  }, [formData.title, formData.category, formData.brand, brands, isUnifiedMode, onFormChange]);
+
+  useImperativeHandle(ref, () => ({
+    validateAndGetPayload: () => {
+      let isValid = true;
+      let newErrors = {};
+
+      if (!formData.title.trim()) { newErrors.title = 'Title is required'; isValid = false; }
+      if (!formData.slug.trim()) { newErrors.slug = 'Slug is required'; isValid = false; }
+      if (!formData.shortDescription.trim()) { newErrors.shortDescription = 'Short description is required'; isValid = false; }
+      if (!formData.longDescription.trim()) { newErrors.longDescription = 'Long description is required'; isValid = false; }
+      if (!formData.department) { newErrors.department = 'Department is required'; isValid = false; }
+      if (!formData.category) { newErrors.category = 'Category is required'; isValid = false; }
+      if (!formData.brand) { newErrors.brand = 'Brand is required'; isValid = false; }
+
+      const payloadAttributes = [];
+      dynamicAttributesConfig.forEach(config => {
+        const val = dynamicAttributes.find(a => a.attributeId === config._id)?.value;
+        if (config.isRequired && (!val || (Array.isArray(val) && val.length === 0))) {
+          newErrors[`attr_${config._id}`] = 'This attribute is required';
+          isValid = false;
+        }
+        if (val && !(Array.isArray(val) && val.length === 0)) {
+          payloadAttributes.push({ attribute: config._id, option: val });
+        }
+      });
+
+      setErrors(newErrors);
+
+      if (!isValid) {
+        return { isValid: false, errors: newErrors };
+      }
+
+      return {
+        isValid: true,
+        payload: {
+          ...formData,
+          attributes: payloadAttributes
+        }
+      };
+    }
+  }));
 
   // For Edit Mode: Fetch Product Data
   useEffect(() => {
@@ -434,16 +487,23 @@ const ProductForm = ({ isEdit = false }) => {
         return null;
     }
   };
-
   return (
-    <form onSubmit={handleSubmit} className="w-full space-y-4 pb-10 relative">
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 sm:p-8 space-y-5">
-        {/* Basic Information - 4 Column Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+    <form onSubmit={handleSubmit} className="w-full relative flex flex-col">
+      <div className="p-6 sm:p-8">
+        {/* Header */}
+        <div className="flex items-center gap-3 mb-6">
+           <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-[#4648d4] text-white font-bold text-sm">1</span>
+           <div>
+             <h3 className="text-lg font-bold text-[#221B59]">Product Information</h3>
+             <p className="text-xs text-gray-500">Basic details about your product</p>
+           </div>
+        </div>
 
+        {/* Basic Information - Responsive Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6">
           {/* Row 1 */}
           <div>
-            <label className="block text-sm font-medium text-[#4648d4] mb-1">Product Name <span className="text-red-500">*</span></label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Product Name <span className="text-red-500">*</span></label>
             <input
               ref={setRef('title')}
               type="text"
@@ -451,12 +511,12 @@ const ProductForm = ({ isEdit = false }) => {
               value={formData.title}
               onChange={handleNameChange}
               placeholder="e.g. Men Solid Polo Collar T-shirt"
-              className={`w-full px-4 h-12 border ${errors.title ? 'border-red-500 focus:ring-red-500' : 'border-gray-200 focus:border-[#4648d4] focus:ring-[#4648d4]'} rounded-lg outline-none focus:ring-1 transition-colors`}
+              className={`w-full px-4 h-11 border ${errors.title ? 'border-red-500 focus:ring-red-500' : 'border-gray-200 focus:border-[#4648d4] focus:ring-[#4648d4]'} rounded-lg outline-none focus:ring-1 transition-colors`}
             />
             {errors.title && <span className="text-red-500 text-xs mt-1 block">❌ {errors.title}</span>}
           </div>
           <div>
-            <label className="block text-sm font-medium text-[#4648d4] mb-1">Product Slug <span className="text-red-500">*</span></label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Product Slug <span className="text-red-500">*</span></label>
             <input
               ref={setRef('slug')}
               type="text"
@@ -464,12 +524,12 @@ const ProductForm = ({ isEdit = false }) => {
               value={formData.slug}
               onChange={handleSlugChange}
               placeholder="e.g. men-solid-polo-collar-t-shirt"
-              className={`w-full px-4 h-12 border ${errors.slug ? 'border-red-500 focus:ring-red-500' : 'border-gray-200 focus:border-[#4648d4] focus:ring-[#4648d4]'} rounded-lg outline-none focus:ring-1 transition-colors font-mono text-sm`}
+              className={`w-full px-4 h-11 border ${errors.slug ? 'border-red-500 focus:ring-red-500' : 'border-gray-200 focus:border-[#4648d4] focus:ring-[#4648d4]'} rounded-lg outline-none focus:ring-1 transition-colors font-mono text-sm`}
             />
             {errors.slug && <span className="text-red-500 text-xs mt-1 block">❌ {errors.slug}</span>}
           </div>
           <div ref={setRef('department')}>
-            <label className="block text-sm font-medium text-[#4648d4] mb-1">Department <span className="text-red-500">*</span></label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Department <span className="text-red-500">*</span></label>
             <SearchableSelect
               value={formData.department}
               onChange={(val) => {
@@ -484,12 +544,12 @@ const ProductForm = ({ isEdit = false }) => {
             {errors.department && <span className="text-red-500 text-xs mt-1 block">❌ {errors.department}</span>}
           </div>
           <div>
-            <label className="block text-sm font-medium text-[#4648d4] mb-1">Status <span className="text-red-500">*</span></label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Status <span className="text-red-500">*</span></label>
             <select
               name="status"
               value={formData.status}
               onChange={handleChange}
-              className="w-full px-4 h-12 border border-gray-200 rounded-lg outline-none focus:border-[#4648d4] focus:ring-1 focus:ring-[#4648d4] transition-colors bg-white cursor-pointer"
+              className="w-full px-4 h-11 border border-gray-200 rounded-lg outline-none focus:border-[#4648d4] focus:ring-1 focus:ring-[#4648d4] transition-colors bg-white cursor-pointer"
             >
               <option value="Inactive">Inactive</option>
               <option value="Active">Active</option>
@@ -498,7 +558,7 @@ const ProductForm = ({ isEdit = false }) => {
 
           {/* Row 2 */}
           <div ref={setRef('category')}>
-            <label className="block text-sm font-medium text-[#4648d4] mb-1">Category <span className="text-red-500">*</span></label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Category <span className="text-red-500">*</span></label>
             <SearchableSelect
               value={formData.category}
               onChange={(val) => {
@@ -511,7 +571,7 @@ const ProductForm = ({ isEdit = false }) => {
             {errors.category && <span className="text-red-500 text-xs mt-1 block">❌ {errors.category}</span>}
           </div>
           <div ref={setRef('brand')}>
-            <label className="block text-sm font-medium text-[#4648d4] mb-1">Brand <span className="text-red-500">*</span></label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Brand <span className="text-red-500">*</span></label>
             <SearchableSelect
               value={formData.brand}
               onChange={(val) => {
@@ -525,41 +585,46 @@ const ProductForm = ({ isEdit = false }) => {
           </div>
         </div>
 
-        {/* Row 3: Short Description */}
-        <div>
-          <label className="block text-sm font-medium text-[#4648d4] mb-1">Short Description <span className="text-red-500">*</span></label>
-          <input
-            ref={setRef('shortDescription')}
-            type="text"
-            name="shortDescription"
-            value={formData.shortDescription}
-            onChange={handleChange}
-            placeholder="Brief summary of the product"
-            className={`w-full px-4 h-12 border ${errors.shortDescription ? 'border-red-500 focus:ring-red-500' : 'border-gray-200 focus:border-[#4648d4] focus:ring-[#4648d4]'} rounded-lg outline-none focus:ring-1 transition-colors`}
-          />
-          {errors.shortDescription && <span className="text-red-500 text-xs mt-1 block">❌ {errors.shortDescription}</span>}
-        </div>
+        {/* Descriptions - Side by Side */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Short Description <span className="text-red-500">*</span></label>
+            <textarea
+              ref={setRef('shortDescription')}
+              name="shortDescription"
+              value={formData.shortDescription}
+              onChange={handleChange}
+              placeholder="Brief summary of the product"
+              className={`w-full px-4 py-2 min-h-[80px] border ${errors.shortDescription ? 'border-red-500 focus:ring-red-500' : 'border-gray-200 focus:border-[#4648d4] focus:ring-[#4648d4]'} rounded-lg outline-none focus:ring-1 transition-colors resize-y`}
+            />
+            {errors.shortDescription && <span className="text-red-500 text-xs mt-1 block">❌ {errors.shortDescription}</span>}
+          </div>
 
-        {/* Row 4: Long Description */}
-        <div>
-          <label className="block text-sm font-medium text-[#4648d4] mb-1">Long Description <span className="text-red-500">*</span></label>
-          <textarea
-            ref={setRef('longDescription')}
-            name="longDescription"
-            value={formData.longDescription}
-            onChange={handleChange}
-            rows="4"
-            placeholder="Detailed description..."
-            className={`w-full px-4 py-2 border ${errors.longDescription ? 'border-red-500 focus:ring-red-500' : 'border-gray-200 focus:border-[#4648d4] focus:ring-[#4648d4]'} rounded-lg outline-none focus:ring-1 transition-colors resize-y`}
-          ></textarea>
-          {errors.longDescription && <span className="text-red-500 text-xs mt-1 block">❌ {errors.longDescription}</span>}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Long Description <span className="text-red-500">*</span></label>
+            <textarea
+              ref={setRef('longDescription')}
+              name="longDescription"
+              value={formData.longDescription}
+              onChange={handleChange}
+              placeholder="Detailed description..."
+              className={`w-full px-4 py-2 min-h-[80px] border ${errors.longDescription ? 'border-red-500 focus:ring-red-500' : 'border-gray-200 focus:border-[#4648d4] focus:ring-[#4648d4]'} rounded-lg outline-none focus:ring-1 transition-colors resize-y`}
+            ></textarea>
+            {errors.longDescription && <span className="text-red-500 text-xs mt-1 block">❌ {errors.longDescription}</span>}
+          </div>
         </div>
       </div>
 
       {/* Dynamic Attributes or Info Card */}
       {formData.category && !isDynamicAttributesLoading && dynamicAttributesConfig.length === 0 ? (
-        <div className="bg-[#4648d4]/5 rounded-xl border border-[#4648d4]/20 p-6 sm:p-8">
-          <h3 className="text-lg font-semibold text-[#4648d4] mb-3">Product Variants</h3>
+        <div className="p-6 sm:p-8 border-t border-slate-200">
+          <div className="flex items-center gap-3 mb-4">
+             <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-[#4648d4] text-white font-bold text-sm">2</span>
+             <div>
+               <h3 className="text-lg font-bold text-[#221B59]">Product Variants</h3>
+               <p className="text-xs text-gray-500">Product specific variants</p>
+             </div>
+          </div>
           <p className="text-sm font-medium text-gray-800 mb-2">This product uses variants.</p>
           <p className="text-sm text-gray-600 mb-3">After saving the product you will configure:</p>
           <ul className="text-sm text-gray-600 mb-4 ml-1 space-y-1">
@@ -573,25 +638,30 @@ const ProductForm = ({ isEdit = false }) => {
           <p className="text-sm text-gray-500 font-medium italic">Click "Save Product & Add Variants" to continue.</p>
         </div>
       ) : (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 sm:p-8">
-          <div className="mb-4">
-            <h3 className="text-lg font-semibold text-[#4648d4]">Attributes</h3>
+        <div className="p-6 sm:p-8 border-t border-slate-200">
+          <div className="flex items-center gap-3 mb-6">
+             <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-[#4648d4] text-white font-bold text-sm">2</span>
+             <div>
+               <h3 className="text-lg font-bold text-[#221B59]">Attributes</h3>
+               <p className="text-xs text-gray-500">Product specific attributes</p>
+             </div>
           </div>
 
           {isDynamicAttributesLoading ? (
-            <div className="flex flex-col items-center justify-center py-6 px-4 border border-dashed border-gray-200 rounded-lg bg-gray-50">
+            <div className="flex flex-col items-center justify-center py-8 px-4 bg-gray-50/50 rounded-xl">
               <div className="w-6 h-6 border-2 border-[#4648d4] border-t-transparent rounded-full animate-spin mb-2"></div>
               <span className="text-sm text-gray-500 font-medium">Loading attributes...</span>
             </div>
           ) : !formData.category ? (
-            <div className="flex flex-col items-center justify-center py-6 px-4 border border-dashed border-gray-200 rounded-lg bg-gray-50/50">
+            <div className="flex flex-col items-center justify-center py-8 px-4 border border-dashed border-gray-200 bg-gray-50/50 rounded-xl min-h-[140px]">
               <span className="text-sm text-gray-500 font-medium">Select a Category to load product attributes.</span>
+              <p className="text-xs text-gray-400 mt-1">Attributes will appear here based on the selected category.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
               {dynamicAttributesConfig.map((config) => (
                 <div key={config._id} className="flex flex-col" ref={setRef(`attr_${config._id}`)}>
-                  <label className="block text-sm font-medium text-[#4648d4] mb-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
                     {config.name} {config.isRequired && <span className="text-red-500">*</span>}
                   </label>
                   {renderDynamicField(config)}
@@ -604,13 +674,19 @@ const ProductForm = ({ isEdit = false }) => {
       )}
 
       {/* Return & Exchange Policy */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 sm:p-8">
-        <h3 className="text-lg font-semibold text-[#4648d4] mb-4">Return / Exchange</h3>
+      <div className="p-6 sm:p-8 border-t border-slate-200">
+        <div className="flex items-center gap-3 mb-6">
+           <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-[#4648d4] text-white font-bold text-sm">3</span>
+           <div>
+             <h3 className="text-lg font-bold text-[#221B59]">Return / Exchange</h3>
+             <p className="text-xs text-gray-500">Set return and exchange policy</p>
+           </div>
+        </div>
         
-        <div className="flex flex-wrap items-center gap-8">
+        <div className="flex flex-wrap items-center gap-6 sm:gap-12">
           {/* Returnable Toggle */}
           <div className="flex items-center gap-3">
-            <label className="text-sm font-medium text-[#4648d4]">Returnable</label>
+            <label className="text-sm font-medium text-gray-700">Returnable</label>
             <label className="relative inline-flex items-center cursor-pointer">
               <input 
                 type="checkbox" 
@@ -625,7 +701,7 @@ const ProductForm = ({ isEdit = false }) => {
 
           {/* Exchangeable Toggle */}
           <div className="flex items-center gap-3">
-            <label className="text-sm font-medium text-[#4648d4]">Exchangeable</label>
+            <label className="text-sm font-medium text-gray-700">Exchangeable</label>
             <label className="relative inline-flex items-center cursor-pointer">
               <input 
                 type="checkbox" 
@@ -640,7 +716,7 @@ const ProductForm = ({ isEdit = false }) => {
 
           {/* Return Window */}
           <div className="flex items-center gap-2">
-            <span className="text-sm font-medium text-[#4648d4]">Return In</span>
+            <span className="text-sm font-medium text-gray-700">Return In</span>
             <input
               type="number"
               name="returnDays"
@@ -648,39 +724,41 @@ const ProductForm = ({ isEdit = false }) => {
               value={formData.returnDays}
               onChange={handleChange}
               disabled={!formData.returnable && !formData.exchangeable}
-              className={`w-20 px-2 h-9 text-center border border-gray-200 rounded-lg outline-none focus:border-[#4648d4] focus:ring-1 focus:ring-[#4648d4] transition-colors ${(!formData.returnable && !formData.exchangeable) ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white'}`}
+              className="w-16 h-10 px-3 text-center border border-gray-200 rounded-lg outline-none focus:border-[#4648d4] focus:ring-1 focus:ring-[#4648d4] disabled:bg-gray-100 transition-colors"
             />
-            <span className="text-sm font-medium text-[#4648d4]">days</span>
+            <span className="text-sm font-medium text-gray-700">days</span>
           </div>
         </div>
       </div>
-
-      {/* Form Actions */}
-      <div className="flex justify-center gap-4 pt-4 pb-6">
-        <button
-          type="button"
-          onClick={() => navigate('/admin/products')}
-          className="h-12 px-8 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors shadow-sm"
-        >
-          Cancel
-        </button>
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className={`h-12 px-8 text-sm font-medium text-white bg-[#4648d4] rounded-xl shadow-sm transition-colors flex items-center justify-center min-w-[160px] ${isSubmitting ? 'opacity-70 cursor-not-allowed' : 'hover:bg-[#3b3db0]'}`}
-        >
-          {isSubmitting ? (
-            <>
-              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-              {isEdit ? 'Updating...' : 'Saving...'}
-            </>
-          ) : (
-            isEdit ? 'Update Product →' : 'Save Product & Add Variants →'
-          )}
-        </button>
-      </div>
+      
+      {/* Form Actions (Only in non-unified mode) */}
+      {!isUnifiedMode && (
+        <div className="flex justify-center gap-4 py-6 border-t border-slate-200">
+          <button
+            type="button"
+            onClick={() => navigate('/admin/products')}
+            className="h-10 px-6 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors shadow-sm"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className={`h-10 px-8 text-sm font-medium text-white bg-[#4648d4] rounded-lg shadow-sm transition-colors flex items-center justify-center min-w-[200px] ${isSubmitting ? 'opacity-70 cursor-not-allowed' : 'hover:bg-[#3b3db0]'}`}
+          >
+            {isSubmitting ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                {isEdit ? 'Updating...' : 'Saving...'}
+              </>
+            ) : (
+              isEdit ? 'Update Product →' : 'Save Product & Add Variants →'
+            )}
+          </button>
+        </div>
+      )}
     </form>
   );
-};
+});
 
 export default ProductForm;

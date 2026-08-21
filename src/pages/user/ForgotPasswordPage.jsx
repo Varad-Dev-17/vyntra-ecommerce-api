@@ -11,7 +11,7 @@ const ForgotPasswordPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [step, setStep] = useState("email"); // "email" | "code" | "success"
+  const [step, setStep] = useState("email");
   const [isLoading, setIsLoading] = useState(false);
 
   const { sendForgotPasswordCode, verifyForgotPasswordCode } = useAuth();
@@ -103,7 +103,7 @@ const ForgotPasswordPage = () => {
             <h1
               className="text-[32px] font-bold tracking-tight"
               style={{
-                
+
                 color: "#4338CA",
                 lineHeight: 1.2,
                 letterSpacing: "-0.01em",
@@ -114,7 +114,7 @@ const ForgotPasswordPage = () => {
             <p
               className="mt-2 text-center"
               style={{
-                
+
                 fontSize: "16px",
                 lineHeight: 1.5,
                 color: "#475569",
@@ -123,8 +123,8 @@ const ForgotPasswordPage = () => {
               {step === "email"
                 ? "Forgot your password? We'll send you a reset code."
                 : step === "code"
-                ? "Enter the verification code and your new password."
-                : "Password reset successfully!"}
+                  ? "Enter the verification code and your new password."
+                  : "Password reset successfully!"}
             </p>
           </div>
 
@@ -137,7 +137,7 @@ const ForgotPasswordPage = () => {
               style={{
                 background: "#ffdad6",
                 color: "#93000a",
-                
+
                 fontSize: "14px",
               }}
             >
@@ -154,7 +154,7 @@ const ForgotPasswordPage = () => {
               style={{
                 background: "#d4edda",
                 color: "#155724",
-                
+
                 fontSize: "14px",
               }}
             >
@@ -169,7 +169,7 @@ const ForgotPasswordPage = () => {
                 <label
                   className="block ml-1"
                   style={{
-                    
+
                     fontSize: "12px",
                     lineHeight: 1,
                     letterSpacing: "0.1em",
@@ -203,7 +203,7 @@ const ForgotPasswordPage = () => {
                     required
                     className="w-full h-12 pl-12 pr-4 rounded-xl transition-all duration-300"
                     style={{
-                      
+
                       fontSize: "16px",
                       color: "#1b1b23",
                       background: "rgba(255, 255, 255, 0.75)",
@@ -234,7 +234,7 @@ const ForgotPasswordPage = () => {
                 style={{
                   background:
                     "linear-gradient(135deg, #4648d4 0%, #6b38d4 100%)",
-                  
+
                   fontSize: "16px",
                   boxShadow: "0 10px 40px rgba(70, 72, 212, 0.25)",
                 }}
@@ -262,7 +262,7 @@ const ForgotPasswordPage = () => {
                 <label
                   className="block ml-1"
                   style={{
-                    
+
                     fontSize: "12px",
                     lineHeight: 1,
                     letterSpacing: "0.1em",
@@ -279,7 +279,7 @@ const ForgotPasswordPage = () => {
                   readOnly
                   className="w-full h-12 px-4 rounded-xl transition-all duration-300 cursor-not-allowed"
                   style={{
-                    
+
                     fontSize: "16px",
                     color: "#64748b",
                     background: "rgba(255, 255, 255, 0.3)",
@@ -293,7 +293,7 @@ const ForgotPasswordPage = () => {
                 <label
                   className="block ml-1"
                   style={{
-                    
+
                     fontSize: "12px",
                     lineHeight: 1,
                     letterSpacing: "0.1em",
@@ -313,7 +313,7 @@ const ForgotPasswordPage = () => {
                   maxLength={6}
                   className="w-full h-12 px-4 rounded-xl transition-all duration-300 text-center tracking-[0.5em] text-lg font-bold"
                   style={{
-                    
+
                     fontSize: "16px",
                     color: "#1f2937",
                     background: "rgba(255, 255, 255, 0.95)",
@@ -339,7 +339,7 @@ const ForgotPasswordPage = () => {
                 <label
                   className="block ml-1"
                   style={{
-                    
+
                     fontSize: "12px",
                     lineHeight: 1,
                     letterSpacing: "0.1em",
@@ -360,7 +360,7 @@ const ForgotPasswordPage = () => {
                     minLength={6}
                     className="w-full h-12 pl-4 pr-12 rounded-xl transition-all duration-300"
                     style={{
-                      
+
                       fontSize: "16px",
                       color: "#1f2937",
                       background: "rgba(255, 255, 255, 0.45)",
@@ -403,7 +403,7 @@ const ForgotPasswordPage = () => {
                 style={{
                   background:
                     "linear-gradient(135deg, #3730A3 0%, #4F46E5 100%)",
-                  
+
                   fontSize: "16px",
                   boxShadow: "0 10px 25px rgba(67, 56, 202, 0.25)",
                 }}
@@ -448,7 +448,7 @@ const ForgotPasswordPage = () => {
               <p
                 className="text-lg font-semibold mb-2"
                 style={{
-                  
+
                   color: "#155724",
                 }}
               >
@@ -456,7 +456,7 @@ const ForgotPasswordPage = () => {
               </p>
               <p
                 style={{
-                  
+
                   color: "#475569",
                 }}
               >
@@ -473,7 +473,7 @@ const ForgotPasswordPage = () => {
                 className="font-bold hover:underline transition-all"
                 style={{
                   color: "#4338CA",
-                  
+
                 }}
               >
                 ← Back to Sign In

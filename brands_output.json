@@ -1,0 +1,159 @@
+{
+  "success": true,
+  "count": 10,
+  "total": 18,
+  "totalPages": 2,
+  "currentPage": 1,
+  "brands": [
+    {
+      "_id": "6a7abdbbb8a36869e94ab752",
+      "departmentIds": [
+        {
+          "_id": "6a79a37e0ff9e1300720e3b3",
+          "name": "Electronics"
+        }
+      ],
+      "name": "ASUS",
+      "slug": "asus",
+      "status": "Active",
+      "createdAt": "2026-08-11T06:14:19.796Z",
+      "updatedAt": "2026-08-11T06:14:19.796Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a7abdb8b8a36869e94ab6a6",
+      "departmentIds": [
+        {
+          "_id": "6a79a37e0ff9e1300720e3b3",
+          "name": "Electronics"
+        }
+      ],
+      "name": "Lenovo",
+      "slug": "lenovo",
+      "status": "Active",
+      "createdAt": "2026-08-11T06:14:16.403Z",
+      "updatedAt": "2026-08-11T06:14:16.403Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a7abd93436e90d46dfaa1ed",
+      "departmentIds": [
+        {
+          "_id": "6a79a37e0ff9e1300720e3b3",
+          "name": "Electronics"
+        }
+      ],
+      "name": "HP",
+      "slug": "hp",
+      "status": "Active",
+      "createdAt": "2026-08-11T06:13:39.943Z",
+      "updatedAt": "2026-08-11T06:13:39.943Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a79bdd9a3e89eeab3d1f697",
+      "departmentIds": [
+        {
+          "_id": "6a79a37e0ff9e1300720e3b4",
+          "name": "Women"
+        }
+      ],
+      "name": "Pepe Jeans",
+      "slug": "pepe-jeans",
+      "status": "Active",
+      "createdAt": "2026-08-10T12:02:33.538Z",
+      "updatedAt": "2026-08-10T12:02:33.538Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a79bdd7a3e89eeab3d1f62e",
+      "departmentIds": [
+        {
+          "_id": "6a79a37e0ff9e1300720e3b4",
+          "name": "Women"
+        }
+      ],
+      "name": "ONLY",
+      "slug": "only",
+      "status": "Active",
+      "createdAt": "2026-08-10T12:02:31.983Z",
+      "updatedAt": "2026-08-10T12:02:31.983Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a79bdd6a3e89eeab3d1f5ce",
+      "departmentIds": [
+        {
+          "_id": "6a79a37e0ff9e1300720e3b4",
+          "name": "Women"
+        }
+      ],
+      "name": "Libas",
+      "slug": "libas",
+      "status": "Active",
+      "createdAt": "2026-08-10T12:02:30.585Z",
+      "updatedAt": "2026-08-10T12:02:30.585Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a79bdd5a3e89eeab3d1f573",
+      "departmentIds": [
+        {
+          "_id": "6a79a37e0ff9e1300720e3b4",
+          "name": "Women"
+        }
+      ],
+      "name": "W for Woman",
+      "slug": "w-for-woman",
+      "status": "Active",
+      "createdAt": "2026-08-10T12:02:29.640Z",
+      "updatedAt": "2026-08-10T12:02:29.640Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a79bdd4a3e89eeab3d1f518",
+      "departmentIds": [
+        {
+          "_id": "6a79a37e0ff9e1300720e3b4",
+          "name": "Women"
+        }
+      ],
+      "name": "Aurelia",
+      "slug": "aurelia",
+      "status": "Active",
+      "createdAt": "2026-08-10T12:02:28.770Z",
+      "updatedAt": "2026-08-10T12:02:28.770Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a79bdd2a3e89eeab3d1f400",
+      "departmentIds": [
+        {
+          "_id": "6a79a37e0ff9e1300720e3b4",
+          "name": "Women"
+        }
+      ],
+      "name": "Puma",
+      "slug": "puma",
+      "status": "Active",
+      "createdAt": "2026-08-10T12:02:26.118Z",
+      "updatedAt": "2026-08-10T12:02:26.118Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a79bdcfa3e89eeab3d1f38a",
+      "departmentIds": [
+        {
+          "_id": "6a79a37e0ff9e1300720e3b4",
+          "name": "Women"
+        }
+      ],
+      "name": "Adidas",
+      "slug": "adidas",
+      "status": "Active",
+      "createdAt": "2026-08-10T12:02:23.440Z",
+      "updatedAt": "2026-08-10T12:02:23.440Z",
+      "__v": 0
+    }
+  ]
+}

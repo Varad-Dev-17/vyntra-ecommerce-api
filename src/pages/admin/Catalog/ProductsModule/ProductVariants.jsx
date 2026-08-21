@@ -1,11 +1,11 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, forwardRef, useImperativeHandle } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { Plus, Trash2, UploadCloud, Save, ArrowLeft, Package, Edit2, Image as ImageIcon, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import Breadcrumbs from '../../../../components/admin/ui/Breadcrumbs';
 
-const ProductVariants = () => {
+const ProductVariants = forwardRef(({ isUnifiedMode = false, categoryId = null, productTitle = '', brandName = '' }, ref) => {
   const { id } = useParams();
   const navigate = useNavigate();
 
@@ -149,81 +149,84 @@ const ProductVariants = () => {
     
     const fetchData = async () => {
       setIsLoading(true);
-      let prodData = null;
+      
+      let catId = categoryId; // From props for unified mode
 
-      try {
-        const prodRes = await axios.get(`${(import.meta.env.PROD ? '' : 'http://localhost:8000')}/admin/products/${id}`, { 
-          withCredentials: true,
-          signal: abortController.signal
-        });
-        if (prodRes.data.success) {
-          prodData = prodRes.data.data.product || prodRes.data.data;
-          setProduct(prodData);
-        }
-      } catch (err) {
-        if (axios.isCancel(err)) return;
-        toast.error("Failed to load Product");
-      }
-
-      try {
-        const varRes = await axios.get(`${(import.meta.env.PROD ? '' : 'http://localhost:8000')}/admin/products/${id}/variants`, { 
-          withCredentials: true,
-          signal: abortController.signal
-        });
-        if (varRes.data.success) {
-          const loadedVariants = varRes.data.data.map(v => ({
-            ...v,
-            attributes: v.attributes.map(a => ({
-              attribute: typeof a.attribute === 'object' ? a.attribute._id : a.attribute,
-              option: typeof a.option === 'object' ? a.option._id : a.option
-            }))
-          }));
-          setVariants(loadedVariants);
-        }
-      } catch (err) {
-        if (axios.isCancel(err)) return;
-        toast.error("Failed to load Variants");
-      }
-
-      if (prodData) {
-        let catId = prodData.category;
-        if (typeof catId === 'object' && catId._id) catId = catId._id;
-        
-        if (catId) {
-          let attributes = [];
-          try {
-            const attrRes = await axios.get(`${(import.meta.env.PROD ? '' : 'http://localhost:8000')}/admin/attribute-mapping/${catId}/attributes?usage=Variant`, { 
-              withCredentials: true,
-              signal: abortController.signal
-            });
-            if (attrRes.data.success) {
-              attributes = attrRes.data.attributes || [];
-              setMappedAttributes(attributes);
-            }
-          } catch (err) {
-            if (axios.isCancel(err)) return;
-            toast.error("Failed to load Variant Attributes");
+      if (!isUnifiedMode && id) {
+        let prodData = null;
+        try {
+          const prodRes = await axios.get(`${(import.meta.env.PROD ? '' : 'http://localhost:8000')}/admin/products/${id}`, { 
+            withCredentials: true,
+            signal: abortController.signal
+          });
+          if (prodRes.data.success) {
+            prodData = prodRes.data.data.product || prodRes.data.data;
+            setProduct(prodData);
+            catId = prodData.category?._id || prodData.category;
           }
-          
-          if (attributes.length > 0) {
-            const optionsMap = {};
-            await Promise.all(attributes.map(async (attr) => {
-              if (['select', 'color', 'multiselect'].includes(attr.fieldType)) {
-                try {
-                  const optRes = await axios.get(`${(import.meta.env.PROD ? '' : 'http://localhost:8000')}/attribute-options/attribute/${attr._id}?limit=1000`, {
-                    signal: abortController.signal
-                  });
-                  if (optRes.data.success) {
-                    optionsMap[attr._id] = optRes.data.options;
-                  }
-                } catch (err) {
-                  if (axios.isCancel(err)) return;
-                }
-              }
+        } catch (err) {
+          if (axios.isCancel(err)) return;
+          toast.error("Failed to load Product");
+        }
+
+        try {
+          const varRes = await axios.get(`${(import.meta.env.PROD ? '' : 'http://localhost:8000')}/admin/products/${id}/variants`, { 
+            withCredentials: true,
+            signal: abortController.signal
+          });
+          if (varRes.data.success) {
+            const loadedVariants = varRes.data.data.map(v => ({
+              ...v,
+              attributes: v.attributes.map(a => ({
+                attribute: typeof a.attribute === 'object' ? a.attribute._id : a.attribute,
+                option: typeof a.option === 'object' ? a.option._id : a.option
+              }))
             }));
-            setAttributeOptionsMap(optionsMap);
+            setVariants(loadedVariants);
           }
+        } catch (err) {
+          if (axios.isCancel(err)) return;
+          toast.error("Failed to load Variants");
         }
+      }
+
+      if (catId) {
+        let attributes = [];
+        try {
+          const attrRes = await axios.get(`${(import.meta.env.PROD ? '' : 'http://localhost:8000')}/admin/attribute-mapping/${catId}/attributes?usage=Variant`, { 
+            withCredentials: true,
+            signal: abortController.signal
+          });
+          if (attrRes.data.success) {
+            attributes = attrRes.data.attributes || [];
+            setMappedAttributes(attributes);
+          }
+        } catch (err) {
+          if (axios.isCancel(err)) return;
+          toast.error("Failed to load Variant Attributes");
+        }
+        
+        if (attributes.length > 0) {
+          const optionsMap = {};
+          await Promise.all(attributes.map(async (attr) => {
+            if (['select', 'color', 'multiselect'].includes(attr.fieldType)) {
+              try {
+                const optRes = await axios.get(`${(import.meta.env.PROD ? '' : 'http://localhost:8000')}/attribute-options/attribute/${attr._id}?limit=1000`, {
+                  signal: abortController.signal
+                });
+                if (optRes.data.success) {
+                  optionsMap[attr._id] = optRes.data.options;
+                }
+              } catch (err) {
+                if (axios.isCancel(err)) return;
+              }
+            }
+          }));
+          setAttributeOptionsMap(optionsMap);
+        }
+      } else if (isUnifiedMode) {
+          setMappedAttributes([]);
+          setAttributeOptionsMap({});
       }
 
       setIsLoading(false);
@@ -231,7 +234,7 @@ const ProductVariants = () => {
 
     fetchData();
     return () => abortController.abort();
-  }, [id]);
+  }, [id, isUnifiedMode, categoryId]);
 
   useEffect(() => {
     if (groupedVariants.length > 0 && !previewPrimaryOption) {
@@ -240,8 +243,8 @@ const ProductVariants = () => {
   }, [groupedVariants, previewPrimaryOption]);
 
   const generateSkuString = (pOptId, secondaryOptionsObj) => {
-    const brandCode = (product?.brand?.name || 'VYN').substring(0,3).toUpperCase();
-    const titleCode = (product?.title || 'PROD').split(' ')[0].toUpperCase();
+    const brandCode = (isUnifiedMode ? brandName : product?.brand?.name || 'VYN').substring(0,3).toUpperCase();
+    const titleCode = (isUnifiedMode ? productTitle : product?.title || 'PROD').split(' ')[0].toUpperCase();
     
     let pCode = '';
     if (pOptId) {
@@ -412,6 +415,9 @@ const ProductVariants = () => {
   };
 
   const saveVariantsToBackend = async (variantsToSave) => {
+    if (isUnifiedMode) {
+      return { success: true, data: variantsToSave };
+    }
     const res = await axios.put(`${(import.meta.env.PROD ? '' : 'http://localhost:8000')}/admin/products/${id}/variants`, { variants: variantsToSave }, {
       withCredentials: true
     });
@@ -589,7 +595,17 @@ const ProductVariants = () => {
   const maxPrice = prices.length ? Math.max(...prices) : 0;
   const priceRange = minPrice === maxPrice ? `₹${minPrice}` : `₹${minPrice} - ₹${maxPrice}`;
 
-  if (isLoading) {
+  useImperativeHandle(ref, () => ({
+    getVariantsPayload: () => variants,
+    validateCurrentGroup: () => {
+       if (currentGroup && currentGroup.primaryOption) {
+           return { hasUnsaved: true, message: `Please save or clear the current ${isColorGroup ? 'color' : 'variant'} group before finalizing the product.` };
+       }
+       return { hasUnsaved: false };
+    }
+  }));
+
+  if (isLoading && !isUnifiedMode) {
     return (
       <div className="flex-1 flex justify-center items-center">
         <div className="w-8 h-8 border-4 border-[#4648d4] border-t-transparent rounded-full animate-spin"></div>
@@ -598,8 +614,9 @@ const ProductVariants = () => {
   }
 
   return (
-    <div className="p-6 max-w-7xl mx-auto w-full pb-20">
+    <div className={`max-w-7xl mx-auto w-full pb-10 ${isUnifiedMode ? 'p-6 sm:p-8 border-t border-slate-200' : 'p-6'}`}>
       
+      {!isUnifiedMode && (
       <div className="mb-6">
         <Breadcrumbs items={[
           { label: 'Catalog', path: '/admin/catalog' },
@@ -607,8 +624,37 @@ const ProductVariants = () => {
           { label: 'Product Variants' }
         ]} />
       </div>
+      )}
+
+      {/* Main Variant Workspace Header (for unified mode) */}
+      {isUnifiedMode && (
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+          <div className="flex items-center gap-3">
+             <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-[#4648d4] text-white font-bold text-sm">4</span>
+             <div>
+               <h3 className="text-lg font-bold text-[#221B59]">Product Variants</h3>
+               <p className="text-xs text-gray-500">Create variants for your product</p>
+             </div>
+          </div>
+          <div className="flex gap-4">
+             <div className="bg-[#4648d4]/5 px-4 py-1.5 rounded-lg border border-[#4648d4]/10 text-center min-w-[80px]">
+               <span className="text-[10px] font-bold text-[#4648d4] uppercase tracking-wider block mb-0.5">Groups</span>
+               <span className="text-lg font-bold text-[#221B59] leading-none">{groupedVariants.length}</span>
+             </div>
+             <div className="bg-[#4648d4]/5 px-4 py-1.5 rounded-lg border border-[#4648d4]/10 text-center min-w-[80px]">
+               <span className="text-[10px] font-bold text-[#4648d4] uppercase tracking-wider block mb-0.5">Variants</span>
+               <span className="text-lg font-bold text-[#221B59] leading-none">{variants.length}</span>
+             </div>
+             <div className="bg-[#4648d4]/5 px-4 py-1.5 rounded-lg border border-[#4648d4]/10 text-center min-w-[80px]">
+               <span className="text-[10px] font-bold text-[#4648d4] uppercase tracking-wider block mb-0.5">Total Stock</span>
+               <span className="text-lg font-bold text-[#221B59] leading-none">{totalStock}</span>
+             </div>
+          </div>
+        </div>
+      )}
 
       {/* Product Summary */}
+      {!isUnifiedMode && (
       <div className="bg-white rounded-[20px] shadow-sm border border-gray-100 p-8 w-full mb-8">
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
           <div className="flex flex-col">
@@ -648,30 +694,40 @@ const ProductVariants = () => {
           </div>
         </div>
       </div>
+      )}
 
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 mb-8">
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-4 sm:gap-6 mb-6">
         
         {/* Left Column: Variant Form Card */}
-        <div className="xl:col-span-7 bg-white rounded-[20px] shadow-sm border border-gray-100 p-8 flex flex-col">
-           <div className="pb-4 border-b border-gray-100 mb-6">
-              <h2 className="text-lg font-bold text-[#221B59]">
-                {editingPrimaryOption !== null ? (isColorGroup ? 'Edit Color' : 'Edit Group') : (isColorGroup ? 'Add Color' : 'Add Group')}
+        <div className={`xl:col-span-7 ${isUnifiedMode ? 'bg-slate-50/40 border border-slate-100 rounded-xl' : 'bg-white rounded-[20px] shadow-sm border border-gray-100'} p-5 sm:p-6 flex flex-col`}>
+           <div className="pb-3 border-b border-gray-100 mb-4">
+              <h2 className="text-base font-bold text-[#221B59]">
+                {editingPrimaryOption !== null ? (isColorGroup ? 'Edit Color' : 'Edit Group') : (isColorGroup ? 'Add Color' : 'Add Variant Group')}
               </h2>
            </div>
 
+           {!primaryAttribute && isUnifiedMode && (
+             <div className="flex-1 flex flex-col items-center justify-center bg-gray-50/50 border border-dashed border-gray-200 rounded-xl p-6 text-center min-h-[260px]">
+                <Package className="w-10 h-10 text-gray-300 mb-3" />
+                <h3 className="text-base font-semibold text-gray-700 mb-1">Select a category first</h3>
+                <p className="text-xs text-gray-500 max-w-xs">
+                  Please select a category in the Product Information section above to configure available variant attributes.
+                </p>
+             </div>
+           )}
+
            {currentGroup && primaryAttribute && (
-             <div className="space-y-8 flex-1">
+             <div className="space-y-6 flex-1">
                
                {/* Primary Group Details */}
                <div>
-                 <h3 className="text-base font-bold text-[#221B59] mb-4">Group Details</h3>
-                 <div className="grid grid-cols-1 gap-6 max-w-sm">
+                 <div className="grid grid-cols-1 gap-4 max-w-sm">
                     <div>
-                      <label className="block text-sm font-medium text-[#221B59] mb-2">{primaryAttribute.name} *</label>
+                      <label className="block text-xs font-bold text-[#221B59] mb-1">Primary Attribute (e.g. {primaryAttribute.name}) <span className="text-red-500">*</span></label>
                       <select
                         value={currentGroup.primaryOption}
                         onChange={(e) => updateCurrentGroup('primaryOption', e.target.value)}
-                        className="w-full px-4 h-12 border border-gray-200 rounded-xl outline-none focus:border-[#3A36DB] focus:ring-1 focus:ring-[#3A36DB] bg-white transition-colors text-gray-900"
+                        className="w-full px-3 h-10 text-sm border border-gray-200 rounded-lg outline-none focus:border-[#3A36DB] focus:ring-1 focus:ring-[#3A36DB] bg-white transition-colors text-gray-900"
                       >
                         <option value="">Select {primaryAttribute.name}</option>
                         {(attributeOptionsMap[primaryAttribute._id] || []).map(opt => (
@@ -683,48 +739,48 @@ const ProductVariants = () => {
                </div>
 
                {/* Variant Images */}
-               <div className="pt-6 border-t border-gray-100">
-                 <h3 className="text-base font-bold text-[#221B59] mb-4">Group Images</h3>
-                 <div className="flex flex-wrap sm:flex-nowrap gap-8">
+               <div className="pt-4 border-t border-gray-100">
+                 <h3 className="text-xs font-bold text-[#221B59] mb-3">Group Images</h3>
+                 <div className="flex gap-6">
                    <div className="flex flex-col shrink-0">
-                     <label className="block text-sm font-medium text-[#221B59] mb-2">Main Image *</label>
+                     <label className="block text-xs font-medium text-gray-600 mb-1">Main Image <span className="text-red-500">*</span></label>
                      {currentGroup.mainImage ? (
-                       <div className="relative w-32 h-32 border border-gray-200 rounded-xl overflow-hidden group">
+                       <div className="relative w-24 h-24 border border-gray-200 rounded-lg overflow-hidden group">
                          <img src={currentGroup.mainImage.url} className="w-full h-full object-cover" alt="Main"  loading="lazy" decoding="async" />
                          <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex flex-col justify-center items-center gap-2 transition-opacity">
-                           <label className="bg-white px-3 py-1.5 rounded-lg text-xs font-medium cursor-pointer shadow-sm text-gray-900">
+                           <label className="bg-white px-2 py-1 rounded text-[10px] font-medium cursor-pointer shadow-sm text-gray-900">
                              Replace
                              <input type="file" className="hidden" accept="image/*" onChange={(e) => handleMainImageUpload(e.target.files[0])} />
                            </label>
                          </div>
                        </div>
                      ) : (
-                       <label className="flex flex-col items-center justify-center w-32 h-32 border border-dashed border-gray-300 rounded-xl cursor-pointer bg-gray-50/50 hover:bg-gray-50 transition-colors">
-                         <UploadCloud className="w-6 h-6 text-gray-400 mb-2" />
-                         <span className="text-xs font-medium text-gray-700">Upload</span>
-                         <span className="text-[10px] text-gray-400 mt-1">JPG, PNG</span>
+                       <label className="flex flex-col items-center justify-center w-24 h-24 border border-dashed border-gray-300 rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
+                         <UploadCloud className="w-5 h-5 text-[#4648d4] mb-1" />
+                         <span className="text-[10px] font-medium text-gray-700">Upload</span>
+                         <span className="text-[9px] text-gray-400 mt-0.5">JPG, PNG</span>
                          <input type="file" className="hidden" accept="image/*" onChange={(e) => handleMainImageUpload(e.target.files[0])} />
                        </label>
                      )}
                    </div>
 
                    <div className="flex flex-col flex-1">
-                     <div className="flex justify-between items-center mb-2">
-                       <label className="block text-sm font-medium text-[#221B59]">Gallery Images ({currentGroup.galleryImages?.length || 0}/5)</label>
+                     <div className="flex justify-between items-center mb-1">
+                       <label className="block text-xs font-medium text-gray-600">Gallery Images ({currentGroup.galleryImages?.length || 0}/5)</label>
                      </div>
-                     <div className="flex gap-4 flex-wrap">
+                     <div className="flex gap-3 flex-wrap">
                        {currentGroup.galleryImages?.map((img, gIndex) => (
-                         <div key={img.publicId || gIndex} className="relative w-32 h-32 border border-gray-200 rounded-xl overflow-hidden group shrink-0">
+                         <div key={img.publicId || gIndex} className="relative w-24 h-24 border border-gray-200 rounded-lg overflow-hidden group shrink-0">
                            <img src={img.url} className="w-full h-full object-cover" alt="Gallery"  loading="lazy" decoding="async" />
                            <button type="button" onClick={() => removeGalleryImage(gIndex)} className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white transition-opacity">
-                             <Trash2 size={16} />
+                             <Trash2 size={14} />
                            </button>
                          </div>
                        ))}
                        {(currentGroup.galleryImages?.length || 0) < 5 && (
-                         <label className="w-32 h-32 border border-dashed border-gray-300 rounded-xl flex flex-col items-center justify-center cursor-pointer bg-gray-50/50 hover:bg-gray-50 transition-colors shrink-0">
-                           <Plus className="w-5 h-5 text-gray-400 mb-1" />
-                           <span className="text-xs font-medium text-gray-700">Add Image</span>
+                         <label className="w-24 h-24 border border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors shrink-0">
+                           <Plus className="w-4 h-4 text-[#4648d4] mb-1" />
+                           <span className="text-[10px] font-medium text-gray-700">Add Images</span>
                            <input type="file" multiple className="hidden" accept="image/*" onChange={(e) => handleGalleryUpload(e.target.files)} />
                          </label>
                        )}
@@ -836,18 +892,18 @@ const ProductVariants = () => {
       </div>
 
       {currentGroup && primaryAttribute && (
-        <div className="bg-white rounded-[20px] shadow-sm border border-gray-100 p-8 w-full mb-8">
+        <div className={`${isUnifiedMode ? 'border-t border-slate-200 pt-6 mt-6 w-full mb-6' : 'bg-white rounded-[20px] shadow-sm border border-gray-100 p-5 sm:p-6 w-full mb-6'}`}>
                {/* Inventory Table */}
                <div>
-                 <div className="flex justify-between items-center mb-6">
-                   <h3 className="text-lg font-bold text-[#221B59]">Inventory Configurations</h3>
+                 <div className="flex justify-between items-center mb-4">
+                   <h3 className="text-base font-bold text-[#221B59]">Inventory Configurations</h3>
                    {secondaryAttributes.length > 0 && (
                      <button 
                        type="button" 
                        onClick={addRow}
-                       className="text-sm font-medium text-[#3A36DB] bg-[#3A36DB]/10 hover:bg-[#3A36DB]/20 px-4 py-2 rounded-lg flex items-center gap-1.5 transition-colors"
+                       className="text-[11px] font-semibold text-[#4648d4] border border-[#4648d4]/30 hover:bg-[#4648d4]/5 px-3 py-1.5 rounded-md flex items-center gap-1 transition-colors uppercase tracking-wide"
                      >
-                       <Plus size={16} /> {isColorGroup && secondaryAttributes[0].name.toLowerCase() === 'size' ? 'Add Size' : 'Add Option'}
+                       <Plus size={14} /> {isColorGroup && secondaryAttributes[0].name.toLowerCase() === 'size' ? 'Add Size' : 'Add Option'}
                      </button>
                    )}
                  </div>
@@ -857,30 +913,30 @@ const ProductVariants = () => {
                      <thead>
                        <tr className="border-b border-gray-100">
                          {secondaryAttributes.map(sa => (
-                           <th key={sa._id} className="py-4 px-3 text-xs font-bold text-[#221B59] uppercase tracking-wider">{sa.name}</th>
+                           <th key={sa._id} className="pb-2 px-2 text-[10px] font-bold text-gray-500 uppercase tracking-wider">{sa.name}</th>
                          ))}
-                         <th className="py-4 px-3 text-xs font-bold text-[#221B59] uppercase tracking-wider">SKU</th>
-                         <th className="py-4 px-3 text-xs font-bold text-[#221B59] uppercase tracking-wider">Stock</th>
-                         <th className="py-4 px-3 text-xs font-bold text-[#221B59] uppercase tracking-wider">MRP</th>
-                         <th className="py-4 px-3 text-xs font-bold text-[#221B59] uppercase tracking-wider">Price</th>
-                         <th className="py-4 px-3 text-xs font-bold text-[#221B59] uppercase tracking-wider w-24">GST</th>
-                         <th className="py-4 px-3 text-xs font-bold text-[#221B59] uppercase tracking-wider w-24">Status</th>
+                         <th className="pb-2 px-2 text-[10px] font-bold text-gray-500 uppercase tracking-wider">SKU</th>
+                         <th className="pb-2 px-2 text-[10px] font-bold text-gray-500 uppercase tracking-wider">Stock</th>
+                         <th className="pb-2 px-2 text-[10px] font-bold text-gray-500 uppercase tracking-wider">MRP (₹)</th>
+                         <th className="pb-2 px-2 text-[10px] font-bold text-gray-500 uppercase tracking-wider">Price (₹)</th>
+                         <th className="pb-2 px-2 text-[10px] font-bold text-gray-500 uppercase tracking-wider w-20">GST</th>
+                         <th className="pb-2 px-2 text-[10px] font-bold text-gray-500 uppercase tracking-wider w-20">Status</th>
                          {secondaryAttributes.length > 0 && (
-                           <th className="py-4 px-3 text-xs font-bold text-[#221B59] uppercase tracking-wider w-12 text-center">Act</th>
+                           <th className="pb-2 px-2 text-[10px] font-bold text-gray-500 uppercase tracking-wider w-10 text-center">Act</th>
                          )}
                        </tr>
                      </thead>
-                     <tbody className="divide-y divide-gray-100">
+                     <tbody className="divide-y divide-gray-50">
                        {currentGroup.items.map((item, index) => {
                          const priceError = Number(item.price) > Number(item.mrp);
                          return (
-                           <tr key={item.id} className="bg-white hover:bg-gray-50/50 transition-colors">
+                           <tr key={item.id} className="bg-white hover:bg-gray-50/30 transition-colors">
                              {secondaryAttributes.map(sa => (
-                               <td key={sa._id} className="p-2">
+                               <td key={sa._id} className="p-1">
                                  <select
                                    value={item.secondaryOptions[sa._id]}
                                    onChange={(e) => updateItemSecondaryOption(index, sa._id, e.target.value)}
-                                   className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-[#4648d4] focus:ring-1 focus:ring-[#4648d4] bg-white transition-colors text-gray-900"
+                                   className="w-full px-2 py-1.5 text-[13px] border border-gray-200 rounded-md outline-none focus:border-[#4648d4] focus:ring-1 focus:ring-[#4648d4] bg-white transition-colors text-gray-900"
                                  >
                                    <option value="">Select</option>
                                    {(attributeOptionsMap[sa._id] || []).map(opt => (
@@ -889,20 +945,20 @@ const ProductVariants = () => {
                                  </select>
                                </td>
                              ))}
-                             <td className="p-2">
-                               <input type="text" value={item.sku} onChange={e => updateItem(index, 'sku', e.target.value)} className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-[#4648d4] text-gray-900" placeholder="SKU" />
+                             <td className="p-1">
+                               <input type="text" value={item.sku} onChange={e => updateItem(index, 'sku', e.target.value)} className="w-full px-2 py-1.5 text-[13px] border border-gray-200 rounded-md outline-none focus:border-[#4648d4] text-gray-900" placeholder="SKU" />
                              </td>
-                             <td className="p-2 w-24">
-                               <input type="number" value={item.stock} onChange={e => updateItem(index, 'stock', e.target.value)} className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-[#4648d4] text-gray-900" />
+                             <td className="p-1 w-20">
+                               <input type="number" value={item.stock} onChange={e => updateItem(index, 'stock', e.target.value)} className="w-full px-2 py-1.5 text-[13px] border border-gray-200 rounded-md outline-none focus:border-[#4648d4] text-gray-900" />
                              </td>
-                             <td className="p-2 w-28">
-                               <input type="number" value={item.mrp} onChange={e => updateItem(index, 'mrp', e.target.value)} className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-[#4648d4] text-gray-900" />
+                             <td className="p-1 w-24">
+                               <input type="number" value={item.mrp} onChange={e => updateItem(index, 'mrp', e.target.value)} className="w-full px-2 py-1.5 text-[13px] border border-gray-200 rounded-md outline-none focus:border-[#4648d4] text-gray-900" />
                              </td>
-                             <td className="p-2 w-28 relative">
-                               <input type="number" value={item.price} onChange={e => updateItem(index, 'price', e.target.value)} className={`w-full px-3 py-2 text-sm border rounded-lg outline-none focus:ring-1 text-gray-900 ${priceError ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-gray-200 focus:border-[#4648d4] focus:ring-[#4648d4]'}`} />
+                             <td className="p-1 w-24 relative">
+                               <input type="number" value={item.price} onChange={e => updateItem(index, 'price', e.target.value)} className={`w-full px-2 py-1.5 text-[13px] border rounded-md outline-none focus:ring-1 text-gray-900 ${priceError ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-gray-200 focus:border-[#4648d4] focus:ring-[#4648d4]'}`} />
                              </td>
-                             <td className="p-2 w-24">
-                               <select value={item.gstRate} onChange={e => updateItem(index, 'gstRate', e.target.value)} className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-[#4648d4] bg-white text-gray-900">
+                             <td className="p-1 w-20">
+                               <select value={item.gstRate} onChange={e => updateItem(index, 'gstRate', e.target.value)} className="w-full px-2 py-1.5 text-[13px] border border-gray-200 rounded-md outline-none focus:border-[#4648d4] bg-white text-gray-900">
                                  <option value="">Select</option>
                                  <option value="0">0%</option>
                                  <option value="5">5%</option>
@@ -911,19 +967,19 @@ const ProductVariants = () => {
                                  <option value="28">28%</option>
                                </select>
                              </td>
-                             <td className="p-2">
+                             <td className="p-1 text-center">
                                <button 
                                  type="button"
                                  onClick={() => updateItem(index, 'status', item.status === 'Active' ? 'Inactive' : 'Active')}
-                                 className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${item.status === 'Active' ? 'bg-[#3A36DB]' : 'bg-gray-200'}`}
+                                 className={`relative text-[11px] font-medium px-2 py-1 rounded border transition-colors ${item.status === 'Active' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-gray-50 text-gray-500 border-gray-200'}`}
                                >
-                                 <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${item.status === 'Active' ? 'translate-x-5' : 'translate-x-0'}`} />
+                                 {item.status}
                                </button>
                              </td>
                              {secondaryAttributes.length > 0 && (
-                               <td className="p-2 text-center">
-                                 <button type="button" onClick={() => removeRow(index)} className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
-                                   <Trash2 size={18} />
+                               <td className="p-1 text-center">
+                                 <button type="button" onClick={() => removeRow(index)} className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors">
+                                   <Trash2 size={14} />
                                  </button>
                                </td>
                              )}
@@ -934,15 +990,14 @@ const ProductVariants = () => {
                    </table>
                  </div>
                </div>
-               
-               {/* Form Actions */}
-               <div className="flex flex-wrap items-center justify-end gap-4 pt-6 mt-4">
+                      {/* Form Actions */}
+               <div className="flex flex-wrap items-center justify-end gap-3 pt-4 mt-2">
                  {editingPrimaryOption !== null ? (
                    <>
                      <button 
                        type="button"
                        onClick={handleCancelEdit}
-                       className="h-10 px-6 border border-gray-200 text-gray-700 rounded-xl font-medium hover:bg-gray-50 transition-colors text-sm"
+                       className="px-4 py-1.5 border border-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors text-[13px]"
                      >
                        Cancel
                      </button>
@@ -950,9 +1005,9 @@ const ProductVariants = () => {
                        type="button"
                        onClick={() => handleSave(false)}
                        disabled={isSubmitting}
-                       className="h-10 px-8 bg-[#3A36DB] hover:bg-[#322fc2] text-white rounded-xl font-medium transition-colors disabled:opacity-50 flex items-center justify-center min-w-[140px] text-sm"
+                       className="px-6 py-1.5 bg-[#4648d4] hover:bg-[#3b3db0] text-white rounded-lg font-medium transition-colors disabled:opacity-50 flex items-center justify-center min-w-[120px] text-[13px]"
                      >
-                       {isSubmitting ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div> : (isColorGroup ? 'Update Color' : 'Update Group')}
+                       {isSubmitting ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div> : (isColorGroup ? 'Update Color' : 'Update Group')}
                      </button>
                    </>
                  ) : (
@@ -960,7 +1015,7 @@ const ProductVariants = () => {
                      <button 
                        type="button"
                        onClick={() => setCurrentGroup(getEmptyGroup())}
-                       className="h-10 px-6 border border-gray-200 text-gray-700 rounded-xl font-medium hover:bg-gray-50 transition-colors text-sm"
+                       className="px-4 py-1.5 border border-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors text-[13px]"
                      >
                        Clear
                      </button>
@@ -968,7 +1023,7 @@ const ProductVariants = () => {
                        type="button"
                        onClick={() => handleSave(true)}
                        disabled={isSubmitting}
-                       className="h-10 px-6 border border-[#3A36DB] text-[#3A36DB] hover:bg-[#f0f0fb] rounded-xl font-medium transition-colors flex items-center justify-center min-w-[160px] text-sm"
+                       className="px-4 py-1.5 border border-[#4648d4] text-[#4648d4] rounded-lg font-medium hover:bg-[#4648d4]/5 transition-colors disabled:opacity-50 text-[13px]"
                      >
                        Save & Add Another
                      </button>
@@ -976,117 +1031,99 @@ const ProductVariants = () => {
                        type="button"
                        onClick={() => handleSave(false)}
                        disabled={isSubmitting}
-                       className="h-10 px-8 bg-[#3A36DB] hover:bg-[#322fc2] text-white rounded-xl font-medium transition-colors disabled:opacity-50 flex items-center justify-center min-w-[140px] text-sm"
+                       className="px-6 py-1.5 bg-[#4648d4] hover:bg-[#3b3db0] text-white rounded-lg font-medium transition-colors disabled:opacity-50 flex items-center justify-center min-w-[100px] text-[13px]"
                      >
-                       {isSubmitting ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div> : (isColorGroup ? 'Save Color' : 'Save Group')}
+                       {isSubmitting ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div> : (isColorGroup ? 'Save Color' : 'Save Group')}
                      </button>
                    </>
                  )}
-               </div>
-        </div>
+               </div>    </div>
       )}
 
       {/* Bottom Section: Variants Group Cards */}
-      <div className="bg-white rounded-[20px] shadow-sm border border-gray-100 p-8 w-full">
-        <div className="mb-6 flex justify-between items-center">
-           <h2 className="text-xl font-bold text-[#221B59]">Saved Groups</h2>
-           <div className="flex gap-4">
-             <div className="bg-[#f0f0fb] text-[#3A36DB] px-4 py-1.5 rounded-lg font-medium text-sm border border-[#e0e0f5]">
-               Groups: {groupedVariants.length}
-             </div>
-             <div className="bg-[#f0f0fb] text-[#3A36DB] px-4 py-1.5 rounded-lg font-medium text-sm border border-[#e0e0f5]">
-               Variants: {variants.length}
-             </div>
-           </div>
+      <div className={`${isUnifiedMode ? 'border-t border-slate-200 pt-6 mt-6 w-full' : 'bg-white rounded-[20px] shadow-sm border border-gray-100 p-5 sm:p-6 w-full'}`}>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-base font-bold text-[#221B59]">Saved Groups</h2>
+          {!isUnifiedMode && (
+          <div className="flex gap-4">
+            <span className="text-xs font-semibold text-[#4648d4] bg-[#4648d4]/10 px-3 py-1 rounded-full">Groups: {groupedVariants.length}</span>
+            <span className="text-xs font-semibold text-[#4648d4] bg-[#4648d4]/10 px-3 py-1 rounded-full">Variants: {variants.length}</span>
+          </div>
+          )}
         </div>
-        
-        {groupedVariants.length === 0 ? (
-          <div className="text-center text-gray-500 py-8">No variants available.</div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {groupedVariants.map((group, index) => {
-              const optName = attributeOptionsMap[primaryAttribute._id]?.find(o => o._id === group.primaryOption)?.displayName || '-';
-              
-              // Calculate group level stats
-              const gStock = group.items.reduce((acc, item) => acc + (Number(item.stock) || 0), 0);
-              const gPrices = group.items.map(item => Number(item.price) || 0);
-              const gMin = gPrices.length ? Math.min(...gPrices) : 0;
-              const gMax = gPrices.length ? Math.max(...gPrices) : 0;
-              const gPriceRange = gMin === gMax ? `₹${gMin}` : `₹${gMin} - ₹${gMax}`;
-              
-              // Consolidate secondary attributes
-              const secStrings = group.items.map(item => {
-                return secondaryAttributes.map(sa => {
-                  return attributeOptionsMap[sa._id]?.find(o => o._id === item.secondaryOptions[sa._id])?.displayName || '';
-                }).join(' ');
-              }).filter(s => s);
-              const displaySec = secStrings.join(' • ');
 
-              return (
-                <div key={group.primaryOption || index} className="border border-gray-200 rounded-[16px] overflow-hidden hover:border-[#3A36DB] transition-colors flex flex-col bg-white">
-                  <div className="p-4 flex gap-4 items-center border-b border-gray-100">
-                    <div className="w-16 h-20 rounded-lg overflow-hidden bg-gray-50 shrink-0 border border-gray-100">
-                      {group.mainImage ? (
-                        <img src={group.mainImage.url} alt={optName} className="w-full h-full object-cover"  loading="lazy" decoding="async" />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-gray-400"><ImageIcon size={20}/></div>
-                      )}
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-[#221B59] text-lg mb-1 flex items-center">
-                        {isColorGroup && (
-                          <span className="inline-block w-3.5 h-3.5 rounded-full mr-2 shadow-sm border border-gray-200" style={{ backgroundColor: optName.toLowerCase().replace(' ', '') }}></span>
-                        )}
-                        {optName}
-                      </h3>
-                      <p className="text-sm text-gray-500 font-medium">{1 + (group.galleryImages?.length || 0)} Images</p>
-                    </div>
-                  </div>
-                  
-                  <div className="p-4 flex-1">
-                    <div className="space-y-3">
-                      {secondaryAttributes.length > 0 && (
-                        <div>
-                          <p className="text-xs text-gray-500 uppercase font-semibold mb-1">{secondaryAttributes.map(sa => sa.name).join(' + ')}</p>
-                          <p className="text-sm font-medium text-gray-900 line-clamp-1" title={displaySec}>{displaySec || '-'}</p>
-                        </div>
-                      )}
-                      <div className="grid grid-cols-2 gap-4 pt-2">
-                        <div>
-                          <p className="text-xs text-gray-500 uppercase font-semibold mb-1">Price Range</p>
-                          <p className="text-sm font-medium text-gray-900">{gPriceRange}</p>
-                        </div>
-                        <div>
-                          <p className="text-xs text-gray-500 uppercase font-semibold mb-1">Stock</p>
-                          <p className="text-sm font-medium text-gray-900">{gStock}</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="flex border-t border-gray-100 bg-gray-50/50">
-                    <button 
-                      onClick={() => handleEditGroup(group)}
-                      className="flex-1 py-3 text-sm font-medium text-[#3A36DB] hover:bg-[#f0f0fb] transition-colors flex items-center justify-center gap-2 border-r border-gray-100"
-                    >
-                      <Edit2 size={16} /> Edit
-                    </button>
-                    <button 
-                      onClick={() => handleDeleteGroup(group)}
-                      className="flex-1 py-3 text-sm font-medium text-red-500 hover:bg-red-50 transition-colors flex items-center justify-center gap-2"
-                    >
-                      <Trash2 size={16} /> Delete
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
+        {groupedVariants.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-10 px-4 border border-dashed border-gray-200 rounded-xl">
+             <Package className="w-10 h-10 text-gray-300 mb-3" />
+             <p className="text-sm font-medium text-gray-600 mb-1">No variant groups added yet</p>
+             <p className="text-xs text-gray-400">Add a color group with variants to see them here.</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+               <thead>
+                 <tr className="border-b border-gray-100">
+                   <th className="pb-3 px-2 text-xs font-bold text-gray-500 uppercase tracking-wider">Color</th>
+                   <th className="pb-3 px-2 text-xs font-bold text-gray-500 uppercase tracking-wider">Variants</th>
+                   <th className="pb-3 px-2 text-xs font-bold text-gray-500 uppercase tracking-wider">Images</th>
+                   <th className="pb-3 px-2 text-xs font-bold text-gray-500 uppercase tracking-wider">Stock</th>
+                   <th className="pb-3 px-2 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Action</th>
+                 </tr>
+               </thead>
+               <tbody className="divide-y divide-gray-50">
+                 {groupedVariants.map((group, index) => {
+                   const optName = primaryAttribute ? attributeOptionsMap[primaryAttribute._id]?.find(o => o._id === group.primaryOption)?.displayName : 'Unknown';
+                   const stock = group.items.reduce((sum, item) => sum + (Number(item.stock) || 0), 0);
+                   const isEditing = editingPrimaryOption === group.primaryOption;
+                   
+                   return (
+                     <tr key={group.primaryOption || index} className={`hover:bg-gray-50/50 transition-colors ${isEditing ? 'bg-[#4648d4]/5' : ''}`}>
+                       <td className="p-3">
+                         <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-md overflow-hidden bg-gray-100 flex-shrink-0">
+                               {group.mainImage ? <img src={group.mainImage.url} className="w-full h-full object-cover" alt="Group" loading="lazy" decoding="async"/> : <Package size={16} className="text-gray-400 m-auto mt-3"/>}
+                            </div>
+                            <span className="text-sm font-bold text-gray-800">{optName}</span>
+                         </div>
+                       </td>
+                       <td className="p-3 text-sm text-gray-600 font-medium">
+                         {group.items.length} {group.items.length === 1 ? 'size' : 'sizes'}
+                       </td>
+                       <td className="p-3 text-sm text-gray-600">
+                         {1 + (group.galleryImages?.length || 0)}
+                       </td>
+                       <td className="p-3 text-sm font-semibold text-gray-800">
+                         {stock}
+                       </td>
+                       <td className="p-3 text-right space-x-2">
+                         <button 
+                           onClick={() => handleEditGroup(group.primaryOption)}
+                           disabled={isEditing}
+                           className={`p-1.5 rounded-md transition-colors ${isEditing ? 'text-[#4648d4] bg-[#4648d4]/10 cursor-not-allowed' : 'text-gray-500 hover:text-[#4648d4] hover:bg-[#4648d4]/10'}`}
+                           title="Edit"
+                         >
+                           <Edit2 size={16} />
+                         </button>
+                         <button 
+                           onClick={() => handleDeleteGroup(group.primaryOption)}
+                           disabled={isEditing}
+                           className={`p-1.5 rounded-md transition-colors ${isEditing ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:text-red-500 hover:bg-red-50'}`}
+                           title="Delete"
+                         >
+                           <Trash2 size={16} />
+                         </button>
+                       </td>
+                     </tr>
+                   )
+                 })}
+               </tbody>
+            </table>
           </div>
         )}
       </div>
 
     </div>
   );
-};
+});
 
 export default ProductVariants;
