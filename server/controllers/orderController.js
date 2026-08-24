@@ -8,6 +8,8 @@ import { cancelEmailTemplate } from "../utils/cancelEmailTemplate.js";
 import { getNextSequence } from "../utils/counterHelper.js";
 import { addTimelineEvent, appendAdminNote, mergeAdminNotesSafe } from "../utils/timelineHelper.js";
 import { ORDER_POPULATE_CONFIG, formatAndFilterNotes } from "../utils/populateHelper.js";
+import crypto from "crypto";
+import Razorpay from "razorpay";
 
 // GET ALL ORDERS (Admin)
 export const getAllOrders = async (req, res) => {
@@ -279,11 +281,114 @@ export const getOrderById = async (req, res) => {
   }
 };
 
+// INIT RAZORPAY ORDER
+export const initRazorpayOrder = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const { shippingAddress, couponCode } = req.body;
+
+    if (!shippingAddress || !shippingAddress.name || !shippingAddress.address || !shippingAddress.city || !shippingAddress.phone) {
+      return res.status(400).json({ success: false, message: "Complete shipping address is required" });
+    }
+
+    const cart = await Cart.findOne({ userId }).populate("products.productId");
+    if (!cart || cart.products.length === 0) {
+      return res.status(400).json({ success: false, message: "Cart is empty" });
+    }
+
+    let subtotal = 0;
+    let taxAmount = 0;
+    const Variant = (await import("../models/variant.js")).default;
+
+    for (const item of cart.products) {
+      const product = item.productId;
+      if (!product || product.status !== "Active") {
+        return res.status(400).json({ success: false, message: `Product ${product?.title || "Unknown"} is no longer available` });
+      }
+
+      const variant = await Variant.findById(item.variantId);
+      if (!variant || variant.stock < item.quantity) {
+        return res.status(400).json({ success: false, message: `Only ${variant?.stock || 0} items available for ${product.title}` });
+      }
+
+      const itemSellingPrice = variant.price * item.quantity;
+      const gstRate = variant.gstRate || 0;
+      const itemBasePrice = itemSellingPrice / (1 + (gstRate / 100));
+      const itemGSTAmount = itemSellingPrice - itemBasePrice;
+
+      subtotal += itemSellingPrice;
+      taxAmount += itemGSTAmount;
+    }
+
+    let couponDiscount = 0;
+    if (couponCode?.trim()) {
+      const coupon = await Coupon.findOne({ code: couponCode.trim().toUpperCase(), status: "active", isActive: true });
+      if (coupon) {
+        const now = new Date();
+        const isValid = (!coupon.startDate || now >= coupon.startDate) &&
+          (!coupon.endDate || now <= coupon.endDate) &&
+          (coupon.usageLimit === null || coupon.usageCount < coupon.usageLimit) &&
+          subtotal >= coupon.minOrderAmount;
+
+        if (isValid) {
+          if (coupon.type === "percentage") {
+            couponDiscount = (subtotal * coupon.value) / 100;
+          } else {
+            couponDiscount = coupon.value;
+          }
+          if (coupon.maxDiscountAmount && couponDiscount > coupon.maxDiscountAmount) {
+            couponDiscount = coupon.maxDiscountAmount;
+          }
+        }
+      }
+    }
+
+    const finalSubtotal = Math.max(0, subtotal - couponDiscount);
+    let shippingAmount = 0;
+    if (finalSubtotal < 500) shippingAmount = 99;
+    else if (finalSubtotal < 1000) shippingAmount = 49;
+    else shippingAmount = 0;
+
+    const totalAmount = finalSubtotal + taxAmount + shippingAmount;
+
+    // Create Razorpay instance
+    const razorpay = new Razorpay({
+      key_id: process.env.RAZORPAY_KEY_ID,
+      key_secret: process.env.RAZORPAY_KEY_SECRET,
+    });
+
+    // Create Razorpay order
+    const options = {
+      amount: Math.round(totalAmount * 100),
+      currency: "INR",
+      receipt: `receipt_${userId}_${Date.now()}`,
+    };
+
+    const razorpayOrder = await razorpay.orders.create(options);
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        order_id: razorpayOrder.id,
+        amount: razorpayOrder.amount,
+        currency: razorpayOrder.currency,
+        key_id: process.env.RAZORPAY_KEY_ID,
+      },
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to initialize Razorpay order",
+    });
+  }
+};
+
 // CREATE ORDER (from cart)
 export const createOrder = async (req, res) => {
   try {
     const userId = req.user.userId;
-    const { shippingAddress, couponCode, paymentMethod = "cod" } = req.body;
+    const { shippingAddress, couponCode, paymentMethod = "cod", razorpayOrderId, razorpayPaymentId, razorpaySignature } = req.body;
 
     if (
       !shippingAddress ||
@@ -297,6 +402,30 @@ export const createOrder = async (req, res) => {
         message: "Complete shipping address is required",
         data: null,
       });
+    }
+
+    if (paymentMethod === "razorpay") {
+      if (!razorpayOrderId || !razorpayPaymentId || !razorpaySignature) {
+        return res.status(400).json({
+          success: false,
+          message: "Razorpay payment details are missing",
+          data: null,
+        });
+      }
+      
+      const body = razorpayOrderId + "|" + razorpayPaymentId;
+      const expectedSignature = crypto
+        .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
+        .update(body.toString())
+        .digest("hex");
+        
+      if (expectedSignature !== razorpaySignature) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid payment signature",
+          data: null,
+        });
+      }
     }
 
     const cart = await Cart.findOne({ userId }).populate("products.productId");
@@ -430,7 +559,10 @@ export const createOrder = async (req, res) => {
       totalAmount: Math.round(totalAmount * 100) / 100,
       coupon: couponApplied,
       paymentMethod,
-      paymentStatus: "pending",
+      razorpayOrderId: paymentMethod === "razorpay" ? razorpayOrderId : undefined,
+      razorpayPaymentId: paymentMethod === "razorpay" ? razorpayPaymentId : undefined,
+      razorpaySignature: paymentMethod === "razorpay" ? razorpaySignature : undefined,
+      paymentStatus: paymentMethod === "razorpay" ? "paid" : "pending",
       status: "pending",
     });
 

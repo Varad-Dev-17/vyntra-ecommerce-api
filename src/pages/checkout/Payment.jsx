@@ -1,11 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CreditCard, Smartphone, Banknote, Building2, Loader2 } from 'lucide-react';
+import { CreditCard, Smartphone, Banknote, Building2, Loader2, ShieldCheck } from 'lucide-react';
 import toast from 'react-hot-toast';
 import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
 import CheckoutTracker from '../../components/bag/CheckoutTracker';
+
+const loadRazorpayScript = () => {
+  return new Promise((resolve) => {
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+};
 
 const Payment = () => {
   const navigate = useNavigate();
@@ -64,6 +74,12 @@ const Payment = () => {
       icon: <Building2 size={24} className="text-[#4F46E5]" />
     },
     {
+      id: 'razorpay',
+      title: 'Pay with Razorpay',
+      description: 'Pay securely using UPI, cards, net banking, and other Razorpay payment options.',
+      icon: <ShieldCheck size={24} className="text-[#4F46E5]" />
+    },
+    {
       id: 'cod',
       title: 'Cash on Delivery',
       description: 'Pay in cash when your order is delivered to your doorstep.',
@@ -92,29 +108,93 @@ const Payment = () => {
         phone: selectedAddress.phone
       };
 
-      const payload = {
-        shippingAddress,
-        paymentMethod: selectedMethod
-      };
+      if (selectedMethod === 'razorpay') {
+        const res = await loadRazorpayScript();
+        if (!res) {
+          toast.error('Razorpay SDK failed to load. Are you online?');
+          setIsProcessing(false);
+          return;
+        }
 
-      const response = await axios.post('/orders', payload, { headers: getAuthHeaders() });
-      
-      if (response.data.success) {
-        toast.success('Order placed successfully!', {
-          duration: 4000,
-          icon: '🎉'
-        });
+        const payload = { shippingAddress };
+        const initResponse = await axios.post('/orders/razorpay/init', payload, { headers: getAuthHeaders() });
         
-        // Clear cart globally
-        updateCartCount(0);
-        refreshCart();
+        if (initResponse.data.success) {
+          const { order_id, amount, currency, key_id } = initResponse.data.data;
+          
+          const options = {
+            key: key_id,
+            amount: amount,
+            currency: currency,
+            name: "Vyntra",
+            description: "Secure Payment",
+            order_id: order_id,
+            handler: async function (response) {
+              try {
+                const verifyPayload = {
+                  shippingAddress,
+                  paymentMethod: 'razorpay',
+                  razorpayOrderId: response.razorpay_order_id,
+                  razorpayPaymentId: response.razorpay_payment_id,
+                  razorpaySignature: response.razorpay_signature
+                };
+                
+                const verifyRes = await axios.post('/orders', verifyPayload, { headers: getAuthHeaders() });
+                if (verifyRes.data.success) {
+                  toast.success('Order placed successfully!', { duration: 4000, icon: '🎉' });
+                  updateCartCount(0);
+                  refreshCart();
+                  navigate('/');
+                }
+              } catch (err) {
+                toast.error(err.response?.data?.message || 'Payment verification failed');
+                setIsProcessing(false);
+              }
+            },
+            prefill: {
+              name: selectedAddress.fullName,
+              contact: selectedAddress.phone
+            },
+            theme: {
+              color: "#4F46E5"
+            },
+            modal: {
+              ondismiss: function() {
+                setIsProcessing(false);
+              }
+            }
+          };
+          const rzp = new window.Razorpay(options);
+          rzp.on('payment.failed', function (response){
+            toast.error(response.error.description || 'Payment failed');
+            setIsProcessing(false);
+          });
+          rzp.open();
+        }
+      } else {
+        const payload = {
+          shippingAddress,
+          paymentMethod: selectedMethod
+        };
+
+        const response = await axios.post('/orders', payload, { headers: getAuthHeaders() });
         
-        // Redirect to success page or home
-        navigate('/');
+        if (response.data.success) {
+          toast.success('Order placed successfully!', {
+            duration: 4000,
+            icon: '🎉'
+          });
+          
+          // Clear cart globally
+          updateCartCount(0);
+          refreshCart();
+          
+          // Redirect to success page or home
+          navigate('/');
+        }
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to place order');
-    } finally {
+      toast.error(error.response?.data?.message || 'Failed to process order');
       setIsProcessing(false);
     }
   };
@@ -174,7 +254,11 @@ const Payment = () => {
              <div className="bg-white rounded-xl shadow-[0_2px_20px_-4px_rgba(0,0,0,0.05)] p-6 sticky top-32 border border-gray-100">
                 <h3 className="font-bold text-[16px] text-[#111827] mb-4">Payment Summary</h3>
                 <p className="text-[#535766] text-[13px] mb-6">
-                  You are selecting <strong>{paymentMethods.find(m => m.id === selectedMethod)?.title}</strong> for this order.
+                  {selectedMethod === 'razorpay' ? (
+                    <>You are selecting <strong>Razorpay</strong> for secure online payment.</>
+                  ) : (
+                    <>You are selecting <strong>{paymentMethods.find(m => m.id === selectedMethod)?.title}</strong> for this order.</>
+                  )}
                 </p>
                 <button 
                   onClick={handleConfirmOrder}
@@ -194,7 +278,7 @@ const Payment = () => {
                         <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
                         <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                       </svg>
-                      Confirm Order
+                      {selectedMethod === 'razorpay' ? 'Pay with Razorpay' : 'Confirm Order'}
                     </>
                   )}
                 </button>

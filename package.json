@@ -32,6 +32,7 @@
     "mongoose": "^8.14.0",
     "multer": "^2.2.0",
     "nodemailer": "^9.0.1",
+    "razorpay": "^2.9.8",
     "react": "^19.2.6",
     "react-datepicker": "^9.1.0",
     "react-dom": "^19.2.6",
