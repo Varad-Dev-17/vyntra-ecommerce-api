@@ -17,6 +17,7 @@ import transport from "../middlewares/sendMail.js";
 
 // SIGN UP Users only, no admin creation
 export const signUp = async (req, res) => {
+  console.log("Signup request received");
   const { username, email, password } = req.body;
 
   try {
@@ -52,11 +53,13 @@ export const signUp = async (req, res) => {
       100000 + Math.random() * 900000
     ).toString();
 
+    console.log("OTP generated");
     console.log(
       `[Signup Flow] Generated verification code ${verificationCode} for user ${email}`
     );
 
     try {
+      console.log("Sending email...");
       let info = await transport.sendMail({
         from: `"Vyntra" <${process.env.NODE_CODE_SENDING_EMAIL_ADDRESS}>`,
         to: email,
@@ -64,6 +67,7 @@ export const signUp = async (req, res) => {
         html: verificationEmailTemplate(verificationCode, username),
       });
 
+      console.log("Email sent successfully");
       console.log("[Signup Flow] Email sent successfully.");
 
       if (!info.accepted || info.accepted.length === 0) {
@@ -105,6 +109,7 @@ export const signUp = async (req, res) => {
     const result = await newUser.save();
     result.password = undefined;
 
+    console.log("Sending success response to frontend");
     res.status(201).json({
       success: true,
       message:

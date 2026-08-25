@@ -39,18 +39,23 @@ const SignUp = () => {
 
   const handleSignUp = async (e) => {
     e.preventDefault();
+    console.log("Signup started");
     setError("");
     setIsLoading(true);
 
     try {
+      console.log("Sending signup request");
       const response = await api.post("/auth/signup", formData);
+      console.log("Signup response:", response);
 
       if (response.data.success) {
+        console.log("Navigating to OTP verification");
         setStep("verify");
       } else {
         setError(response.data.message || "Sign up failed");
       }
     } catch (err) {
+      console.error("Signup error:", err);
       setError(
         err.response?.data?.message || "Something went wrong. Please try again."
       );
