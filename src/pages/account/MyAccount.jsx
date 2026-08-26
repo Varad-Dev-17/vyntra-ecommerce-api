@@ -26,7 +26,7 @@ const MyAccount = () => {
       <div className="w-full border-t border-gray-200">
         <div className="bg-white flex flex-col md:flex-row min-h-[calc(100vh-72px)]">
           {/* Sidebar */}
-          <div className="w-full md:w-64 border-r border-gray-200 p-6 shrink-0 flex flex-col bg-white">
+          <div className="w-full md:w-64 border-r border-gray-200 p-6 shrink-0 flex flex-col bg-white md:sticky md:top-[76px] md:h-[calc(100vh-76px)] md:overflow-y-auto md:overscroll-contain scrollbar-hide">
             <nav className="space-y-1 flex-1">
               <button
                 onClick={() => navigate('/account/profile')}

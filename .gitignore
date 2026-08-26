@@ -46,3 +46,5 @@ coverage
 .parcel-cache/
 .eslintcache
 .stylelintcache
+
+.mobileapp

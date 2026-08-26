@@ -39,7 +39,7 @@ const PopularCategories = () => {
           ) : categories.map((cat, index) => (
             <Link 
               key={cat._id || index} 
-              to={`/products?category=${cat.slug}`}
+              to={`/products?category=${encodeURIComponent(cat.name)}`}
               className="flex flex-col items-center gap-2.5 min-w-[80px] md:min-w-[110px] group snap-start"
             >
               <div className="w-[80px] h-[80px] md:w-[110px] md:h-[110px] rounded-full overflow-hidden bg-white flex items-center justify-center shadow-sm group-hover:shadow-md transition-all duration-300 border border-gray-100">
@@ -59,19 +59,7 @@ const PopularCategories = () => {
             </Link>
           ))}
 
-          {/* View All Circle */}
-          {!isLoading && categories.length > 0 && (
-            <Link 
-              to="/categories"
-              className="flex flex-col items-center justify-center gap-2.5 min-w-[80px] md:min-w-[110px] group snap-start"
-            >
-              <div className="w-[80px] h-[80px] md:w-[110px] md:h-[110px] rounded-full overflow-hidden bg-white flex items-center justify-center shadow-sm group-hover:shadow-md transition-all duration-300 border border-gray-100 group-hover:bg-blue-50">
-                <span className="text-xs md:text-sm font-semibold text-blue-600 flex items-center group-hover:translate-x-1 transition-transform duration-300">
-                  View All <ChevronRight size={16} className="ml-0.5" />
-                </span>
-              </div>
-            </Link>
-          )}
+
         </div>
       </div>
     </section>

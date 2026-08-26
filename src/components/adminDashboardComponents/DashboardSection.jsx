@@ -28,16 +28,45 @@ import {
 } from "recharts";
 import api from "../../api/axiosConfig";
 
+const FilterSelect = ({ value, onChange, large = false }) => {
+  return (
+    <div className="relative inline-block">
+      <select 
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className={`appearance-none bg-slate-50 border border-slate-100 text-slate-500 font-medium ${
+          large ? 'px-4 py-2 font-bold text-sm' : 'px-3 py-1.5 text-sm'
+        } pr-8 rounded cursor-pointer focus:outline-none hover:bg-slate-100 transition-colors`}
+      >
+        <option value="This Year">This Year</option>
+        <option value="This Month">This Month</option>
+        <option value="This Week">This Week</option>
+      </select>
+      <ChevronDown size={14} className="absolute right-2.5 top-1/2 transform -translate-y-1/2 text-slate-500 pointer-events-none" />
+    </div>
+  );
+};
+
 const DashboardSection = () => {
   const navigate = useNavigate();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const [revenueFilter, setRevenueFilter] = useState("This Week");
+  const [ordersFilter, setOrdersFilter] = useState("This Week");
+  const [analyticsFilter, setAnalyticsFilter] = useState("This Week");
+
   const fetchStats = async () => {
     try {
       setLoading(true);
-      const res = await api.get("/admin/dashboard/stats");
+      const res = await api.get("/admin/dashboard/stats", {
+        params: {
+          revenueTime: revenueFilter,
+          ordersTime: ordersFilter,
+          analyticsTime: analyticsFilter
+        }
+      });
       if (res.data.success) {
         setData(res.data.data);
       } else {
@@ -53,9 +82,9 @@ const DashboardSection = () => {
 
   useEffect(() => {
     fetchStats();
-  }, []);
+  }, [revenueFilter, ordersFilter, analyticsFilter]);
 
-  if (loading) {
+  if (loading && !data) {
     return (
       <div className="p-6 h-[50vh] flex flex-col items-center justify-center">
         <Loader2 className="w-8 h-8 text-[#4648d4] animate-spin mb-4" />
@@ -87,7 +116,8 @@ const DashboardSection = () => {
   const revenue = data?.revenue || { total: 0, growth: 0 };
   const recentOrders = data?.recentOrders || [];
   const topProducts = data?.topProducts || [];
-  const salesChart = data?.salesChart || [];
+  const revenueChart = data?.revenueChart || [];
+  const analyticsChart = data?.analyticsChart || [];
   const orderStats = data?.orders || {};
   const salesByCategory = data?.salesByCategory || [];
 
@@ -171,17 +201,6 @@ const DashboardSection = () => {
             Welcome back, admin! Here's what's happening with your store today.
           </p>
         </div>
-        <div className="mt-6 md:mt-0 flex items-center gap-3 bg-slate-50 border border-slate-100 px-5 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer">
-          <CalendarDays size={18} className="text-purple-500" />
-          <span>
-            {(() => {
-              const today = new Date();
-              const lastWeek = new Date(today);
-              lastWeek.setDate(today.getDate() - 6);
-              return `${lastWeek.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${today.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
-            })()}
-          </span>
-        </div>
       </div>
 
       {/* Top Stats Flowing Panel */}
@@ -224,13 +243,11 @@ const DashboardSection = () => {
         <div className="lg:col-span-2 flex flex-col">
           <div className="flex justify-between items-end mb-8">
             <h3 className="text-xl font-bold text-slate-700 tracking-tight">Revenue Overview</h3>
-            <div className="flex items-center gap-1 text-sm font-medium text-slate-500 bg-slate-50 px-3 py-1.5 border border-slate-100 cursor-pointer">
-              This Year <ChevronDown size={14} />
-            </div>
+            <FilterSelect value={revenueFilter} onChange={setRevenueFilter} />
           </div>
           <div className="h-[280px] w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={salesChart} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+              <AreaChart data={revenueChart} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <defs>
                   <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3} />
@@ -238,7 +255,7 @@ const DashboardSection = () => {
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#94a3b8' }} dy={10} />
+                <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#94a3b8' }} dy={10} />
                 <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#94a3b8' }} tickFormatter={(val) => `₹${val/1000}k`} />
                 <Tooltip
                   contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
@@ -255,9 +272,7 @@ const DashboardSection = () => {
         <div className="flex flex-col">
           <div className="flex justify-between items-end mb-8">
             <h3 className="text-xl font-bold text-slate-700 tracking-tight">Orders Overview</h3>
-            <div className="flex items-center gap-1 text-sm font-medium text-slate-500 bg-slate-50 px-3 py-1.5 border border-slate-100 cursor-pointer">
-              This Month <ChevronDown size={14} />
-            </div>
+            <FilterSelect value={ordersFilter} onChange={setOrdersFilter} />
           </div>
           
           <div className="relative h-[200px] flex justify-center items-center">
@@ -421,15 +436,13 @@ const DashboardSection = () => {
       <div className="border-t border-slate-100 pt-10">
         <div className="flex justify-between items-end mb-8">
           <h3 className="text-xl font-bold text-slate-700 tracking-tight">Sales Analytics</h3>
-          <div className="flex items-center gap-1 text-sm font-bold text-slate-500 bg-slate-50 px-4 py-2 border border-slate-100 cursor-pointer hover:bg-slate-100 transition-colors">
-            This Year <ChevronDown size={16} />
-          </div>
+          <FilterSelect value={analyticsFilter} onChange={setAnalyticsFilter} large={true} />
         </div>
         <div className="h-[300px] w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={salesChart} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+            <BarChart data={analyticsChart} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-              <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#94a3b8' }} dy={10} />
+              <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#94a3b8' }} dy={10} />
               <YAxis yAxisId="left" orientation="left" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#94a3b8' }} tickFormatter={(val) => `₹${val/1000}k`} />
               <YAxis yAxisId="right" orientation="right" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#94a3b8' }} />
               <Tooltip

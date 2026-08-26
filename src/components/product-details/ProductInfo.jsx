@@ -128,15 +128,54 @@ const ProductInfo = ({ product, activeVariant, onVariantChange }) => {
     return cName === activeColorName;
   }) || [];
 
-  const availableSizes = variantsOfActiveColor.map(v => {
-    const sizeAttr = v.attributes?.find(a => a.attribute?.name?.toLowerCase() === 'size');
-    return {
-      name: sizeAttr?.option?.displayName,
-      stock: v.stock,
-      variantId: v._id,
-      isActive: v._id === activeVariant._id
-    };
-  }).filter(s => s.name);
+  let secondaryAttributeName = 'Size';
+  const uniqueSizesMap = new Map();
+  const isLaptop = 
+    product.category?.name?.toLowerCase() === 'laptop' || 
+    product.category?.slug?.toLowerCase() === 'laptop' || 
+    (typeof product.category === 'string' && product.category.toLowerCase() === 'laptop') ||
+    (Array.isArray(product.categories) && product.categories.some(c => 
+      c?.name?.toLowerCase() === 'laptop' || 
+      c?.slug?.toLowerCase() === 'laptop' || 
+      (typeof c === 'string' && c.toLowerCase() === 'laptop')
+    ));
+
+  variantsOfActiveColor.forEach(v => {
+    let secAttr;
+    if (isLaptop) {
+      secAttr = v.attributes?.find(a => a.attribute?.name?.toLowerCase().includes('processor'));
+    }
+    if (!secAttr) {
+      secAttr = v.attributes?.find(a => a.attribute?.name?.toLowerCase() !== 'color');
+    }
+    if (secAttr && secAttr.attribute?.name) {
+      secondaryAttributeName = secAttr.attribute.name;
+    }
+    const name = secAttr?.option?.displayName;
+    if (name) {
+      // To handle stock, we can sum the stock of all variants with this name
+      const existing = uniqueSizesMap.get(name);
+      const isCurrentlyActive = v._id === activeVariant._id;
+      
+      if (!existing) {
+        uniqueSizesMap.set(name, {
+          name,
+          stock: v.stock || 0,
+          variantId: v._id,
+          isActive: isCurrentlyActive
+        });
+      } else {
+        existing.stock += (v.stock || 0);
+        // If this variant is the active one, use its variantId and set isActive
+        if (isCurrentlyActive) {
+          existing.variantId = v._id;
+          existing.isActive = true;
+        }
+      }
+    }
+  });
+  
+  const availableSizes = Array.from(uniqueSizesMap.values());
 
   return (
     <div className="flex flex-col">
@@ -214,7 +253,7 @@ const ProductInfo = ({ product, activeVariant, onVariantChange }) => {
       {uniqueColorVariants.length > 1 && (
         <div className="mb-6">
           <h4 className="text-[13px] font-bold text-[#282c3f] uppercase tracking-wide mb-2.5">Select Color</h4>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-4">
             {uniqueColorVariants.map((v) => {
               const cAttr = v.attributes?.find(a => a.attribute?.name?.toLowerCase() === 'color');
               const cName = cAttr?.option?.displayName || 'default';
@@ -223,10 +262,15 @@ const ProductInfo = ({ product, activeVariant, onVariantChange }) => {
                 <button
                   key={v._id}
                   onClick={() => onVariantChange(v._id)}
-                  className={`relative w-14 h-18 rounded overflow-hidden border-2 transition-all ${isSelected ? 'border-[#4F46E5]' : 'border-transparent hover:border-[#d4d5d9]'}`}
+                  className="flex flex-col items-center gap-1.5 focus:outline-none group"
                   title={cName}
                 >
-                  <img src={v.mainImage?.url} alt={cName} className="w-full h-full object-cover"  loading="lazy" decoding="async" />
+                  <div className={`relative w-14 h-18 rounded overflow-hidden border-2 transition-all ${isSelected ? 'border-[#4F46E5]' : 'border-transparent group-hover:border-[#d4d5d9]'}`}>
+                    <img src={v.mainImage?.url} alt={cName} className="w-full h-full object-cover"  loading="lazy" decoding="async" />
+                  </div>
+                  <span className={`text-[11px] font-semibold transition-colors ${isSelected ? 'text-[#4F46E5]' : 'text-gray-500 group-hover:text-gray-800'}`}>
+                    {cName}
+                  </span>
                 </button>
               );
             })}
@@ -234,28 +278,32 @@ const ProductInfo = ({ product, activeVariant, onVariantChange }) => {
         </div>
       )}
 
-      {/* Select Size */}
+      {/* Select Secondary Option */}
       {availableSizes.length > 0 && (
         <div className="mb-7">
           <div className="mb-3.5 flex items-center gap-14">
-            <h4 className="text-[13px] font-bold text-[#282c3f] uppercase tracking-wide">Select Size</h4>
-            <button
-              type="button"
-              onClick={() => setIsSizeChartOpen(true)}
-              className="text-[12px] font-bold text-[#4F46E5] hover:underline transition-all cursor-pointer uppercase tracking-wide"
-            >
-              View Size Chart
-            </button>
+            <h4 className="text-[13px] font-bold text-[#282c3f] uppercase tracking-wide">Select {secondaryAttributeName}</h4>
+            {secondaryAttributeName.toLowerCase() === 'size' && (
+              <button
+                type="button"
+                onClick={() => setIsSizeChartOpen(true)}
+                className="text-[12px] font-bold text-[#4F46E5] hover:underline transition-all cursor-pointer uppercase tracking-wide"
+              >
+                View Size Chart
+              </button>
+            )}
           </div>
           <div className="flex flex-wrap gap-2.5">
             {availableSizes.map((size) => {
               const isOutOfStock = size.stock <= 0;
+              const isSize = secondaryAttributeName.toLowerCase() === 'size';
               return (
                 <button
                   key={size.variantId}
                   onClick={() => !isOutOfStock && onVariantChange(size.variantId)}
                   disabled={isOutOfStock}
-                  className={`relative overflow-hidden w-11 h-11 rounded-full border flex items-center justify-center text-[13px] font-bold transition-all
+                  className={`relative overflow-hidden flex items-center justify-center text-[13px] font-bold transition-all border
+                    ${isSize ? 'w-11 h-11 rounded-full' : 'px-4 py-2 rounded-md min-w-[3rem]'}
                     ${
                       isOutOfStock 
                         ? 'border-red-500 text-[#282c3f] cursor-not-allowed bg-white' 

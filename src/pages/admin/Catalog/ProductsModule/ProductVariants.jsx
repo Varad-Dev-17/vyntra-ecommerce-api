@@ -1097,7 +1097,7 @@ const ProductVariants = forwardRef(({ isUnifiedMode = false, categoryId = null, 
                        </td>
                        <td className="p-3 text-right space-x-2">
                          <button 
-                           onClick={() => handleEditGroup(group.primaryOption)}
+                           onClick={() => handleEditGroup(group)}
                            disabled={isEditing}
                            className={`p-1.5 rounded-md transition-colors ${isEditing ? 'text-[#4648d4] bg-[#4648d4]/10 cursor-not-allowed' : 'text-gray-500 hover:text-[#4648d4] hover:bg-[#4648d4]/10'}`}
                            title="Edit"
@@ -1105,7 +1105,7 @@ const ProductVariants = forwardRef(({ isUnifiedMode = false, categoryId = null, 
                            <Edit2 size={16} />
                          </button>
                          <button 
-                           onClick={() => handleDeleteGroup(group.primaryOption)}
+                           onClick={() => handleDeleteGroup(group)}
                            disabled={isEditing}
                            className={`p-1.5 rounded-md transition-colors ${isEditing ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:text-red-500 hover:bg-red-50'}`}
                            title="Delete"

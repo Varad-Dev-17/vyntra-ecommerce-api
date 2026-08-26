@@ -18,7 +18,15 @@ import { WishlistProvider } from "./context/WishlistContext";
 import SmoothScrollProvider from "./animation/globalanimation/scroll/SmoothScrollProvider";
 import SmoothScrollbar from "./animation/globalanimation/scroll/SmoothScrollbar";
 
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
+
+const ScrollToTop = () => {
+  const { pathname, search } = useLocation();
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+  }, [pathname, search]);
+  return null;
+};
 
 // Dynamic imports for pages
 const Home = lazy(() => import("./pages/home/Home"));
@@ -44,6 +52,7 @@ const CatalogLayout = lazy(() => import("./pages/admin/Catalog/CatalogLayout"));
 const DepartmentsList = lazy(() => import("./pages/admin/Catalog/DepartmentsModule/DepartmentsList"));
 const AddDepartment = lazy(() => import("./pages/admin/Catalog/DepartmentsModule/AddDepartment"));
 const EditDepartment = lazy(() => import("./pages/admin/Catalog/DepartmentsModule/EditDepartment"));
+const DepartmentTreeView = lazy(() => import("./pages/admin/Catalog/DepartmentsModule/DepartmentTreeView"));
 const CategoriesList = lazy(() => import("./pages/admin/Catalog/CategoriesModule/CategoriesList"));
 const AddCategory = lazy(() => import("./pages/admin/Catalog/CategoriesModule/AddCategory"));
 const EditCategory = lazy(() => import("./pages/admin/Catalog/CategoriesModule/EditCategory"));
@@ -93,7 +102,7 @@ const ProtectedRoute = ({ children, adminOnly = false }) => {
 const UserLayout = ({ children }) => {
   const location = useLocation();
   const hideFooterPaths = ["/signin", "/signup", "/admin-login"];
-  const showFooter = !hideFooterPaths.includes(location.pathname);
+  const showFooter = !hideFooterPaths.includes(location.pathname) && !location.pathname.startsWith("/account");
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
@@ -274,6 +283,7 @@ const AppRoutes = () => {
             <Route index element={<DepartmentsList />} />
             <Route path="add" element={<AddDepartment />} />
             <Route path=":id/edit" element={<EditDepartment />} />
+            <Route path=":id/tree" element={<DepartmentTreeView />} />
           </Route>
           <Route path="categories">
             <Route index element={<CategoriesList />} />
@@ -366,6 +376,7 @@ function App() {
         />
         <WishlistProvider>
           <Router>
+            <ScrollToTop />
             <AppRoutes />
           </Router>
         </WishlistProvider>

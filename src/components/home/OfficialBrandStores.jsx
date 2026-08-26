@@ -13,8 +13,8 @@ const brands = [
 ];
 
 const BrandCard = ({ brand }) => (
-  <Link to={`/brand/${brand.name.toLowerCase()}`} className="bg-transparent rounded-xl p-4 flex items-center gap-5 transition-colors duration-300 min-w-[280px] mx-2 shrink-0 group hover:opacity-80">
-    <div className="w-[60px] h-[60px] rounded-full bg-white flex items-center justify-center p-4 shadow-sm shrink-0 border border-gray-100">
+  <Link to={`/brand/${brand.name.toLowerCase()}`} className="bg-transparent p-2 flex items-center justify-center transition-transform duration-300 mx-6 md:mx-8 shrink-0 group hover:scale-110">
+    <div className="w-[120px] h-[60px] md:w-[160px] md:h-[80px] flex items-center justify-center shrink-0">
       <img 
         src={brand.logo} 
         alt={brand.name} 
@@ -26,12 +26,9 @@ const BrandCard = ({ brand }) => (
           e.target.nextSibling.style.display = 'flex';
         }}
       />
-      <span className="hidden w-full h-full items-center justify-center text-lg font-bold text-gray-500">
-        {brand.name[0]}
+      <span className="hidden w-full h-full items-center justify-center text-3xl font-black text-gray-400">
+        {brand.name}
       </span>
-    </div>
-    <div>
-      <h3 className="font-semibold text-slate-700 text-[16px] leading-tight mb-1">{brand.name}</h3>
     </div>
   </Link>
 );
@@ -59,7 +56,6 @@ const MarqueeRow = ({ items, direction = "left", speed = 40 }) => {
 const OfficialBrandStores = () => {
   const row1Brands = [...brands];
   const row2Brands = [...brands].reverse();
-  const row3Brands = [...brands.slice(4), ...brands.slice(0, 4)];
 
   return (
     <section className="pt-12 pb-24 bg-white w-full mt-4 overflow-hidden relative">
@@ -69,14 +65,13 @@ const OfficialBrandStores = () => {
       </div>
       
       {/* Marquee Container */}
-      <div className="relative w-full flex flex-col gap-2 overflow-hidden">
+      <div className="relative w-full flex flex-col gap-6 overflow-hidden">
         {/* Left/Right Fade Overlays */}
         <div className="absolute top-0 bottom-0 left-0 w-16 md:w-40 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none"></div>
         <div className="absolute top-0 bottom-0 right-0 w-16 md:w-40 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none"></div>
         
         <MarqueeRow items={row1Brands} direction="left" speed={60} />
         <MarqueeRow items={row2Brands} direction="right" speed={75} />
-        <MarqueeRow items={row3Brands} direction="left" speed={60} />
       </div>
     </section>
   );

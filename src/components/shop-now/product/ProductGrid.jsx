@@ -7,10 +7,14 @@ const ProductGrid = ({ paginatedProducts, activeColors = [], priceRange = { min:
     const items = [];
 
     paginatedProducts?.forEach(product => {
+      if (product.status === 'Inactive') return;
+
       const colorGroups = new Map();
 
       if (product.variants && product.variants.length > 0) {
         product.variants.forEach(v => {
+          if (v.status === 'Inactive') return;
+
           const colorAttr = v.attributes?.find(attr => attr.attribute?.name?.toLowerCase() === 'color');
           const colorName = colorAttr?.option?.displayName || 'default';
           
@@ -21,6 +25,7 @@ const ProductGrid = ({ paginatedProducts, activeColors = [], priceRange = { min:
         });
       } else if (product.colors && product.colors.length > 0) {
         product.colors.forEach(c => {
+          if (c.status === 'Inactive') return;
           const colorName = c.name || c.color || 'default';
           if (!colorGroups.has(colorName)) {
             colorGroups.set(colorName, []);
@@ -30,6 +35,12 @@ const ProductGrid = ({ paginatedProducts, activeColors = [], priceRange = { min:
       }
 
       if (colorGroups.size === 0) {
+        // If the product has variants/colors data but colorGroups is empty, 
+        // it means all of them were filtered out (e.g. they were all Inactive). Skip it.
+        if ((product.variants && product.variants.length > 0) || (product.colors && product.colors.length > 0)) {
+          return;
+        }
+
         const pPrice = product.price || 0;
         const hasPriceFilter = priceRange.min !== "" || priceRange.max !== "";
         let priceMatch = true;
@@ -106,14 +117,32 @@ const ProductGrid = ({ paginatedProducts, activeColors = [], priceRange = { min:
 
           let totalStock = 0;
           let availableSizes = [];
+          let secondaryAttributeName = 'Size';
 
           if (variants.length > 0) {
             totalStock = variants.reduce((sum, v) => sum + (parseInt(v.stock) || 0), 0);
             const sizeSet = new Set();
+            const isLaptop = 
+              product.category?.name?.toLowerCase() === 'laptop' || 
+              product.category?.slug?.toLowerCase() === 'laptop' || 
+              (typeof product.category === 'string' && product.category.toLowerCase() === 'laptop') ||
+              (Array.isArray(product.categories) && product.categories.some(c => 
+                c?.name?.toLowerCase() === 'laptop' || 
+                c?.slug?.toLowerCase() === 'laptop' || 
+                (typeof c === 'string' && c.toLowerCase() === 'laptop')
+              ));
+
             variants.forEach(v => {
-              const sizeAttr = v.attributes?.find(attr => attr.attribute?.name?.toLowerCase() === 'size');
-              if (sizeAttr && sizeAttr.option?.displayName) {
-                sizeSet.add(sizeAttr.option.displayName);
+              let secAttr;
+              if (isLaptop) {
+                secAttr = v.attributes?.find(attr => attr.attribute?.name?.toLowerCase().includes('processor'));
+              }
+              if (!secAttr) {
+                secAttr = v.attributes?.find(attr => attr.attribute?.name?.toLowerCase() !== 'color');
+              }
+              if (secAttr && secAttr.option?.displayName) {
+                secondaryAttributeName = secAttr.attribute.name;
+                sizeSet.add(secAttr.option.displayName);
               }
             });
             availableSizes = Array.from(sizeSet);
@@ -144,9 +173,9 @@ const ProductGrid = ({ paginatedProducts, activeColors = [], priceRange = { min:
 
           let currentSize = '';
           if (defaultVariant.attributes) {
-            const sizeAttr = defaultVariant.attributes.find(attr => attr.attribute?.name?.toLowerCase() === 'size');
-            if (sizeAttr && sizeAttr.option?.displayName) {
-              currentSize = sizeAttr.option.displayName;
+            const secAttr = defaultVariant.attributes.find(attr => attr.attribute?.name?.toLowerCase() !== 'color');
+            if (secAttr && secAttr.option?.displayName) {
+              currentSize = secAttr.option.displayName;
             }
           }
 
@@ -167,6 +196,7 @@ const ProductGrid = ({ paginatedProducts, activeColors = [], priceRange = { min:
             currentSize: currentSize,
             colorName: colorName,
             variantId: defaultVariant._id,
+            secondaryAttributeName: secondaryAttributeName,
           };
 
           return (

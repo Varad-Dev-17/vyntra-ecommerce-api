@@ -7,10 +7,26 @@ import Brand from "../models/brand.js";
 // GET DASHBOARD STATS
 export const getDashboardStats = async (req, res) => {
   try {
+    const { revenueTime = "This Week", ordersTime = "This Week", analyticsTime = "This Week" } = req.query;
+
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
     const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+
+    const getDateFilter = (filter) => {
+      const d = new Date();
+      if (filter === "This Year") return new Date(d.getFullYear(), 0, 1);
+      if (filter === "This Week") {
+        d.setDate(d.getDate() - d.getDay());
+        d.setHours(0, 0, 0, 0);
+        return d;
+      }
+      return new Date(d.getFullYear(), d.getMonth(), 1);
+    };
+
+    const ordersStart = getDateFilter(ordersTime);
+    const orderMatch = { createdAt: { $gte: ordersStart } };
 
     const [
       totalUsers,
@@ -34,13 +50,13 @@ export const getDashboardStats = async (req, res) => {
       Order.countDocuments(),
       Category.countDocuments(),
       Brand.countDocuments(),
-      Order.countDocuments({ status: "pending" }),
-      Order.countDocuments({ status: "processing" }),
-      Order.countDocuments({ status: "packed" }),
-      Order.countDocuments({ status: "shipped" }),
-      Order.countDocuments({ status: "on_the_way" }),
-      Order.countDocuments({ status: "delivered" }),
-      Order.countDocuments({ status: "cancelled" }),
+      Order.countDocuments({ status: "pending", ...orderMatch }),
+      Order.countDocuments({ status: "processing", ...orderMatch }),
+      Order.countDocuments({ status: "packed", ...orderMatch }),
+      Order.countDocuments({ status: "shipped", ...orderMatch }),
+      Order.countDocuments({ status: "on_the_way", ...orderMatch }),
+      Order.countDocuments({ status: "delivered", ...orderMatch }),
+      Order.countDocuments({ status: "cancelled", ...orderMatch }),
       Order.aggregate([
         { $match: { status: { $ne: "cancelled" } } },
         { $group: { _id: null, total: { $sum: "$totalAmount" } } },
@@ -133,56 +149,65 @@ export const getDashboardStats = async (req, res) => {
       },
     ]);
 
-    const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 5, 1);
-    const monthlySales = await Order.aggregate([
-      {
-        $match: {
-          createdAt: { $gte: sixMonthsAgo },
-          status: { $ne: "cancelled" },
-        },
-      },
-      {
-        $group: {
-          _id: {
-            year: { $year: "$createdAt" },
-            month: { $month: "$createdAt" },
-          },
-          revenue: { $sum: "$totalAmount" },
-          orders: { $sum: 1 },
-          customers: { $addToSet: "$user" }
-        },
-      },
-      {
-        $project: {
-          revenue: 1,
-          orders: 1,
-          customers: { $size: "$customers" }
-        }
-      },
-      { $sort: { "_id.year": 1, "_id.month": 1 } },
-    ]);
+    const buildChartAggregation = async (timeFilter) => {
+      let startDate, groupBy;
+      const d = new Date();
+      if (timeFilter === "This Week") {
+        d.setDate(d.getDate() - d.getDay());
+        d.setHours(0, 0, 0, 0);
+        startDate = d;
+        groupBy = { day: { $dayOfMonth: "$createdAt" }, month: { $month: "$createdAt" }, year: { $year: "$createdAt" }, dayOfWeek: { $dayOfWeek: "$createdAt" } };
+      } else if (timeFilter === "This Month") {
+        startDate = new Date(d.getFullYear(), d.getMonth(), 1);
+        groupBy = { day: { $dayOfMonth: "$createdAt" }, month: { $month: "$createdAt" }, year: { $year: "$createdAt" } };
+      } else {
+        startDate = new Date(d.getFullYear(), 0, 1);
+        groupBy = { month: { $month: "$createdAt" }, year: { $year: "$createdAt" } };
+      }
 
-    const monthNames = [
-      "Jan",
-      "Feb",
-      "Mar",
-      "Apr",
-      "May",
-      "Jun",
-      "Jul",
-      "Aug",
-      "Sep",
-      "Oct",
-      "Nov",
-      "Dec",
-    ];
-    const salesChart = monthlySales.map((item) => ({
-      month: monthNames[item._id.month - 1],
-      year: item._id.year,
-      revenue: Math.round(item.revenue * 100) / 100,
-      orders: item.orders,
-      customers: item.customers,
-    }));
+      const agg = await Order.aggregate([
+        { $match: { createdAt: { $gte: startDate }, status: { $ne: "cancelled" } } },
+        {
+          $group: {
+            _id: groupBy,
+            revenue: { $sum: "$totalAmount" },
+            orders: { $sum: 1 },
+            customers: { $addToSet: "$user" }
+          }
+        },
+        {
+          $project: {
+            revenue: 1,
+            orders: 1,
+            customers: { $size: "$customers" }
+          }
+        },
+        { $sort: { "_id.year": 1, "_id.month": 1, "_id.day": 1 } }
+      ]);
+
+      const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+      return agg.map(item => {
+        let label = "";
+        if (timeFilter === "This Week") {
+          label = dayNames[item._id.dayOfWeek - 1] || `${item._id.day}/${item._id.month}`;
+        } else if (timeFilter === "This Month") {
+          label = `${item._id.day} ${monthNames[item._id.month - 1]}`;
+        } else {
+          label = monthNames[item._id.month - 1];
+        }
+        return {
+          label: label,
+          revenue: Math.round(item.revenue * 100) / 100,
+          orders: item.orders,
+          customers: item.customers,
+        };
+      });
+    };
+
+    const revenueChart = await buildChartAggregation(revenueTime);
+    const analyticsChart = await buildChartAggregation(analyticsTime);
 
     const salesByCategoryRaw = await Order.aggregate([
       { $match: { status: { $ne: "cancelled" } } },
@@ -252,7 +277,8 @@ export const getDashboardStats = async (req, res) => {
         },
         recentOrders,
         topProducts,
-        salesChart,
+        revenueChart,
+        analyticsChart,
         salesByCategory,
       },
     });

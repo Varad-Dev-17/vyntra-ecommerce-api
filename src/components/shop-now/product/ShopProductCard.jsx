@@ -137,7 +137,7 @@ const ShopProductCard = ({ product }) => {
           </div>
           {/* Sizes */}
           <div className="text-[13px] text-[#535766] truncate mb-2">
-            Sizes: <span className="text-[#282c3f]">
+            {product.secondaryAttributeName || 'Sizes'}: <span className="text-[#282c3f]">
             {product.availableSizes && product.availableSizes.length > 0 ? (
               product.availableSizes.map((size, idx) => (
                 <span key={idx} className={size === product.currentSize ? "text-[#4F46E5] font-bold" : "text-[#282c3f]"}>

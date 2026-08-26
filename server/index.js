@@ -54,7 +54,11 @@ app.use(express.json());
 
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || "http://localhost:3000",
+    origin: [
+      process.env.FRONTEND_URL || "http://localhost:3000",
+      "http://localhost:8081", 
+      "http://10.0.2.2:8081"
+    ],
     credentials: true,
   })
 );

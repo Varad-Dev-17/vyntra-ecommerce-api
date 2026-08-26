@@ -50,6 +50,10 @@ const DepartmentsList = () => {
   const [departmentToDelete, setDepartmentToDelete] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  // Tree View State
+  const [isTreeModalOpen, setIsTreeModalOpen] = useState(false);
+  const [selectedDepartmentForTree, setSelectedDepartmentForTree] = useState(null);
+
 
   // Debounce search
   useEffect(() => {
@@ -120,7 +124,9 @@ const DepartmentsList = () => {
     }
   };
 
-
+  const handleViewClick = (department) => {
+    navigate(`/admin/catalog/departments/${department._id}/tree`);
+  };
 
   const columns = [
     {
@@ -168,6 +174,13 @@ const DepartmentsList = () => {
       width: '15%',
       render: (row) => (
         <div className="flex items-center justify-center gap-2">
+          <button
+            onClick={() => handleViewClick(row)}
+            className="p-2 text-gray-400 hover:text-[#4648d4] border border-gray-200 hover:bg-[#4648d4]/10 rounded-lg transition-colors"
+            title="View Details"
+          >
+            <LucideIcons.Eye size={14} />
+          </button>
           <button
             onClick={() => navigate(`/admin/catalog/departments/${row._id}/edit`)}
             className="p-2 text-gray-400 hover:text-gray-900 border border-gray-200 hover:bg-gray-50 rounded-lg transition-colors"
@@ -240,7 +253,6 @@ const DepartmentsList = () => {
         confirmText="Delete"
         isLoading={isDeleting}
       />
-
     </div>
   );
 };

@@ -2,17 +2,19 @@ import { useEffect, useRef } from "react";
 import Lenis from "lenis";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useLocation } from "react-router-dom";
 
 gsap.registerPlugin(ScrollTrigger);
 
 const SmoothScrollProvider = ({ children }) => {
   const lenisRef = useRef(null);
+  const location = useLocation();
 
   useEffect(() => {
     const lenis = new Lenis({
-      lerp: 0.045, // Ultra-creamy, longer smooth deceleration glide
+      lerp: 0.08, // Snappier, more responsive deceleration
       smoothWheel: true,
-      wheelMultiplier: 0.9, // Rich flywheel momentum
+      wheelMultiplier: 1.0, // Standard scroll distance ratio
       touchMultiplier: 1.5,
       infinite: false,
     });
@@ -36,6 +38,13 @@ const SmoothScrollProvider = ({ children }) => {
       lenis.destroy();
     };
   }, []);
+
+  // Scroll to top instantly when route or search params change
+  useEffect(() => {
+    if (lenisRef.current) {
+      lenisRef.current.scrollTo(0, { immediate: true });
+    }
+  }, [location.pathname, location.search]);
 
   return <>{children}</>;
 };

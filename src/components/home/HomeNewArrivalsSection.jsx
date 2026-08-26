@@ -99,7 +99,7 @@ const HomeNewArrivalsSection = ({ title, subtitle }) => {
   useEffect(() => {
     const fetchRandomProducts = async () => {
       try {
-        const res = await api.get("/products?limit=15&sort=random");
+        const res = await api.get("/products?limit=12&sort=random");
         if (res.data.success) {
           setProducts(res.data.data.products || []);
         }
@@ -129,9 +129,9 @@ const HomeNewArrivalsSection = ({ title, subtitle }) => {
         scrollTrigger: {
           trigger: sectionRef.current,
           start: "top top",
-          end: () => `+=${Math.abs(getScrollAmount())}`,
+          end: () => `+=${Math.abs(getScrollAmount())}`, // 1:1 ratio. 1px vertical scroll = 1px horizontal movement
           pin: true,
-          scrub: 1,
+          scrub: true, // Locks animation exactly to scroll position without lag
           invalidateOnRefresh: true,
           anticipatePin: 1,
         },

@@ -153,10 +153,16 @@ const VariantGroupView = () => {
           <ArrowLeft size={16} /> Back to Products
         </div>
         <div className="flex items-center gap-2">
-          <button className="flex items-center gap-1.5 px-4 py-1.5 border border-purple-200 text-purple-600 bg-white rounded-md hover:bg-purple-50 text-xs font-bold transition-colors">
+          <button 
+            onClick={() => navigate(`/admin/products/${id}/variants`, { state: { action: 'edit', primaryOptionId, isolatedMode: true } })}
+            className="flex items-center gap-1.5 px-4 py-1.5 border border-purple-200 text-purple-600 bg-white rounded-md hover:bg-purple-50 text-xs font-bold transition-colors"
+          >
             <Edit2 size={12} /> Edit Variant
           </button>
-          <button className="flex items-center gap-1.5 px-4 py-1.5 border border-red-200 text-red-500 bg-white rounded-md hover:bg-red-50 text-xs font-bold transition-colors">
+          <button 
+            onClick={() => navigate(`/admin/products/${id}/variants`, { state: { action: 'delete', primaryOptionId } })}
+            className="flex items-center gap-1.5 px-4 py-1.5 border border-red-200 text-red-500 bg-white rounded-md hover:bg-red-50 text-xs font-bold transition-colors"
+          >
             <Trash2 size={12} /> Delete Variant
           </button>
           <button className="p-1.5 border border-gray-200 text-gray-400 bg-white rounded-md hover:bg-gray-50 transition-colors">
