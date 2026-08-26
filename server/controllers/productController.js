@@ -18,8 +18,11 @@ export const getAllVariantGroups = async (req, res) => {
       limit = 10,
       search = "",
       sort = "newest",
+      department,
       departments,
+      category,
       categories,
+      brand,
       brands,
       minPrice,
       maxPrice,
@@ -31,6 +34,16 @@ export const getAllVariantGroups = async (req, res) => {
     const matchStage1 = {};
 
     if (status) matchStage1.status = status;
+
+    if (department && mongoose.isValidObjectId(department)) {
+      matchStage1.department = new mongoose.Types.ObjectId(department);
+    }
+    if (category && mongoose.isValidObjectId(category)) {
+      matchStage1.category = new mongoose.Types.ObjectId(category);
+    }
+    if (brand && mongoose.isValidObjectId(brand)) {
+      matchStage1.brand = new mongoose.Types.ObjectId(brand);
+    }
 
     pipeline.push({ $match: matchStage1 });
 

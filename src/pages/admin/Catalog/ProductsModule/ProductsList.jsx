@@ -93,15 +93,18 @@ const ProductsList = () => {
       });
       
       if (response.data.success) {
-        if (viewMode === 'variants') {
-          setVariantGroups(response.data.data.variantGroups || []);
-          setProducts([]);
+        const responseData = response.data.data || {};
+        const pagination = responseData.pagination || {};
+        
+        if (viewMode === 'products') {
+          setProducts(responseData.products || []);
+          setTotalItems(pagination.total || 0);
+          setTotalPages(pagination.pages || 1);
         } else {
-          setProducts(response.data.data.products || []);
-          setVariantGroups([]);
+          setVariantGroups(responseData.variantGroups || []);
+          setTotalItems(pagination.total || 0);
+          setTotalPages(pagination.pages || 1);
         }
-        setTotalPages(response.data.data.pagination.pages);
-        setTotalItems(response.data.data.pagination.total);
       }
     } catch (error) {
       console.error('Failed to fetch data:', error);
