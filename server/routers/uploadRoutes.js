@@ -1,6 +1,7 @@
 import express from "express";
 import { v2 as cloudinary } from "cloudinary";
 import multer from "multer";
+import sharp from "sharp";
 import { identifier } from "../middlewares/identification.js";
 import { isAdmin } from "../middlewares/isAdmin.js";
 
@@ -21,7 +22,22 @@ const upload = multer({
 });
 
 // Helper: upload buffer to Cloudinary
-const uploadToCloudinary = (buffer, mimetype, folder = "vyntra-products") => {
+const uploadToCloudinary = async (buffer, mimetype, folder = "vyntra-products") => {
+  let optimizedBuffer = buffer;
+  let optimizedMimetype = mimetype;
+
+  if (mimetype.startsWith("image/")) {
+    try {
+      optimizedBuffer = await sharp(buffer)
+        .resize({ width: 1500, withoutEnlargement: true })
+        .webp({ quality: 80 })
+        .toBuffer();
+      optimizedMimetype = "image/webp";
+    } catch (err) {
+      console.error("Sharp optimization failed, using original buffer:", err);
+    }
+  }
+
   return new Promise((resolve, reject) => {
     // Configure Cloudinary here to avoid ES module import hoisting issues with dotenv
     cloudinary.config({
@@ -30,8 +46,8 @@ const uploadToCloudinary = (buffer, mimetype, folder = "vyntra-products") => {
       api_secret: process.env.CLOUDINARY_API_SECRET,
     });
 
-    const b64 = Buffer.from(buffer).toString("base64");
-    const dataURI = "data:" + mimetype + ";base64," + b64;
+    const b64 = Buffer.from(optimizedBuffer).toString("base64");
+    const dataURI = "data:" + optimizedMimetype + ";base64," + b64;
 
     console.log({
       cloudName: process.env.CLOUDINARY_CLOUD_NAME,

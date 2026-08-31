@@ -82,13 +82,15 @@ const ProductForm = forwardRef(({ isEdit = false, isUnifiedMode = false, onFormC
 
       const payloadAttributes = [];
       dynamicAttributesConfig.forEach(config => {
-        const val = dynamicAttributes.find(a => a.attributeId === config._id)?.value;
-        if (config.isRequired && (!val || (Array.isArray(val) && val.length === 0))) {
+        const attr = dynamicAttributes.find(a => a.attribute === config._id);
+        const val = attr?.values?.[0];
+        
+        if (config.isRequired && (!val || val === '')) {
           newErrors[`attr_${config._id}`] = 'This attribute is required';
           isValid = false;
         }
-        if (val && !(Array.isArray(val) && val.length === 0)) {
-          payloadAttributes.push({ attribute: config._id, option: val });
+        if (val && val !== '') {
+          payloadAttributes.push({ attribute: config._id, values: [val] });
         }
       });
 

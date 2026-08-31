@@ -5,12 +5,12 @@ import { ArrowRight } from "lucide-react";
 const bentoItems = [
   {
     id: "spring",
-    title: "The Spring Collection",
-    subtitle: "Fresh styles for a new season.",
+    title: "Premium Suits Collection",
+    subtitle: "Elevate your style with our tailored suits.",
     image: "/home/spring_couple.jpg",
-    link: "/products",
+    link: "/products?category=Suits",
     className: "col-span-1 md:col-span-6 md:row-span-2 h-[380px] md:h-full",
-    objectPosition: "object-center",
+    objectPosition: "object-bottom",
     textColor: "text-white",
     subtitleColor: "text-white/90",
     buttonStyle: "bg-white text-[#111827] group-hover:bg-[#111827] group-hover:text-white",

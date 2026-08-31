@@ -27,11 +27,12 @@ const AddProduct = () => {
     if (isSubmitting) return;
 
     // 1. Validate Product Form
-    const productPayload = productFormRef.current?.validateAndGetPayload();
-    if (!productPayload) {
+    const validationResult = productFormRef.current?.validateAndGetPayload();
+    if (!validationResult || !validationResult.isValid) {
       toast.error("Please fix the errors in the Product Information section.");
       return;
     }
+    const productPayload = validationResult.payload;
 
     // 2. Validate Variant Form (Check for unsaved work)
     const variantValidation = variantFormRef.current?.validateCurrentGroup();
@@ -71,7 +72,9 @@ const AddProduct = () => {
       }
 
       toast.success('Product and variants saved successfully!');
-      navigate('/admin/products');
+      setTimeout(() => {
+        window.location.href = '/admin/products';
+      }, 500);
 
     } catch (error) {
       console.error('Final submit error', error);

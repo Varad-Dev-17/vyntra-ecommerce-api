@@ -152,7 +152,7 @@ const ProductVariants = forwardRef(({ isUnifiedMode = false, categoryId = null, 
       
       let catId = categoryId; // From props for unified mode
 
-      if (!isUnifiedMode && id) {
+      if (id) {
         let prodData = null;
         try {
           const prodRes = await axios.get(`${(import.meta.env.PROD ? '' : 'http://localhost:8000')}/admin/products/${id}`, { 
