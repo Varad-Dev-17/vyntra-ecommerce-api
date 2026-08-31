@@ -21,7 +21,7 @@ const bentoItems = [
     id: "kurtisets",
     title: "Festive Kurti Sets",
     subtitle: "Step into the spotlight.",
-    image: "/home/kurti_set.png",
+    image: "/home/kurti_set.jpg",
     link: "/products?department=Women&category=Kurti Set",
     className: "col-span-1 md:col-span-6 md:row-span-1 h-[260px] md:h-full",
     objectPosition: "object-[center_25%]",
