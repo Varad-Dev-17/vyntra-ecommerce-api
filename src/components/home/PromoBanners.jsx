@@ -6,7 +6,7 @@ const PromoBanners = () => {
       <div className="flex flex-col md:flex-row gap-4 md:gap-6 lg:gap-8">
         {/* Banner 1 */}
         <Link to="/products?department=Electronics&category=Phone&brand=Apple" className="flex-1 block relative rounded-3xl overflow-hidden group shadow-lg">
-          <div className="aspect-[21/9] md:aspect-[16/9] lg:aspect-[21/9] relative">
+          <div className="aspect-[16/9] md:aspect-[21/9] lg:aspect-[21/9] relative">
             <img
               src="/home/iphone.jpg"
               alt="iPhone 16 Pro Max Promo"
@@ -19,8 +19,8 @@ const PromoBanners = () => {
             {/* Text Content Overlay */}
             <div className="absolute inset-0 flex items-center justify-end p-6 sm:p-8 md:p-10 lg:p-12 z-10 pointer-events-none">
               <div className="flex flex-col items-start text-left text-white w-[48%] sm:w-[42%] lg:w-[38%]">
-                <span className="text-[13px] sm:text-base md:text-lg font-normal tracking-wide mb-1 opacity-90">iPhone 16 Pro Max</span>
-                <span className="text-lg sm:text-2xl md:text-3xl font-bold mb-3 sm:mb-4 tracking-tight">From ₹ 50,769*</span>
+                <span className="text-[11px] sm:text-[13px] md:text-base font-normal tracking-wide mb-1 opacity-90">iPhone 16 Pro Max</span>
+                <span className="text-[15px] sm:text-lg md:text-2xl font-bold mb-3 sm:mb-4 tracking-tight">From ₹ 50,769*</span>
 
                 <p className="text-[10px] sm:text-xs md:text-sm text-white/80 leading-snug">
                   A18 chip. Superfast. Supersmart
@@ -39,7 +39,7 @@ const PromoBanners = () => {
 
         {/* Banner 2 */}
         <Link to="/products?department=sports" className="flex-1 block relative rounded-3xl overflow-hidden group shadow-lg bg-[#FDF8F5]">
-          <div className="aspect-[21/9] md:aspect-[16/9] lg:aspect-[21/9] relative">
+          <div className="aspect-[16/9] md:aspect-[21/9] lg:aspect-[21/9] relative">
             <img
               src="/home/shoes_banner.png"
               alt="Sports Gear Promo"
@@ -52,8 +52,8 @@ const PromoBanners = () => {
             {/* Text Content Overlay */}
             <div className="absolute inset-0 flex flex-col justify-center items-start p-6 sm:p-8 md:p-10 lg:p-12 z-10 pointer-events-none">
               <div className="flex flex-col items-start max-w-[65%] sm:max-w-[55%]">
-                <span className="text-[13px] sm:text-base md:text-lg font-bold text-[#FF5722] tracking-wider mb-1 uppercase">Performance Sale</span>
-                <span className="text-lg sm:text-2xl md:text-3xl font-black text-slate-800 mb-2 sm:mb-3 leading-tight tracking-tight">Up to 50% Off<br />Sports Gear</span>
+                <span className="text-[11px] sm:text-[13px] md:text-base font-bold text-[#FF5722] tracking-wider mb-1 uppercase">Performance Sale</span>
+                <span className="text-[15px] sm:text-lg md:text-2xl font-black text-slate-800 mb-2 sm:mb-3 leading-tight tracking-tight">Up to 50% Off<br />Sports Gear</span>
 
                 <p className="text-[10px] sm:text-xs md:text-sm text-gray-600 leading-relaxed mb-6 sm:mb-8 font-medium">
                   Elevate your game with premium activewear and equipment.

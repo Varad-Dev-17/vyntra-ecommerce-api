@@ -115,7 +115,7 @@ const HomeNewArrivalsSection = ({ title, subtitle }) => {
 
     let mm = gsap.matchMedia();
 
-    mm.add("(min-width: 768px)", () => {
+    mm.add("all", () => {
       const track = trackRef.current;
       const container = track.parentElement;
       const getScrollAmount = () => {
@@ -129,7 +129,7 @@ const HomeNewArrivalsSection = ({ title, subtitle }) => {
         ease: "none",
         scrollTrigger: {
           trigger: sectionRef.current,
-          start: "top top",
+          start: "top 80px",
           end: () => `+=${Math.abs(getScrollAmount())}`,
           pin: true,
           scrub: true,
@@ -161,11 +161,13 @@ const HomeNewArrivalsSection = ({ title, subtitle }) => {
         </div>
       </div>
 
-      {/* Pinned Horizontal Runway Track (Desktop) / Native Scroll (Mobile) */}
-      <div className="w-full overflow-x-auto md:overflow-hidden px-4 md:px-8 lg:px-12 pb-6 scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+      {/* Pinned Horizontal Runway Track */}
+      <div 
+        className="w-full overflow-hidden px-4 md:px-8 lg:px-12 pb-6" 
+      >
         <div
           ref={trackRef}
-          className="flex gap-4 sm:gap-5 md:gap-6 w-max will-change-transform"
+          className="flex gap-4 sm:gap-5 md:gap-6 will-change-transform w-[max-content]"
         >
           {products.map((product) => (
             <div

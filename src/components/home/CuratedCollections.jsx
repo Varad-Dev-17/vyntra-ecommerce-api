@@ -9,7 +9,7 @@ const bentoItems = [
     subtitle: "Elevate your style with our tailored suits.",
     image: "/home/spring_couple_1.jpg",
     link: "/products?category=Suits",
-    className: "col-span-1 md:col-span-6 md:row-span-2 h-[380px] md:h-full",
+    className: "col-span-1 md:col-span-6 md:row-span-2 aspect-[4/5] md:aspect-auto md:h-full",
     objectPosition: "object-bottom",
     textColor: "text-white",
     subtitleColor: "text-white/90",
@@ -23,7 +23,7 @@ const bentoItems = [
     subtitle: "Step into the spotlight.",
     image: "/home/kurti_set.png",
     link: "/products?department=Women&category=Kurti Set",
-    className: "col-span-1 md:col-span-6 md:row-span-1 h-[260px] md:h-full",
+    className: "col-span-1 md:col-span-6 md:row-span-1 aspect-[16/9] md:aspect-auto md:h-full",
     objectPosition: "object-[center_25%]",
     blockAlign: "left",
     textAlign: "left",
@@ -41,7 +41,7 @@ const bentoItems = [
     subtitle: "Up to 40% off on selected items.",
     image: "/home/shopping_bags.jpg",
     link: "/products?category=Shirts,T-Shirts,Jeans,Shoes",
-    className: "col-span-1 md:col-span-6 md:row-span-1 h-[260px] md:h-full",
+    className: "col-span-1 md:col-span-6 md:row-span-1 aspect-[16/9] md:aspect-auto md:h-full",
     objectPosition: "object-[right_20%]",
     textColor: "text-[#111827]",
     subtitleColor: "text-[#374151]",
@@ -113,10 +113,10 @@ const CuratedCollections = () => {
                 {/* Content Overlay */}
                 <div className={`absolute left-0 w-full px-6 md:px-8 z-20 flex flex-col ${item.verticalPosition === 'top' ? 'top-6 md:top-10 justify-start' : (item.verticalPosition === 'center' ? 'top-1/2 -translate-y-1/2 justify-center' : 'bottom-6 md:bottom-8 justify-end')} ${item.blockAlign === 'right' ? 'items-end' : 'items-start'}`}>
                   <div className={`flex flex-col ${item.textAlign === 'left' ? 'items-start text-left' : (item.blockAlign === 'right' ? 'items-end text-right' : 'items-start text-left')} ${item.textWidth || (item.blockAlign === 'right' ? 'w-auto' : 'w-full')} ${item.innerClasses || ''}`}>
-                    <h3 className={`text-[24px] md:text-[30px] font-bold mb-2 leading-tight ${item.textColor || 'text-white'}`}>
+                    <h3 className={`text-[18px] sm:text-[20px] md:text-[30px] font-bold mb-2 leading-tight ${item.textColor || 'text-white'}`}>
                       {item.title}
                     </h3>
-                    <p className={`text-[15px] md:text-[16px] mb-5 font-medium ${item.subtitleColor || 'text-white/90'}`}>
+                    <p className={`text-[13px] sm:text-[14px] md:text-[16px] mb-5 font-medium ${item.subtitleColor || 'text-white/90'}`}>
                       {item.subtitle}
                     </p>
 
