@@ -7,12 +7,12 @@ const PromoBanners = () => {
         {/* Banner 1 */}
         <Link to="/products?department=Electronics&category=Phone&brand=Apple" className="flex-1 block relative rounded-3xl overflow-hidden group shadow-lg">
           <div className="aspect-[21/9] md:aspect-[16/9] lg:aspect-[21/9] relative">
-            <img 
-              src="/iphone/promo.jpg" 
-              alt="iPhone 16 Pro Max Promo" 
+            <img
+              src="/home/iphone.jpg"
+              alt="iPhone 16 Pro Max Promo"
               className="w-full h-full object-cover object-[center_15%] transition-transform duration-700 group-hover:scale-105"
-             loading="lazy" decoding="async" />
-            
+              loading="lazy" decoding="async" />
+
             {/* Gradient Overlay for Text Readability */}
             <div className="absolute inset-0 bg-gradient-to-l from-[#080d24]/90 via-[#080d24]/60 to-transparent w-[80%] md:w-[60%] ml-auto z-0 pointer-events-none" />
 
@@ -21,7 +21,7 @@ const PromoBanners = () => {
               <div className="flex flex-col items-start text-left text-white w-[48%] sm:w-[42%] lg:w-[38%]">
                 <span className="text-[13px] sm:text-base md:text-lg font-normal tracking-wide mb-1 opacity-90">iPhone 16 Pro Max</span>
                 <span className="text-lg sm:text-2xl md:text-3xl font-bold mb-3 sm:mb-4 tracking-tight">From ₹ 50,769*</span>
-                
+
                 <p className="text-[10px] sm:text-xs md:text-sm text-white/80 leading-snug">
                   A18 chip. Superfast. Supersmart
                 </p>
@@ -38,14 +38,14 @@ const PromoBanners = () => {
         </Link>
 
         {/* Banner 2 */}
-        <Link to="/products?department=sports" className="flex-1 block relative rounded-3xl overflow-hidden group shadow-lg">
+        <Link to="/products?department=sports" className="flex-1 block relative rounded-3xl overflow-hidden group shadow-lg bg-[#FDF8F5]">
           <div className="aspect-[21/9] md:aspect-[16/9] lg:aspect-[21/9] relative">
-            <img 
-              src="/home/shoes_banner.png" 
-              alt="Sports Gear Promo" 
-              className="w-full h-full object-cover object-[center_26%] transition-transform duration-500 group-hover:scale-105"
-             loading="lazy" decoding="async" />
-            
+            <img
+              src="/home/shoes_banner.png"
+              alt="Sports Gear Promo"
+              className="w-full h-full object-contain object-right transition-transform duration-500 group-hover:scale-105"
+              loading="lazy" decoding="async" />
+
             {/* Gradient Overlay for Text Readability */}
             <div className="absolute inset-0 bg-gradient-to-r from-[#FDF8F5] via-[#FDF8F5]/90 to-transparent w-[75%] md:w-[65%] z-0 pointer-events-none" />
 
@@ -53,8 +53,8 @@ const PromoBanners = () => {
             <div className="absolute inset-0 flex flex-col justify-center items-start p-6 sm:p-8 md:p-10 lg:p-12 z-10 pointer-events-none">
               <div className="flex flex-col items-start max-w-[65%] sm:max-w-[55%]">
                 <span className="text-[13px] sm:text-base md:text-lg font-bold text-[#FF5722] tracking-wider mb-1 uppercase">Performance Sale</span>
-                <span className="text-lg sm:text-2xl md:text-3xl font-black text-slate-800 mb-2 sm:mb-3 leading-tight tracking-tight">Up to 50% Off<br/>Sports Gear</span>
-                
+                <span className="text-lg sm:text-2xl md:text-3xl font-black text-slate-800 mb-2 sm:mb-3 leading-tight tracking-tight">Up to 50% Off<br />Sports Gear</span>
+
                 <p className="text-[10px] sm:text-xs md:text-sm text-gray-600 leading-relaxed mb-6 sm:mb-8 font-medium">
                   Elevate your game with premium activewear and equipment.
                 </p>

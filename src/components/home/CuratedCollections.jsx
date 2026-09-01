@@ -7,7 +7,7 @@ const bentoItems = [
     id: "spring",
     title: "Premium Suits Collection",
     subtitle: "Elevate your style with our tailored suits.",
-    image: "/home/spring_couple.png",
+    image: "/home/spring_couple_1.jpg",
     link: "/products?category=Suits",
     className: "col-span-1 md:col-span-6 md:row-span-2 h-[380px] md:h-full",
     objectPosition: "object-bottom",
@@ -21,7 +21,7 @@ const bentoItems = [
     id: "kurtisets",
     title: "Festive Kurti Sets",
     subtitle: "Step into the spotlight.",
-    image: "/home/kurti_set_1.png",
+    image: "/home/kurti_set.png",
     link: "/products?department=Women&category=Kurti Set",
     className: "col-span-1 md:col-span-6 md:row-span-1 h-[260px] md:h-full",
     objectPosition: "object-[center_25%]",
@@ -29,7 +29,7 @@ const bentoItems = [
     textAlign: "left",
     verticalPosition: "center",
     innerClasses: "ml-2 md:ml-4 lg:ml-6",
-    textColor: "text-[#111827] !text-[28px] md:!text-[36px]",
+    textColor: "text-[#111827]",
     subtitleColor: "text-[#374151]",
     buttonStyle: "bg-[#111827] text-white group-hover:bg-[#db2777] group-hover:text-white",
     overlayDefault: "linear-gradient(to top, rgba(255,255,255,0.40) 0%, rgba(255,255,255,0.05) 45%, transparent 80%)",
@@ -49,7 +49,7 @@ const bentoItems = [
     overlayDefault: "linear-gradient(to bottom, rgba(255,255,255,0.40) 0%, rgba(255,255,255,0.05) 45%, transparent 80%)",
     overlayHover: "linear-gradient(to bottom, rgba(255,255,255,0.60) 0%, rgba(255,255,255,0.15) 50%, transparent 100%)",
     textWidth: "max-w-[65%] sm:max-w-[55%] md:max-w-[60%]",
-    verticalPosition: "top"
+    verticalPosition: "center"
   }
 ];
 
@@ -91,7 +91,7 @@ const CuratedCollections = () => {
                     src={item.image}
                     alt={item.title}
                     className={`w-full h-full object-cover ${item.objectPosition} transition-transform duration-[800ms] ease-out group-hover:scale-105`}
-                   loading="lazy" decoding="async" />
+                    loading="lazy" decoding="async" />
                 </div>
 
                 {/* Subtle Dark Gradient Overlay (Default) */}
@@ -101,7 +101,7 @@ const CuratedCollections = () => {
                     background: item.overlayDefault
                   }}
                 />
-                
+
                 {/* Darker Gradient Overlay (Hover) */}
                 <div
                   className="absolute inset-0 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-[400ms] ease-in-out"
