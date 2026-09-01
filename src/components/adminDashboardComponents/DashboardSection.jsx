@@ -192,10 +192,10 @@ const DashboardSection = () => {
   ];
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] bg-[#f8f9fc] font-sans text-slate-800 selection:bg-purple-100 p-4 md:p-6 lg:p-8 my-6 lg:my-8 mx-4 lg:mx-6 rounded-3xl border border-slate-100">
+    <div className="min-h-[calc(100vh-4rem)] bg-[#f8f9fc] font-sans text-slate-800 selection:bg-purple-100 p-4 md:p-6 lg:p-8 mt-2 lg:mt-4 mb-6 lg:mb-8 mx-2 lg:mx-3 border border-slate-100">
       {/* Header */}
       <div className="mb-8">
-        <h2 className="text-2xl md:text-[28px] font-bold text-slate-800 mb-2 flex items-center gap-2">
+        <h2 className="text-xl md:text-2xl font-bold text-slate-800 mb-2 flex items-center gap-2">
           Welcome back, admin! <span>👋</span>
         </h2>
         <p className="text-sm md:text-base text-slate-500 font-medium">
@@ -220,7 +220,7 @@ const DashboardSection = () => {
               </div>
               <div className="flex flex-col z-10">
                 <span className="text-[13px] font-semibold text-slate-500 mb-1">{stat.label}</span>
-                <span className="text-2xl font-bold text-slate-800 mb-1">{stat.value}</span>
+                <span className="text-xl font-bold text-slate-800 mb-1">{stat.value}</span>
                 <div className="text-[11px] font-medium text-slate-400 flex items-center gap-1">
                   <span className={stat.isPositive ? 'text-emerald-500 font-bold' : 'text-rose-500 font-bold'}>
                     {stat.isPositive ? '▲' : '▼'} {stat.change.replace(/[+▲▼]/g, '').trim().split(' ')[0]}
@@ -245,7 +245,7 @@ const DashboardSection = () => {
           </div>
           <div className="h-[280px] w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={revenueChart} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+              <AreaChart data={revenueChart} margin={{ top: 10, right: 20, left: 10, bottom: 0 }}>
                 <defs>
                   <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3} />
@@ -296,7 +296,7 @@ const DashboardSection = () => {
               </PieChart>
             </ResponsiveContainer>
             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-              <span className="text-2xl font-bold text-slate-800">{counts.totalOrders}</span>
+              <span className="text-xl font-bold text-slate-800">{counts.totalOrders}</span>
               <span className="text-xs text-slate-400 font-medium mt-1">Total Orders</span>
             </div>
           </div>
@@ -438,7 +438,7 @@ const DashboardSection = () => {
         </div>
         <div className="h-[300px] w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={analyticsChart} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+            <BarChart data={analyticsChart} margin={{ top: 10, right: 20, left: 10, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
               <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#94a3b8' }} dy={10} />
               <YAxis yAxisId="left" orientation="left" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#94a3b8' }} tickFormatter={(val) => `₹${val/1000}k`} />

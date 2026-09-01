@@ -17,6 +17,7 @@ export default {
       },
       fontFamily: {
         sans: ['Montserrat', 'sans-serif'],
+        admin: ['"Plus Jakarta Sans"', 'sans-serif'],
       },
     },
   },

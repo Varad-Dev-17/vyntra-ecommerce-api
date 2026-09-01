@@ -1,5 +1,5 @@
 import { Outlet, useLocation, Link } from 'react-router-dom';
-import { Layers, LayoutGrid, Tag, Sliders } from 'lucide-react';
+import { Layers, LayoutGrid, Tag, Sliders, ChevronRight, Bell } from 'lucide-react';
 
 const CatalogLayout = () => {
   const location = useLocation();
@@ -14,11 +14,11 @@ const CatalogLayout = () => {
   const isFormPage = location.pathname.includes('/add') || location.pathname.includes('/edit');
 
   return (
-    <div className="flex-1 overflow-x-hidden flex flex-col">
+    <div className="flex-1 overflow-x-hidden flex flex-col bg-[#f8f9fc]">
       {!isFormPage && (
-        <div className="flex items-center gap-4 bg-white px-6 py-4 border-b border-gray-200">
-          <h1 className="text-lg font-bold text-[#4648d4] mr-4 border-r border-gray-200 pr-6">Catalog</h1>
-          <div className="flex gap-2">
+        <div className="px-8 pt-6 pb-6 w-full max-w-6xl">
+          {/* Tabs row */}
+          <div className="flex gap-3">
             {tabs.map((tab) => {
               const isActive = location.pathname.startsWith(tab.path);
               const Icon = tab.icon;
@@ -26,13 +26,13 @@ const CatalogLayout = () => {
                 <Link
                   key={tab.name}
                   to={tab.path}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
+                  className={`flex items-center gap-2.5 px-6 py-2.5 rounded-xl font-bold text-[14px] transition-all duration-200 ${
                     isActive
-                      ? 'bg-[#4648d4] text-white border border-[#4648d4] shadow-sm'
-                      : 'bg-white text-gray-600 border border-gray-200 hover:bg-[#4648d4]/5 hover:border-[#4648d4]/30 hover:text-[#4648d4]'
+                      ? 'bg-[#4648d4] text-white shadow-md shadow-[#4648d4]/20'
+                      : 'bg-white text-slate-600 border border-slate-200 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900 shadow-sm'
                   }`}
                 >
-                  <Icon size={16} />
+                  <Icon size={18} strokeWidth={isActive ? 2.5 : 2} />
                   {tab.name}
                 </Link>
               );
@@ -41,7 +41,7 @@ const CatalogLayout = () => {
         </div>
       )}
 
-      <div className="flex-1 overflow-hidden flex flex-col p-4 lg:p-6">
+      <div className={`flex-1 overflow-hidden flex flex-col ${!isFormPage ? 'px-8 pb-8' : 'p-8'}`}>
         <Outlet />
       </div>
     </div>

@@ -9,7 +9,7 @@ const AdminLayout = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   return (
-    <div className="min-h-screen bg-white text-[13px]">
+    <div className="min-h-screen bg-white text-[13px] font-admin">
       {/* Mobile Sidebar Overlay */}
       <AnimatePresence>
         {sidebarOpen && (

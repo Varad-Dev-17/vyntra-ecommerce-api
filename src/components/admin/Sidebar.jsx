@@ -56,11 +56,11 @@ const Sidebar = ({ onClose, isCollapsed, toggleCollapse }) => {
       <div className={`pt-6 pb-4 flex overflow-hidden ${isCollapsed ? "flex-col items-center justify-center gap-4 px-0" : "items-center px-6 justify-between"}`}>
         {!isCollapsed && (
           <div className="flex items-center gap-2 overflow-hidden">
-            <div className="w-8 h-8 rounded-lg bg-linear-to-br from-[#4648d4] to-[#6b38d4] flex items-center justify-center shrink-0">
+            <div className="w-8 h-8 rounded-xl bg-[#4648d4] flex items-center justify-center shrink-0 shadow-sm shadow-[#4648d4]/20">
               <span className="text-white font-bold text-sm">V</span>
             </div>
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-              <h1 className="text-xl font-extrabold text-[#4648d4] mt-0.5 tracking-tight">Vyntra Admin</h1>
+              <h1 className="text-xl font-extrabold text-slate-900 mt-0.5 tracking-tight">Vyntra Admin</h1>
             </motion.div>
           </div>
         )}
@@ -68,7 +68,7 @@ const Sidebar = ({ onClose, isCollapsed, toggleCollapse }) => {
         {toggleCollapse && (
           <button
             onClick={toggleCollapse}
-            className="hidden lg:flex items-center justify-center p-1.5 rounded-lg text-slate-400 hover:text-[#4648d4] hover:bg-slate-50 transition-colors"
+            className="hidden lg:flex items-center justify-center p-1.5 rounded-lg text-slate-400 hover:text-[#4648d4] hover:bg-[#4648d4]/10 transition-colors"
             title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
           >
             {isCollapsed ? <PanelLeftOpen size={20} /> : <PanelLeftClose size={20} />}
@@ -88,10 +88,10 @@ const Sidebar = ({ onClose, isCollapsed, toggleCollapse }) => {
                 title={isCollapsed ? item.label : undefined}
                 onClick={() => onClose?.()}
                 className={({ isActive }) =>
-                  `w-full flex items-center gap-3 py-3.5 rounded-xl text-base transition-all duration-200 ${isCollapsed ? "justify-center px-0" : "px-5"
+                  `w-full flex items-center gap-3 py-3 rounded-xl text-[15px] transition-all duration-200 ${isCollapsed ? "justify-center px-0" : "px-4"
                   } ${isActive
-                    ? "bg-[#4648d4] text-white font-semibold shadow-sm"
-                    : "text-gray-600 font-medium hover:bg-[#4648d4]/5 hover:text-[#4648d4]"
+                    ? "bg-[#4648d4] text-white font-bold shadow-md shadow-[#4648d4]/20"
+                    : "text-slate-600 font-medium hover:bg-slate-50 hover:text-slate-900"
                   }`
                 }
               >
@@ -129,7 +129,7 @@ const Sidebar = ({ onClose, isCollapsed, toggleCollapse }) => {
                 <Link
                   to="/change-password"
                   onClick={() => setIsProfileOpen(false)}
-                  className="w-full flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-600 hover:text-[#4648d4] hover:bg-[#4648d4]/10 rounded-lg transition-colors"
+                  className="w-full flex items-center gap-3 px-3 py-2 text-sm font-medium text-slate-600 hover:text-[#4648d4] hover:bg-[#4648d4]/10 rounded-lg transition-colors"
                 >
                   <KeyRound size={16} />
                   Change Password
@@ -167,10 +167,10 @@ const Sidebar = ({ onClose, isCollapsed, toggleCollapse }) => {
             </div>
             {!isCollapsed && (
               <div className="text-left truncate">
-                <p className="text-sm font-bold text-gray-900 truncate">
+                <p className="text-sm font-bold text-slate-900 truncate">
                   {user?.username || "Admin"}
                 </p>
-                <p className="text-xs text-gray-500 truncate">Admin</p>
+                <p className="text-xs text-slate-500 truncate">Admin</p>
               </div>
             )}
           </div>
