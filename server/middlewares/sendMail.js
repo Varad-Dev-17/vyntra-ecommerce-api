@@ -11,6 +11,9 @@ const transport = nodemailer.createTransport({
     pass: process.env.NODE_CODE_SENDING_EMAIL_PASSWORD,
   },
   family: 4,
+  connectionTimeout: 5000,
+  greetingTimeout: 5000,
+  socketTimeout: 5000,
 });
 
 export default transport;
