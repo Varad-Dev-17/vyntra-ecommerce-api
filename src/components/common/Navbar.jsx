@@ -225,7 +225,7 @@ const Navbar = () => {
       {/* Navbar */}
       <nav className={`${navBg} ${navBorder} transition-all duration-300`}>
         <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-[76px]">
+          <div className="flex justify-between items-center h-[80px]">
 
             {/* Left: Logo */}
             <div className="flex-shrink-0 flex items-center" onMouseEnter={() => setActiveHoverDept(null)}>
@@ -236,8 +236,8 @@ const Navbar = () => {
                 <img
                   src="/Logo/logo.png"
                   alt="Vyntra Logo"
-                  fetchpriority="high"
-                  className="h-10 sm:h-12 lg:h-14 w-auto transition-all duration-300 pt-2"
+                  fetchPriority="high"
+                  className="h-14 sm:h-15 lg:h-20 w-auto transition-all duration-300 pt-2"
                   style={{ filter: isScrolled ? "none" : "drop-shadow(0px 0px 4px rgba(255,255,255,1)) drop-shadow(0px 0px 10px rgba(255,255,255,0.8))" }}
                 />
               </Link>
