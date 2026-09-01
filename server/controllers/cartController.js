@@ -39,9 +39,13 @@ export const getCart = async (req, res) => {
     const activeItems = [];
     let totalAmount = 0;
     let itemCount = 0;
+    let needsCleanup = false;
 
     for (const item of cart.products) {
-      if (!item.productId || !item.variantId) continue; // Product or variant was deleted, is inactive, or is a legacy item
+      if (!item.productId || !item.variantId) {
+        needsCleanup = true;
+        continue; // Product or variant was deleted, is inactive, or is a legacy item
+      }
 
       const product = item.productId;
       const variant = item.variantId;
@@ -85,6 +89,11 @@ export const getCart = async (req, res) => {
       activeItems.push(processedItem);
       totalAmount += variant.price * item.quantity;
       itemCount += item.quantity;
+    }
+
+    if (needsCleanup) {
+      cart.products = cart.products.filter(item => item.productId && item.variantId);
+      await cart.save();
     }
 
     return res.status(200).json({

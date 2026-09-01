@@ -16,6 +16,7 @@ const ProductPriceSection = ({
 }) => {
   const [showAuditLog, setShowAuditLog] = useState(false);
   const [showRetainedItems, setShowRetainedItems] = useState(false);
+  const [showItemBreakdown, setShowItemBreakdown] = useState(false);
 
   // In return/exchange view, locate specific returning item vs retained items
   const targetItem = returnRequest ? (items.find(i => 
@@ -301,49 +302,82 @@ const ProductPriceSection = ({
                   const fin = calculateItemFinancials(item, order);
                   return acc + (Number(fin.grossTotal) || 0) + (Number(fin.gstAmount) || 0);
                 }, 0) + shipping;
+                
+                const totalGrossTotal = displayItems.reduce((acc, item) => acc + (Number(calculateItemFinancials(item, order).grossTotal) || 0), 0);
+                const totalGST = displayItems.reduce((acc, item) => acc + (Number(calculateItemFinancials(item, order).gstAmount) || 0), 0);
 
                 return (
                   <div className="bg-white p-5 rounded-2xl border border-gray-200/80 shadow-2xs space-y-3.5">
                     <div className="flex items-center justify-between border-b border-gray-100 pb-2.5">
                       <span className="text-xs font-extrabold text-slate-800 uppercase tracking-wider">Order Payment Details</span>
-                      <span className="text-xs font-mono font-extrabold bg-indigo-50 text-[#4F46E5] px-2.5 py-0.5 rounded-md border border-indigo-100">{displayItems.length} {displayItems.length === 1 ? 'Item' : 'Items'}</span>
                     </div>
                     
                     <div className="space-y-2.5 pt-0.5 text-xs font-medium text-slate-600">
-                      {/* Each Item Price */}
-                      {displayItems.map((item, i) => {
-                        const fin = calculateItemFinancials(item, order);
-                        return (
-                          <div key={`price-${i}`} className="flex justify-between items-center text-slate-700">
-                            <span className="font-semibold">Item {i + 1} Price</span>
-                            <span className="font-mono font-bold text-slate-800">₹{Number(fin.grossTotal).toLocaleString('en-IN', { maximumFractionDigits: 2 })}</span>
-                          </div>
-                        );
-                      })}
+                      <div className="flex justify-between items-center text-slate-700">
+                        <span className="font-semibold">Items ({displayItems.length})</span>
+                        <span className="font-mono font-bold text-slate-800">₹{totalGrossTotal.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</span>
+                      </div>
 
-                      {/* Each Item GST */}
-                      {displayItems.map((item, i) => {
-                        const fin = calculateItemFinancials(item, order);
-                        const itemGst = Number(fin.gstAmount || 0);
-                        return (
-                          <div key={`gst-${i}`} className="flex justify-between items-center text-slate-600">
-                            <span>Item {i + 1} GST Tax</span>
-                            <span className="font-mono font-semibold text-amber-700">₹{itemGst.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</span>
-                          </div>
-                        );
-                      })}
-
-                      {/* Delivery Fee */}
-                      <div className="flex justify-between items-center text-slate-700 pt-0.5">
-                        <span className="font-semibold">Total Delivery Fee</span>
+                      <div className="flex justify-between items-center text-slate-700">
+                        <span className="font-semibold">Delivery Fee</span>
                         <span className="font-bold text-[#4F46E5]">{shipping > 0 ? `₹${shipping.toLocaleString('en-IN', { maximumFractionDigits: 2 })}` : 'FREE (₹0)'}</span>
                       </div>
+                      
+                      {totalGST > 0 && (
+                        <>
+                          <div className="pt-2 mt-2 border-t border-gray-100 border-dashed"></div>
+                          <div className="flex justify-between items-center text-slate-600">
+                            <span className="font-semibold">Tax (Total GST)</span>
+                            <span className="font-mono font-semibold text-amber-700">₹{totalGST.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</span>
+                          </div>
+                        </>
+                      )}
 
-                      {/* Total Amount Paid */}
-                      <div className="pt-3 mt-2 border-t border-gray-200 flex justify-between items-center font-bold text-slate-900 text-sm">
-                        <span>Total Amount Paid</span>
-                        <span className="text-emerald-700 font-black text-base font-mono">₹{Number(computedGrandTotal || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 })}</span>
+                      <div className="pt-3 mt-2 border-t border-gray-200 flex flex-col gap-2">
+                        <div className="flex justify-between items-center font-bold text-slate-900 text-sm">
+                          <span>Total Amount Paid</span>
+                          <span className="text-emerald-700 font-black text-base font-mono">₹{Number(computedGrandTotal || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 })}</span>
+                        </div>
+                        <div className="text-[10px] text-slate-400 font-medium">
+                          Paid • {formatDate(order.createdAt)} • {order.paymentMethod?.toUpperCase() || 'ONLINE'}
+                        </div>
                       </div>
+
+                      {/* Expandable Breakdown */}
+                      {displayItems.length > 1 && (
+                        <div className="pt-2 mt-2 border-t border-gray-100">
+                          <button
+                            onClick={() => setShowItemBreakdown(!showItemBreakdown)}
+                            className="w-full flex items-center justify-between text-[11px] font-bold text-[#4F46E5] hover:text-indigo-700 transition-colors cursor-pointer"
+                          >
+                            <span>View item price breakdown ({displayItems.length} items)</span>
+                            {showItemBreakdown ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                          </button>
+                          
+                          {showItemBreakdown && (
+                            <div className="mt-3 space-y-2 pl-2 border-l-2 border-indigo-100">
+                              {displayItems.map((item, i) => {
+                                const fin = calculateItemFinancials(item, order);
+                                const itemGst = Number(fin.gstAmount || 0);
+                                return (
+                                  <div key={`breakdown-${i}`} className="space-y-1">
+                                    <div className="flex justify-between items-center text-slate-600 text-[11px]">
+                                      <span>Item {i + 1} Price</span>
+                                      <span className="font-mono font-medium">₹{Number(fin.grossTotal).toLocaleString('en-IN')}</span>
+                                    </div>
+                                    {itemGst > 0 && (
+                                      <div className="flex justify-between items-center text-slate-500 text-[10px]">
+                                        <span>Item {i + 1} GST</span>
+                                        <span className="font-mono">₹{itemGst.toLocaleString('en-IN')}</span>
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
                 );

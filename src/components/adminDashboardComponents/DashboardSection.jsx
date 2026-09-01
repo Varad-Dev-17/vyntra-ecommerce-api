@@ -192,57 +192,55 @@ const DashboardSection = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-white font-sans text-slate-800 selection:bg-purple-100 p-4 lg:pl-17 lg:pr-17 lg:pt-6">
+    <div className="min-h-[calc(100vh-4rem)] bg-[#f8f9fc] font-sans text-slate-800 selection:bg-purple-100 p-4 md:p-6 lg:p-8 my-6 lg:my-8 mx-4 lg:mx-6 rounded-3xl border border-slate-100">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between mb-8">
-        <div className="space-y-2">
-          <h2 className="text-2xl md:text-3xl font-bold text-slate-700 tracking-tight">Dashboard Overview</h2>
-          <p className="text-base text-slate-500 font-medium">
-            Welcome back, admin! Here's what's happening with your store today.
-          </p>
-        </div>
+      <div className="mb-8">
+        <h2 className="text-2xl md:text-[28px] font-bold text-slate-800 mb-2 flex items-center gap-2">
+          Welcome back, admin! <span>👋</span>
+        </h2>
+        <p className="text-sm md:text-base text-slate-500 font-medium">
+          Here's what's happening with your store today.
+        </p>
       </div>
 
-      {/* Top Stats Flowing Panel */}
-      <div className="mb-10">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {stats.map((stat, index) => {
-            const Icon = stat.icon;
-            return (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-                className="flex flex-col items-start text-left p-5 border border-slate-200 bg-white"
-              >
-                <div className="flex items-center justify-start gap-3 mb-3">
-                  <div className={`w-10 h-10 flex items-center justify-center ${stat.iconBg}`}>
-                    <Icon size={20} className={stat.iconColor} />
-                  </div>
-                  <p className="text-[12px] font-bold text-slate-500 uppercase tracking-wider">{stat.label}</p>
+      {/* Top Stats Panel */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        {stats.map((stat, index) => {
+          const Icon = stat.icon;
+          return (
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1 }}
+              className="relative overflow-hidden bg-white rounded-2xl p-6 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] flex items-center gap-5"
+            >
+              <div className={`w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 ${stat.iconBg}`}>
+                <Icon size={24} className={stat.iconColor} />
+              </div>
+              <div className="flex flex-col z-10">
+                <span className="text-[13px] font-semibold text-slate-500 mb-1">{stat.label}</span>
+                <span className="text-2xl font-bold text-slate-800 mb-1">{stat.value}</span>
+                <div className="text-[11px] font-medium text-slate-400 flex items-center gap-1">
+                  <span className={stat.isPositive ? 'text-emerald-500 font-bold' : 'text-rose-500 font-bold'}>
+                    {stat.isPositive ? '▲' : '▼'} {stat.change.replace(/[+▲▼]/g, '').trim().split(' ')[0]}
+                  </span>
+                  {stat.change.replace(/[+▲▼]/g, '').trim().split(' ').slice(1).join(' ')}
                 </div>
-                <div className="w-full flex flex-col items-center">
-                  <h3 className="text-xl font-bold text-slate-700 mb-1">{stat.value}</h3>
-                  <div className="flex items-center justify-center text-xs font-medium">
-                    <span className={`mr-1 ${stat.isPositive ? 'text-emerald-500' : 'text-rose-500'}`}>
-                      {stat.change.split(' ')[0]}
-                    </span>
-                    <span className="text-slate-400">{stat.change.split(' ').slice(1).join(' ')}</span>
-                  </div>
-                </div>
-              </motion.div>
-            );
-          })}
-        </div>
+              </div>
+              {/* Decorative faint circle at bottom right */}
+              <div className={`absolute -bottom-6 -right-6 w-24 h-24 rounded-full opacity-[0.15] ${stat.iconBg}`} />
+            </motion.div>
+          );
+        })}
       </div>
 
       {/* Charts Section 1 */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-10 mb-10">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         {/* Revenue Overview Chart */}
-        <div className="lg:col-span-2 flex flex-col">
-          <div className="flex justify-between items-end mb-8">
-            <h3 className="text-xl font-bold text-slate-700 tracking-tight">Revenue Overview</h3>
+        <div className="lg:col-span-2 bg-white rounded-2xl p-6 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] flex flex-col">
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="text-lg font-bold text-slate-800 tracking-tight">Revenue Overview</h3>
             <FilterSelect value={revenueFilter} onChange={setRevenueFilter} />
           </div>
           <div className="h-[280px] w-full">
@@ -269,9 +267,9 @@ const DashboardSection = () => {
         </div>
 
         {/* Orders Overview Donut */}
-        <div className="flex flex-col">
-          <div className="flex justify-between items-end mb-8">
-            <h3 className="text-xl font-bold text-slate-700 tracking-tight">Orders Overview</h3>
+        <div className="bg-white rounded-2xl p-6 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] flex flex-col">
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="text-lg font-bold text-slate-800 tracking-tight">Orders Overview</h3>
             <FilterSelect value={ordersFilter} onChange={setOrdersFilter} />
           </div>
           
@@ -289,7 +287,7 @@ const DashboardSection = () => {
                   stroke="none"
                 >
                   {orderPieData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
                 <Tooltip 
@@ -311,7 +309,7 @@ const DashboardSection = () => {
               return (
                 <div key={index} className="flex items-center justify-between text-sm">
                   <div className="flex items-center gap-2">
-                    <span className="w-2.5 h-2.5" style={{ backgroundColor: item.color }}></span>
+                    <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.color }}></span>
                     <span className="text-slate-600 font-medium">{item.name}</span>
                   </div>
                   <div className="flex items-center gap-4">
@@ -326,25 +324,25 @@ const DashboardSection = () => {
       </div>
 
       {/* Lists Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-10 mb-10 border-t border-slate-100 pt-10">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         {/* Top Selling Products */}
-        <div className="lg:border-r lg:border-slate-400 lg:pr-8">
-          <div className="flex justify-between items-end mb-8">
-            <h3 className="text-xl font-bold text-slate-700 tracking-tight">Top Products</h3>
-            <span onClick={() => navigate('/admin/products')} className="text-sm font-bold text-purple-600 hover:text-purple-700 cursor-pointer">View All</span>
+        <div className="bg-white rounded-2xl p-6 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)]">
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="text-lg font-bold text-slate-800 tracking-tight">Top Products</h3>
+            <span onClick={() => navigate('/admin/products')} className="text-xs font-bold text-purple-600 hover:text-purple-700 cursor-pointer">View All</span>
           </div>
           <div className="flex flex-col gap-4">
-            <div className="flex justify-between text-xs font-bold text-slate-400 uppercase tracking-wider pb-3 border-b border-slate-100">
+            <div className="flex justify-between text-[11px] font-bold text-slate-400 uppercase tracking-wider pb-2 border-b border-slate-100">
               <span>Product</span>
               <div className="flex gap-6 text-right">
                 <span className="w-12">Sold</span>
-                <span className="w-20">Revenue</span>
+                <span className="w-16">Revenue</span>
               </div>
             </div>
             {topProducts.slice(0, 4).map((product, index) => (
-              <div key={index} className="flex items-center justify-between border-b border-slate-100 pb-4 last:border-0 last:pb-0">
+              <div key={index} className="flex items-center justify-between border-b border-slate-100 pb-3 last:border-0 last:pb-0">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-slate-100 rounded-md overflow-hidden flex-shrink-0">
+                  <div className="w-10 h-10 bg-slate-100 rounded-md overflow-hidden flex-shrink-0">
                     {product.images && product.images[0] ? (
                       <img src={product.images[0].url} alt={product.title} className="w-full h-full object-cover"  loading="lazy" decoding="async" />
                     ) : (
@@ -352,13 +350,13 @@ const DashboardSection = () => {
                     )}
                   </div>
                   <div>
-                    <h4 className="text-sm font-semibold text-slate-800 line-clamp-1">{product.title}</h4>
-                    <p className="text-xs text-slate-500">Popular</p>
+                    <h4 className="text-[13px] font-semibold text-slate-800 line-clamp-1">{product.title}</h4>
+                    <p className="text-[11px] text-slate-500">Popular</p>
                   </div>
                 </div>
-                <div className="flex gap-6 text-right text-sm">
+                <div className="flex gap-6 text-right text-[13px]">
                   <span className="font-medium text-slate-600 w-12">{product.totalSold}</span>
-                  <span className="font-bold text-slate-800 w-20">₹{Math.round(product.totalRevenue).toLocaleString('en-IN')}</span>
+                  <span className="font-bold text-slate-800 w-16">₹{Math.round(product.totalRevenue).toLocaleString('en-IN')}</span>
                 </div>
               </div>
             ))}
@@ -366,19 +364,19 @@ const DashboardSection = () => {
         </div>
 
         {/* Recent Orders */}
-        <div className="overflow-hidden lg:border-r lg:border-slate-300 lg:pr-8">
-          <div className="flex justify-between items-end mb-8">
-            <h3 className="text-xl font-bold text-slate-700 tracking-tight">Recent Orders</h3>
-            <span onClick={() => navigate('/admin/orders')} className="text-sm font-bold text-purple-600 hover:text-purple-700 cursor-pointer">View All</span>
+        <div className="bg-white rounded-2xl p-6 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] overflow-hidden">
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="text-lg font-bold text-slate-800 tracking-tight">Recent Orders</h3>
+            <span onClick={() => navigate('/admin/orders')} className="text-xs font-bold text-purple-600 hover:text-purple-700 cursor-pointer">View All</span>
           </div>
           <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left">
+            <table className="w-full text-[13px] text-left">
               <thead>
-                <tr className="text-xs font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">
-                  <th className="pb-3 font-medium">Order ID</th>
-                  <th className="pb-3 font-medium">Customer</th>
-                  <th className="pb-3 font-medium text-right pr-6">Amount</th>
-                  <th className="pb-3 font-medium text-right">Status</th>
+                <tr className="text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">
+                  <th className="pb-2 font-medium">Order ID</th>
+                  <th className="pb-2 font-medium">Customer</th>
+                  <th className="pb-2 font-medium text-right pr-4">Amount</th>
+                  <th className="pb-2 font-medium text-right">Status</th>
                 </tr>
               </thead>
               <tbody>
@@ -386,9 +384,9 @@ const DashboardSection = () => {
                   <tr key={order._id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50/50 transition-colors">
                     <td className="py-3 font-medium text-slate-800">#{order.orderId || order._id.toString().substring(0,6)}</td>
                     <td className="py-3 text-slate-600">{order.user?.username || 'Guest'}</td>
-                    <td className="py-3 font-semibold text-slate-800 text-right pr-6">₹{Math.round(order.totalAmount).toLocaleString('en-IN')}</td>
+                    <td className="py-3 font-semibold text-slate-800 text-right pr-4">₹{Math.round(order.totalAmount).toLocaleString('en-IN')}</td>
                     <td className="py-3 text-right">
-                      <span className={`px-3 py-1.5 rounded-full text-[11px] font-bold tracking-wide uppercase ${statusColors[order.status] || "text-slate-600 bg-slate-100"}`}>
+                      <span className={`px-2 py-1 rounded text-[10px] font-bold tracking-wide uppercase ${statusColors[order.status] || "text-slate-600 bg-slate-100"}`}>
                         {order.status}
                       </span>
                     </td>
@@ -400,28 +398,28 @@ const DashboardSection = () => {
         </div>
 
         {/* Sales by Category */}
-        <div className="lg:pr-8">
-          <div className="flex justify-between items-end mb-8">
-            <h3 className="text-xl font-bold text-slate-700 tracking-tight">Sales by Category</h3>
-            <span onClick={() => navigate('/admin/catalog')} className="text-sm font-bold text-purple-600 hover:text-purple-700 cursor-pointer">View All</span>
+        <div className="bg-white rounded-2xl p-6 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)]">
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="text-lg font-bold text-slate-800 tracking-tight">Sales by Category</h3>
+            <span onClick={() => navigate('/admin/catalog')} className="text-xs font-bold text-purple-600 hover:text-purple-700 cursor-pointer">View All</span>
           </div>
-          <div className="space-y-6">
+          <div className="space-y-5">
             {salesByCategory.slice(0, 5).map((item, index) => (
               <div key={index}>
-                <div className="flex justify-between text-sm mb-1.5">
+                <div className="flex justify-between text-[13px] mb-1.5">
                   <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 flex justify-center items-center bg-slate-50 text-slate-500">
-                      <Box size={14} />
+                    <div className="w-5 h-5 flex justify-center items-center bg-slate-50 text-slate-500 rounded">
+                      <Box size={12} />
                     </div>
                     <span className="font-semibold text-slate-700">{item.category}</span>
                   </div>
                   <div className="flex items-center gap-3">
                     <span className="font-medium text-slate-500">{item.percentage}%</span>
-                    <span className="font-bold text-slate-800 w-20 text-right">₹{Math.round(item.revenue).toLocaleString('en-IN')}</span>
+                    <span className="font-bold text-slate-800 w-16 text-right">₹{Math.round(item.revenue).toLocaleString('en-IN')}</span>
                   </div>
                 </div>
-                <div className="w-full bg-slate-100 h-1.5">
-                  <div className={`h-1.5 ${catColors[index % catColors.length]}`} style={{ width: `${item.percentage}%` }}></div>
+                <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                  <div className={`h-1.5 rounded-full ${catColors[index % catColors.length]}`} style={{ width: `${item.percentage}%` }}></div>
                 </div>
               </div>
             ))}
@@ -433,10 +431,10 @@ const DashboardSection = () => {
       </div>
 
       {/* Analytics Chart */}
-      <div className="border-t border-slate-100 pt-10">
-        <div className="flex justify-between items-end mb-8">
-          <h3 className="text-xl font-bold text-slate-700 tracking-tight">Sales Analytics</h3>
-          <FilterSelect value={analyticsFilter} onChange={setAnalyticsFilter} large={true} />
+      <div className="bg-white rounded-2xl p-6 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)]">
+        <div className="flex justify-between items-center mb-6">
+          <h3 className="text-lg font-bold text-slate-800 tracking-tight">Sales Analytics</h3>
+          <FilterSelect value={analyticsFilter} onChange={setAnalyticsFilter} large={false} />
         </div>
         <div className="h-[300px] w-full">
           <ResponsiveContainer width="100%" height="100%">
@@ -455,15 +453,16 @@ const DashboardSection = () => {
                 iconType="circle"
                 wrapperStyle={{ paddingBottom: '20px', fontSize: '12px', fontWeight: 500 }}
               />
-              <Bar yAxisId="left" dataKey="revenue" name="Revenue" fill="#8b5cf6" maxBarSize={12} />
-              <Bar yAxisId="right" dataKey="orders" name="Orders" fill="#3b82f6" maxBarSize={12} />
-              <Bar yAxisId="right" dataKey="customers" name="Customers" fill="#10b981" maxBarSize={12} />
+              <Bar yAxisId="left" dataKey="revenue" name="Revenue" fill="#8b5cf6" maxBarSize={12} radius={[4, 4, 0, 0]} />
+              <Bar yAxisId="right" dataKey="orders" name="Orders" fill="#3b82f6" maxBarSize={12} radius={[4, 4, 0, 0]} />
+              <Bar yAxisId="right" dataKey="customers" name="Customers" fill="#10b981" maxBarSize={12} radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
       </div>
     </div>
   );
+
 };
 
 export default DashboardSection;

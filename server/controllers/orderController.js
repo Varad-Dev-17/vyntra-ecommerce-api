@@ -303,12 +303,16 @@ export const initRazorpayOrder = async (req, res) => {
     for (const item of cart.products) {
       const product = item.productId;
       if (!product || product.status !== "Active") {
-        return res.status(400).json({ success: false, message: `Product ${product?.title || "Unknown"} is no longer available` });
+        continue;
       }
 
       const variant = await Variant.findById(item.variantId);
-      if (!variant || variant.stock < item.quantity) {
-        return res.status(400).json({ success: false, message: `Only ${variant?.stock || 0} items available for ${product.title}` });
+      if (!variant) {
+        continue;
+      }
+      
+      if (variant.stock < item.quantity) {
+        return res.status(400).json({ success: false, message: `Only ${variant.stock} items available for ${product.title}` });
       }
 
       const itemSellingPrice = variant.price * item.quantity;
@@ -447,18 +451,18 @@ export const createOrder = async (req, res) => {
       const product = item.productId;
 
       if (!product || product.status !== "Active") {
-        return res.status(400).json({
-          success: false,
-          message: `Product ${product?.title || "Unknown"} is no longer available`,
-          data: null,
-        });
+        continue; // Skip ghost/inactive products
       }
 
       const variant = await Variant.findById(item.variantId);
-      if (!variant || variant.stock < item.quantity) {
+      if (!variant) {
+        continue; // Skip deleted variants
+      }
+      
+      if (variant.stock < item.quantity) {
         return res.status(400).json({
           success: false,
-          message: `Only ${variant?.stock || 0} items available for ${product.title}`,
+          message: `Only ${variant.stock} items available for ${product.title}`,
           data: null,
         });
       }

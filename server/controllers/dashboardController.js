@@ -188,22 +188,52 @@ export const getDashboardStats = async (req, res) => {
       const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
       const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-      return agg.map(item => {
-        let label = "";
+      const aggDict = {};
+      agg.forEach(item => {
         if (timeFilter === "This Week") {
-          label = dayNames[item._id.dayOfWeek - 1] || `${item._id.day}/${item._id.month}`;
+           aggDict[item._id.dayOfWeek] = item;
         } else if (timeFilter === "This Month") {
-          label = `${item._id.day} ${monthNames[item._id.month - 1]}`;
+           aggDict[item._id.day] = item;
         } else {
-          label = monthNames[item._id.month - 1];
+           aggDict[item._id.month] = item;
         }
-        return {
-          label: label,
-          revenue: Math.round(item.revenue * 100) / 100,
-          orders: item.orders,
-          customers: item.customers,
-        };
       });
+
+      const result = [];
+      
+      if (timeFilter === "This Week") {
+        for (let i = 1; i <= 7; i++) { // dayOfWeek 1=Sun, 7=Sat
+           const item = aggDict[i];
+           result.push({
+             label: dayNames[i - 1],
+             revenue: item ? Math.round(item.revenue * 100) / 100 : 0,
+             orders: item ? item.orders : 0,
+             customers: item ? item.customers : 0,
+           });
+        }
+      } else if (timeFilter === "This Month") {
+        const daysInMonth = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+        for (let i = 1; i <= daysInMonth; i++) {
+           const item = aggDict[i];
+           result.push({
+             label: `${i} ${monthNames[startDate.getMonth()]}`,
+             revenue: item ? Math.round(item.revenue * 100) / 100 : 0,
+             orders: item ? item.orders : 0,
+             customers: item ? item.customers : 0,
+           });
+        }
+      } else { // This Year
+        for (let i = 1; i <= 12; i++) {
+           const item = aggDict[i];
+           result.push({
+             label: monthNames[i - 1],
+             revenue: item ? Math.round(item.revenue * 100) / 100 : 0,
+             orders: item ? item.orders : 0,
+             customers: item ? item.customers : 0,
+           });
+        }
+      }
+      return result;
     };
 
     const revenueChart = await buildChartAggregation(revenueTime);
