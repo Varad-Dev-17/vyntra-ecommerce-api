@@ -1,6 +1,11 @@
 import nodemailer from "nodemailer";
 import dotenv from "dotenv";
+import dns from "node:dns";
 dotenv.config();
+
+// Force IPv4 resolution first because Render often lacks IPv6 routing,
+// causing ENETUNREACH errors when Node tries IPv6 first.
+dns.setDefaultResultOrder('ipv4first');
 
 const transport = nodemailer.createTransport({
   host: "smtp.gmail.com",
