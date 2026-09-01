@@ -111,10 +111,11 @@ const HomeNewArrivalsSection = ({ title, subtitle }) => {
   }, []);
 
   useEffect(() => {
-    // Only initialize GSAP if we have products to scroll
     if (products.length === 0) return;
 
-    let ctx = gsap.context(() => {
+    let mm = gsap.matchMedia();
+
+    mm.add("(min-width: 768px)", () => {
       const track = trackRef.current;
       const container = track.parentElement;
       const getScrollAmount = () => {
@@ -129,22 +130,22 @@ const HomeNewArrivalsSection = ({ title, subtitle }) => {
         scrollTrigger: {
           trigger: sectionRef.current,
           start: "top top",
-          end: () => `+=${Math.abs(getScrollAmount())}`, // 1:1 ratio. 1px vertical scroll = 1px horizontal movement
+          end: () => `+=${Math.abs(getScrollAmount())}`,
           pin: true,
-          scrub: true, // Locks animation exactly to scroll position without lag
+          scrub: true,
           invalidateOnRefresh: true,
           anticipatePin: 1,
         },
       });
-    }, sectionRef);
+    });
 
-    return () => ctx.revert();
-  }, [products]); // Re-run GSAP when products load
+    return () => mm.revert();
+  }, [products]);
 
   return (
     <section
       ref={sectionRef}
-      className="w-full bg-white pt-12 sm:pt-17 md:pt-20 pb-8 overflow-hidden h-screen flex flex-col justify-center relative z-10"
+      className="w-full bg-white pt-12 sm:pt-17 md:pt-20 pb-8 overflow-hidden min-h-[60vh] md:h-screen flex flex-col justify-center relative z-10"
     >
       <div className="max-w-[1600px] mx-auto w-full px-4 md:px-8 lg:px-12 mb-6 sm:mb-8">
         {/* Section Header */}
@@ -160,8 +161,8 @@ const HomeNewArrivalsSection = ({ title, subtitle }) => {
         </div>
       </div>
 
-      {/* Pinned Horizontal Runway Track */}
-      <div className="w-full overflow-hidden px-4 md:px-8 lg:px-12 pb-6">
+      {/* Pinned Horizontal Runway Track (Desktop) / Native Scroll (Mobile) */}
+      <div className="w-full overflow-x-auto md:overflow-hidden px-4 md:px-8 lg:px-12 pb-6 scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
         <div
           ref={trackRef}
           className="flex gap-4 sm:gap-5 md:gap-6 w-max will-change-transform"

@@ -237,7 +237,7 @@ const Navbar = () => {
                   src="/Logo/logo.png"
                   alt="Vyntra Logo"
                   fetchpriority="high"
-                  className="h-25 sm:h-25 w-auto transition-all duration-300 pt-2"
+                  className="h-10 sm:h-12 lg:h-14 w-auto transition-all duration-300 pt-2"
                   style={{ filter: isScrolled ? "none" : "drop-shadow(0px 0px 4px rgba(255,255,255,1)) drop-shadow(0px 0px 10px rgba(255,255,255,0.8))" }}
                 />
               </Link>
