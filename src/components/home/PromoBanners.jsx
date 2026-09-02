@@ -38,7 +38,7 @@ const PromoBanners = () => {
         </Link>
 
         {/* Banner 2 */}
-        <Link to="/products?department=sports" className="flex-1 block relative rounded-3xl overflow-hidden group shadow-lg bg-[#FDF8F5]">
+        <Link to="/products?department=Sports" className="flex-1 block relative rounded-3xl overflow-hidden group shadow-lg bg-[#FDF8F5]">
           <div className="aspect-[16/9] md:aspect-[21/9] lg:aspect-[21/9] relative">
             <img
               src="/home/shoes_banner.png"

@@ -5,7 +5,7 @@ const ShopLayout = ({ sidebar, children }) => {
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-[#FAFAFB] pt-[84px] pb-12 relative">
+    <div className="min-h-screen bg-[#FAFAFB] pt-[84px] relative">
       <div className="max-w-[1600px] mx-auto px-3 sm:px-4 lg:px-4">
         
         {/* Mobile Filter Toggle Button */}
@@ -23,7 +23,7 @@ const ShopLayout = ({ sidebar, children }) => {
           
           {/* Filter Sidebar (Desktop Sticky / Mobile Modal) */}
           <aside className={`
-            fixed inset-0 z-50 bg-black/50 lg:bg-transparent lg:static lg:z-auto transition-opacity duration-300
+            fixed inset-0 z-50 bg-black/50 lg:bg-transparent lg:sticky lg:top-[84px] lg:self-start lg:h-[calc(100vh-84px)] lg:z-auto transition-opacity duration-300
             ${isMobileFilterOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none lg:opacity-100 lg:pointer-events-auto'}
           `}>
             {/* Sidebar Content Container */}
@@ -39,7 +39,7 @@ const ShopLayout = ({ sidebar, children }) => {
                   <X size={20} />
                 </button>
               </div>
-              <div className="h-full overflow-y-auto lg:overflow-visible lg:sticky lg:top-[84px]">
+              <div className="h-full overflow-y-auto">
                 {sidebar}
               </div>
             </div>
