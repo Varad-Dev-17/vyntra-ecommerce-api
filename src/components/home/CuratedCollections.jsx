@@ -13,7 +13,7 @@ const bentoItems = [
     objectPosition: "object-bottom",
     textColor: "text-white",
     subtitleColor: "text-white/90",
-    buttonStyle: "bg-white text-[#111827] group-hover:bg-[#111827] group-hover:text-white",
+    buttonStyle: "rounded-full bg-white text-[#111827] group-hover:bg-[#111827] group-hover:text-white",
     overlayDefault: "linear-gradient(to top, rgba(15,23,42,0.60) 0%, rgba(15,23,42,0.18) 45%, transparent 80%)",
     overlayHover: "linear-gradient(to top, rgba(15,23,42,0.80) 0%, rgba(15,23,42,0.28) 50%, transparent 100%)"
   },
@@ -21,7 +21,7 @@ const bentoItems = [
     id: "kurtisets",
     title: "Festive Kurti Sets",
     subtitle: "Step into the spotlight.",
-    image: "/home/kurti_set.png",
+    image: "/kurti_set_promo.png",
     link: "/products?department=Women&category=Kurti Set",
     className: "col-span-1 md:col-span-6 md:row-span-1 aspect-[16/9] md:aspect-auto md:h-full",
     objectPosition: "object-[center_25%]",
@@ -31,21 +31,30 @@ const bentoItems = [
     innerClasses: "ml-2 md:ml-4 lg:ml-6",
     textColor: "text-[#111827]",
     subtitleColor: "text-[#374151]",
-    buttonStyle: "bg-[#111827] text-white group-hover:bg-[#db2777] group-hover:text-white",
+    buttonStyle: "rounded-full bg-[#111827] text-white group-hover:bg-[#db2777] group-hover:text-white",
     overlayDefault: "linear-gradient(to top, rgba(255,255,255,0.40) 0%, rgba(255,255,255,0.05) 45%, transparent 80%)",
     overlayHover: "linear-gradient(to top, rgba(255,255,255,0.60) 0%, rgba(255,255,255,0.15) 50%, transparent 100%)"
   },
   {
     id: "sale",
-    title: "Season Sale",
-    subtitle: "Up to 40% off on selected items.",
-    image: "/home/shopping_bags.jpg",
+    title: (
+      <div className="flex flex-col items-center">
+        <span className="font-serif italic text-2xl md:text-3xl text-[#374151] font-normal leading-none tracking-wide">Seasonal</span>
+        <span className="text-5xl md:text-[70px] font-black uppercase tracking-tighter bg-gradient-to-r from-orange-400 via-red-500 to-red-800 bg-clip-text text-transparent leading-[0.9] mt-2 mb-1">SALE</span>
+      </div>
+    ),
+    subtitle: (
+      <span className="uppercase tracking-widest font-bold text-[#4b5563] text-sm md:text-base">UP TO 40% OFF</span>
+    ),
+    image: "/season_sale.png",
     link: "/products?category=Shirts,T-Shirts,Jeans,Shoes",
     className: "col-span-1 md:col-span-6 md:row-span-1 aspect-[16/9] md:aspect-auto md:h-full",
     objectPosition: "object-[right_20%]",
-    textColor: "text-[#111827]",
-    subtitleColor: "text-[#374151]",
-    buttonStyle: "bg-[#111827] text-white group-hover:bg-[#4F46E5] group-hover:text-white",
+    blockAlign: "center",
+    textAlign: "center",
+    buttonStyle: "rounded-[4px] bg-[#1a202c] text-white uppercase tracking-wider text-[12px] group-hover:bg-black",
+    buttonText: "SHOP NOW",
+    hideButtonIcon: true,
     overlayDefault: "linear-gradient(to bottom, rgba(255,255,255,0.40) 0%, rgba(255,255,255,0.05) 45%, transparent 80%)",
     overlayHover: "linear-gradient(to bottom, rgba(255,255,255,0.60) 0%, rgba(255,255,255,0.15) 50%, transparent 100%)",
     textWidth: "max-w-[65%] sm:max-w-[55%] md:max-w-[60%]",
@@ -111,8 +120,8 @@ const CuratedCollections = () => {
                 />
 
                 {/* Content Overlay */}
-                <div className={`absolute left-0 w-full px-6 md:px-8 z-20 flex flex-col ${item.verticalPosition === 'top' ? 'top-6 md:top-10 justify-start' : (item.verticalPosition === 'center' ? 'top-1/2 -translate-y-1/2 justify-center' : 'bottom-6 md:bottom-8 justify-end')} ${item.blockAlign === 'right' ? 'items-end' : 'items-start'}`}>
-                  <div className={`flex flex-col ${item.textAlign === 'left' ? 'items-start text-left' : (item.blockAlign === 'right' ? 'items-end text-right' : 'items-start text-left')} ${item.textWidth || (item.blockAlign === 'right' ? 'w-auto' : 'w-full')} ${item.innerClasses || ''}`}>
+                <div className={`absolute left-0 w-full px-6 md:px-8 z-20 flex flex-col ${item.verticalPosition === 'top' ? 'top-6 md:top-10 justify-start' : (item.verticalPosition === 'center' ? 'top-1/2 -translate-y-1/2 justify-center' : 'bottom-6 md:bottom-8 justify-end')} ${item.blockAlign === 'center' ? 'items-center' : (item.blockAlign === 'right' ? 'items-end' : 'items-start')}`}>
+                  <div className={`flex flex-col ${item.textAlign === 'center' ? 'items-center text-center' : (item.textAlign === 'left' ? 'items-start text-left' : (item.blockAlign === 'right' ? 'items-end text-right' : 'items-start text-left'))} ${item.textWidth || (item.blockAlign === 'right' ? 'w-auto' : 'w-full')} ${item.innerClasses || ''}`}>
                     <h3 className={`text-[18px] sm:text-[20px] md:text-[30px] font-bold mb-2 leading-tight ${item.textColor || 'text-white'}`}>
                       {item.title}
                     </h3>
@@ -120,12 +129,14 @@ const CuratedCollections = () => {
                       {item.subtitle}
                     </p>
 
-                    <div className={`inline-flex items-center justify-center px-6 py-2.5 rounded-full font-bold text-[14px] w-max shadow-md transition-colors duration-300 ${item.buttonStyle || 'bg-white text-[#111827] group-hover:bg-[#111827] group-hover:text-white'}`}>
-                      Explore
-                      <ArrowRight
-                        size={16}
-                        className="ml-2 transition-transform duration-300 group-hover:translate-x-1"
-                      />
+                    <div className={`inline-flex items-center justify-center px-6 py-2.5 font-bold text-[14px] w-max shadow-md transition-colors duration-300 ${item.buttonStyle || 'rounded-full bg-white text-[#111827] group-hover:bg-[#111827] group-hover:text-white'}`}>
+                      {item.buttonText || "Explore"}
+                      {!item.hideButtonIcon && (
+                        <ArrowRight
+                          size={16}
+                          className="ml-2 transition-transform duration-300 group-hover:translate-x-1"
+                        />
+                      )}
                     </div>
                   </div>
                 </div>

@@ -14,7 +14,7 @@ const PromoBanners = () => {
               loading="lazy" decoding="async" />
 
             {/* Gradient Overlay for Text Readability */}
-            <div className="absolute inset-0 bg-gradient-to-l from-[#080d24]/90 via-[#080d24]/60 to-transparent w-[80%] md:w-[60%] ml-auto z-0 pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-l from-[#080d24]/70 via-[#080d24]/30 to-transparent w-[70%] md:w-[50%] ml-auto z-0 pointer-events-none" />
 
             {/* Text Content Overlay */}
             <div className="absolute inset-0 flex items-center justify-end p-6 sm:p-8 md:p-10 lg:p-12 z-10 pointer-events-none">
