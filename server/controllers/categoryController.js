@@ -19,7 +19,7 @@ export const getCategories = async (req, res) => {
     // Filter by departmentId inside the array
     if (department) query.departmentIds = department;
 
-    let sortOptions = { createdAt: -1 };
+    let sortOptions = { createdAt: 1 };
     if (sort) {
       const [field, order] = sort.split(":");
       if (field && order) sortOptions[field] = order === "asc" ? 1 : -1;
@@ -86,7 +86,7 @@ export const getCategoriesByDepartment = async (req, res) => {
     const categories = await Category.find({
       departmentIds: departmentId,
       status: "Active",
-    }).sort({ name: 1 });
+    }).sort({ createdAt: 1 });
 
     res.status(200).json({
       success: true,

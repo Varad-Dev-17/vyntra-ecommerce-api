@@ -108,7 +108,7 @@ export const getAttributesByCategory = async (req, res) => {
     const attributes = await Attribute.find({
       categoryIds: categoryId,
       status: "Active",
-    }).sort({ name: 1 });
+    }).sort({ createdAt: 1 });
 
     res.status(200).json({
       success: true,

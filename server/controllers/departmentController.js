@@ -17,7 +17,7 @@ export const getDepartments = async (req, res) => {
     }
 
     // Build sort options
-    let sortOptions = { createdAt: -1 };
+    let sortOptions = { createdAt: 1 };
     if (sort) {
       const [field, order] = sort.split(':');
       if (field && order) {

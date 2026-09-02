@@ -17,7 +17,7 @@ export const getBrands = async (req, res) => {
     if (status) query.status = status;
     if (department) query.departmentIds = department;
 
-    let sortOptions = { createdAt: -1 };
+    let sortOptions = { createdAt: 1 };
     if (sort) {
       const [field, order] = sort.split(":");
       if (field && order) sortOptions[field] = order === "asc" ? 1 : -1;
@@ -85,7 +85,7 @@ export const getBrandsByDepartment = async (req, res) => {
     const brands = await Brand.find({
       departmentIds: departmentId,
       status: "Active",
-    }).sort({ name: 1 });
+    }).sort({ createdAt: 1 });
 
     res.status(200).json({
       success: true,
