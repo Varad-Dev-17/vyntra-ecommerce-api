@@ -8,7 +8,7 @@ const PromoBanners = () => {
         <Link to="/products?department=Electronics&category=Phone&brand=Apple" className="flex-1 block relative rounded-3xl overflow-hidden group shadow-lg">
           <div className="aspect-[16/9] md:aspect-[21/9] lg:aspect-[21/9] relative">
             <img
-              src="/home/iphone.jpg"
+              src="/orange-iphone.png"
               alt="iPhone 16 Pro Max Promo"
               className="w-full h-full object-cover object-[center_15%] transition-transform duration-700 group-hover:scale-105"
               loading="lazy" decoding="async" />
